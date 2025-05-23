@@ -269,7 +269,7 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {media.social_media_platforms.map((platform, index) => (
                 <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                  <span className="text-2xl mr-3">{getSocialMediaIcon(platform)}</span>
+                  {getSocialMediaIcon(platform)}
                   <span className="text-sm font-montserrat font-medium text-gray-700">{platform}</span>
                 </div>
               ))}
