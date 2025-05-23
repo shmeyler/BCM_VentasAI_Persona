@@ -161,435 +161,450 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
     return icons[platform] || <FaMobile {...iconProps} style={{ color: '#666' }} />;
   };
 
-  // Device Icons
-  const getDeviceIcon = (device) => {
-    const icons = {
-      'Smartphone': '📱',
-      'Tablet': '📟',
-      'Laptop': '💻',
-      'Desktop': '🖥️',
-      'Smart TV': '📺',
-      'Smart speaker': '🔊',
-      'Gaming console': '🎮',
-      'Wearable device': '⌚'
-    };
-    return icons[device] || '📱';
-  };
-
-  // Calculate completion percentage for visual indicators
-  const calculateCompletionScore = () => {
-    let totalFields = 0;
-    let completedFields = 0;
-    
-    // Check demographics
-    Object.values(persona_data?.demographics || {}).forEach(value => {
-      totalFields++;
-      if (value) completedFields++;
-    });
-    
-    // Check attributes
-    Object.values(persona_data?.attributes || {}).forEach(value => {
-      totalFields++;
-      if (Array.isArray(value) ? value.length > 0 : value) completedFields++;
-    });
-    
-    // Check media consumption
-    Object.values(persona_data?.media_consumption || {}).forEach(value => {
-      totalFields++;
-      if (Array.isArray(value) ? value.length > 0 : value) completedFields++;
-    });
-    
-    return Math.round((completedFields / totalFields) * 100);
-  };
-
-  // Calculate engagement metrics
-  const calculateEngagementMetrics = () => {
-    const media = persona_data?.media_consumption;
-    const demographics = persona_data?.demographics;
-    
-    // Social Media Score (0-100)
-    const socialPlatforms = media?.social_media_platforms?.length || 0;
-    const socialScore = Math.min(socialPlatforms * 15 + 10, 100);
-    
-    // Digital Fluency Score (based on devices and age)
-    const deviceCount = media?.preferred_devices?.length || 0;
-    const ageRange = demographics?.age_range || "30-40";
-    const isYoung = ageRange.includes("18-24") || ageRange.includes("25-40");
-    const digitalBase = isYoung ? 70 : 50;
-    const digitalScore = Math.min(digitalBase + (deviceCount * 8), 100);
-    
-    // Content Engagement (based on content types and time)
-    const contentTypes = media?.content_types?.length || 0;
-    const hasHighTime = media?.consumption_time?.includes("4-6") || media?.consumption_time?.includes("6+");
-    const contentScore = Math.min((contentTypes * 12) + (hasHighTime ? 25 : 10), 100);
-    
-    return { socialScore, digitalScore, contentScore };
-  };
-
-  const { socialScore, digitalScore, contentScore } = calculateEngagementMetrics();
-
-  // Render circular progress chart
-  const renderCircularChart = (percentage, size = 80, strokeWidth = 8, color = '#FF9800') => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const strokeDasharray = `${circumference} ${circumference}`;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="transform -rotate-90">
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#e5e7eb"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={color}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            className="transition-all duration-500"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold font-montserrat" style={{ color }}>
-            {percentage}%
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-  const renderPersonaCard = () => (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100"
-         style={{boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)'}}>
-      <div className="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-8">
-        {/* Large Persona Image with enhanced styling */}
-        <div className="flex-shrink-0 mx-auto lg:mx-0 relative">
-          {persona_image_url ? (
-            <div className="relative">
-              <img
-                src={persona_image_url}
-                alt={generatedPersona.name}
-                className="w-60 h-60 lg:w-72 lg:h-72 rounded-2xl object-cover shadow-2xl border-4 border-white"
-                style={{
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                }}
-              />
-              {/* BCM Logo overlay */}
-              <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-xl flex items-center justify-center shadow-lg border-4 border-white" 
-                   style={{background: 'linear-gradient(135deg, var(--bcm-orange), var(--bcm-teal))'}}>
-                <div className="text-center">
-                  <div className="text-white font-bold text-lg font-montserrat leading-none">BCM</div>
-                  <div className="text-white text-xs font-montserrat opacity-90">VentasAI</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="w-60 h-60 lg:w-72 lg:h-72 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white">
-              <div className="text-center">
-                <svg className="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <p className="text-gray-500 font-montserrat text-sm">Loading Image...</p>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Enhanced Persona Details */}
-        <div className="flex-1 text-center lg:text-left">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
-            <div>
-              <h1 className="text-4xl lg:text-6xl font-bold font-montserrat bcm-heading mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">
-                {generatedPersona.name}
-              </h1>
-              <p className="text-xl lg:text-2xl text-gray-600 font-montserrat mb-4">
-                {persona_data?.demographics?.occupation || "Professional"}
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-4">
-                <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-montserrat text-white shadow-lg" 
-                     style={{background: 'linear-gradient(135deg, var(--bcm-teal), var(--bcm-cyan))'}}>
-                  📅 {persona_data?.demographics?.age_range || "N/A"}
-                </div>
-                <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-montserrat text-white shadow-lg" 
-                     style={{background: 'linear-gradient(135deg, var(--bcm-orange), #ff6b35)'}}>
-                  💰 {persona_data?.demographics?.income_range || "N/A"}
-                </div>
-              </div>
-            </div>
-            
-            <div className="mx-auto lg:mx-0 lg:text-right">
-              <div className="relative mb-3">
-                {renderCircularChart(calculateCompletionScore(), 100, 10, 'var(--bcm-orange)')}
-              </div>
-              <p className="text-sm text-gray-500 font-montserrat font-semibold">Data Completeness</p>
-            </div>
-          </div>
-          
-          {/* Enhanced demographic cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: '📍', label: 'Location', value: persona_data?.demographics?.location },
-              { icon: '🎓', label: 'Education', value: persona_data?.demographics?.education },
-              { icon: '👥', label: 'Family', value: persona_data?.demographics?.family_status },
-              { icon: '💼', label: 'Experience', value: 'Professional' }
-            ].map((item, index) => (
-              <div key={index} className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                <div className="text-2xl mb-2">{item.icon}</div>
-                <span className="font-semibold text-gray-700 font-montserrat block text-xs mb-1">{item.label}</span>
-                <p className="text-gray-600 font-montserrat text-sm">{item.value || "N/A"}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSection = (title, content, icon, bgColor = "bg-gradient-to-br from-white to-gray-50", shadowColor = "rgba(0, 0, 0, 0.08)") => (
-    <div className={`${bgColor} rounded-2xl p-8 mb-8 border border-gray-100 shadow-xl`}
-         style={{boxShadow: `0 20px 25px -5px ${shadowColor}, 0 10px 10px -5px rgba(0, 0, 0, 0.04)`}}>
-      <div className="flex items-center mb-6">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mr-4 shadow-lg" style={{background: 'linear-gradient(135deg, var(--bcm-teal), var(--bcm-cyan))'}}>
-          <span className="text-white text-2xl">{icon}</span>
-        </div>
-        <h2 className="text-2xl font-bold font-montserrat bcm-heading">{title}</h2>
-      </div>
-      {content}
-    </div>
-  );
-
-  const renderPersonalityTraits = () => (
-    <div className="flex flex-wrap gap-3">
-      {ai_insights?.personality_traits?.map((trait, index) => (
-        <div key={index} className="group relative">
-          <span 
-            className="px-4 py-2 rounded-xl text-sm font-montserrat text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            style={{background: `linear-gradient(135deg, var(--bcm-cyan), var(--bcm-teal))`}}
-          >
-            {trait}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderMediaConsumption = () => {
-    const media = persona_data?.media_consumption;
-    if (!media) return <p className="text-gray-500 font-montserrat">No media consumption data</p>;
-
-    return (
-      <div className="space-y-8">
-        {/* Social Media Platforms with Icons */}
-        {media.social_media_platforms?.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <h4 className="font-bold font-montserrat bcm-heading mb-4 flex items-center">
-              📱 Social Media Platforms
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {media.social_media_platforms.map((platform, index) => (
-                <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                  {getSocialMediaIcon(platform)}
-                  <span className="text-sm font-montserrat font-medium text-gray-700">{platform}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Devices with Icons */}
-        {media.preferred_devices?.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <h4 className="font-bold font-montserrat bcm-heading mb-4 flex items-center">
-              💻 Preferred Devices
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {media.preferred_devices.map((device, index) => (
-                <div key={index} className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                  <span className="text-3xl mb-2">{getDeviceIcon(device)}</span>
-                  <span className="text-xs font-montserrat font-medium text-gray-700 text-center">{device}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Usage Stats */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {media.consumption_time && (
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <h4 className="font-bold font-montserrat bcm-heading mb-4">⏰ Daily Usage</h4>
-              <div className="flex items-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mr-4" style={{background: 'linear-gradient(135deg, var(--bcm-orange), #ff6b35)'}}>
-                  <span className="text-white font-bold text-sm">📊</span>
-                </div>
-                <div>
-                  <p className="text-lg font-bold font-montserrat text-gray-800">{media.consumption_time}</p>
-                  <p className="text-sm text-gray-500 font-montserrat">per day</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {media.advertising_receptivity && (
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <h4 className="font-bold font-montserrat bcm-heading mb-4">📊 Ad Receptivity</h4>
-              <div className="flex items-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mr-4" style={{background: 'linear-gradient(135deg, var(--bcm-teal), var(--bcm-cyan)'}}>
-                  <span className="text-white font-bold text-sm">🎯</span>
-                </div>
-                <div>
-                  <p className="text-lg font-bold font-montserrat text-gray-800">{media.advertising_receptivity}</p>
-                  <p className="text-sm text-gray-500 font-montserrat">to advertising</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderEngagementMetrics = () => {
-    return (
-      <div className="space-y-6">
-        {/* Circular Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <div className="flex justify-center mb-4">
-              {renderCircularChart(socialScore, 120, 12, 'var(--bcm-orange)')}
-            </div>
-            <h4 className="font-bold font-montserrat text-lg mb-2" style={{color: 'var(--bcm-orange)'}}>Social Engagement</h4>
-            <p className="text-sm text-gray-500 font-montserrat">Platform activity & connection</p>
-          </div>
-          
-          <div className="text-center bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <div className="flex justify-center mb-4">
-              {renderCircularChart(digitalScore, 120, 12, 'var(--bcm-teal)')}
-            </div>
-            <h4 className="font-bold font-montserrat text-lg mb-2" style={{color: 'var(--bcm-teal)'}}>Digital Fluency</h4>
-            <p className="text-sm text-gray-500 font-montserrat">Technology adoption & usage</p>
-          </div>
-          
-          <div className="text-center bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <div className="flex justify-center mb-4">
-              {renderCircularChart(contentScore, 120, 12, 'var(--bcm-cyan)')}
-            </div>
-            <h4 className="font-bold font-montserrat text-lg mb-2" style={{color: 'var(--bcm-cyan)'}}>Content Affinity</h4>
-            <p className="text-sm text-gray-500 font-montserrat">Content consumption patterns</p>
-          </div>
-        </div>
-
-        {/* Comparative Bar Chart */}
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-          <h4 className="font-bold font-montserrat bcm-heading mb-6">📈 Engagement Index Comparison</h4>
-          <div className="space-y-4">
-            {[
-              { label: 'Social Engagement', value: socialScore, color: 'var(--bcm-orange)', icon: '📱' },
-              { label: 'Digital Fluency', value: digitalScore, color: 'var(--bcm-teal)', icon: '💻' },
-              { label: 'Content Affinity', value: contentScore, color: 'var(--bcm-cyan)', icon: '📺' }
-            ].map((metric, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <span className="text-2xl">{metric.icon}</span>
-                <span className="font-medium font-montserrat text-gray-700 w-32">{metric.label}</span>
-                <div className="flex-1 bg-gray-200 rounded-full h-4 relative overflow-hidden">
-                  <div 
-                    className="h-4 rounded-full transition-all duration-1000 ease-out"
-                    style={{
-                      width: `${metric.value}%`,
-                      background: `linear-gradient(90deg, ${metric.color}, ${metric.color}dd)`
-                    }}
-                  />
-                </div>
-                <span className="font-bold font-montserrat text-lg w-12" style={{color: metric.color}}>
-                  {metric.value}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderListWithIcons = (items, iconColor = 'var(--bcm-teal)') => (
-    <div className="space-y-3">
-      {items?.map((item, index) => (
-        <div key={index} className="flex items-start bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-          <div className="w-3 h-3 rounded-full mt-2 mr-4 flex-shrink-0" style={{backgroundColor: iconColor}}></div>
-          <p className="text-gray-700 font-montserrat leading-relaxed">{item}</p>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold font-montserrat mb-2 bcm-title">
-            BCM VentasAI Persona Profile
-          </h1>
-          <p className="text-gray-600 font-montserrat">
-            AI-Generated Consumer Persona • Created {new Date(generatedPersona.generated_at).toLocaleDateString()}
-          </p>
-        </div>
-
-        {/* Main Persona Card */}
-        {renderPersonaCard()}
-
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div>
-            {/* Personality Traits */}
-            {renderSection("Personality Profile", renderPersonalityTraits(), "🧠", "bg-blue-50")}
-            
-            {/* Goals & Motivations */}
-            {renderSection("Goals & Motivations", renderListWithIcons(goals, 'var(--bcm-cyan)'), "🎯", "bg-cyan-50")}
-            
-            {/* Media Consumption */}
-            {renderSection("Media Consumption", renderMediaConsumption(), "📱", "bg-green-50")}
-          </div>
-
-          {/* Right Column */}
-          <div>
-            {/* Pain Points */}
-            {renderSection("Pain Points & Challenges", renderListWithIcons(pain_points, '#ef4444'), "⚠️", "bg-red-50")}
-            
-            {/* Marketing Recommendations */}
-            {renderSection("Marketing Recommendations", renderListWithIcons(recommendations, 'var(--bcm-orange)'), "💡", "bg-orange-50")}
-            
-            {/* Engagement Metrics */}
-            {renderSection("Engagement Metrics", renderEngagementMetrics(), "📊", "bg-purple-50")}
+    <div className="visual-persona-template p-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen font-montserrat">
+      {/* Header Section with Professional Image */}
+      <div className="mb-8 bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 h-32 relative">
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          <div className="absolute bottom-4 left-8 text-white">
+            <h1 className="text-3xl font-bold font-montserrat">{persona_data?.name || "Generated Persona"}</h1>
+            <p className="text-lg opacity-90">Data-Driven Consumer Profile</p>
           </div>
         </div>
+        
+        <div className="p-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Profile Image Section */}
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <img 
+                  src={persona_image_url} 
+                  alt="Professional headshot"
+                  className="w-64 h-64 object-cover rounded-2xl shadow-lg border-4 border-white"
+                />
+                
+                {/* BCM Logo overlay */}
+                <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-xl flex items-center justify-center shadow-lg border-4 border-white" 
+                     style={{background: 'linear-gradient(135deg, var(--bcm-orange), var(--bcm-teal))'}}>
+                  <div className="text-center">
+                    <div className="text-white font-bold text-lg font-montserrat leading-none">BCM</div>
+                    <div className="text-white text-xs font-montserrat opacity-90">VentasAI</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* Communication Style */}
-        <div className="bg-white rounded-lg p-6 shadow-lg border-l-4" style={{borderLeftColor: 'var(--bcm-orange)'}}>
-          <h2 className="text-xl font-bold font-montserrat bcm-title mb-3">
-            Recommended Communication Style
-          </h2>
-          <p className="text-gray-700 font-montserrat text-lg">
-            {communication_style}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-gray-500">
-          <p className="font-montserrat">Generated by BCM VentasAI • Powered by Advanced AI Analytics</p>
+            {/* Basic Info & Data Source Logos */}
+            <div className="flex-1">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-xl font-bold mb-4 text-gray-800">Demographics</h3>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="font-semibold">Age:</span> {persona_data?.demographics?.age_range || "25-40"}</div>
+                    <div><span className="font-semibold">Gender:</span> {persona_data?.demographics?.gender || "Female"}</div>
+                    <div><span className="font-semibold">Income:</span> {persona_data?.demographics?.income_range || "$50,000-$75,000"}</div>
+                    <div><span className="font-semibold">Location:</span> {persona_data?.demographics?.location || "Urban"}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-xl font-bold mb-4 text-gray-800">Powered By</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center p-2 bg-blue-50 rounded-lg">
+                      <FaSearch className="text-blue-600 mr-2" />
+                      <span className="text-xs font-semibold">SEMRush</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-purple-50 rounded-lg">
+                      <FaUsers className="text-purple-600 mr-2" />
+                      <span className="text-xs font-semibold">SparkToro</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-green-50 rounded-lg">
+                      <FaComments className="text-green-600 mr-2" />
+                      <span className="text-xs font-semibold">Buzzabout.ai</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-orange-50 rounded-lg">
+                      <FaBullseye className="text-orange-600 mr-2" />
+                      <span className="text-xs font-semibold">Resonate AI</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Data Source Insights Grid */}
+      <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        
+        {/* SEMRush Search Insights */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+              <FaSearch className="text-blue-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">SEMRush Insights</h3>
+              <p className="text-sm text-gray-600">Search Behavior & Keywords</p>
+            </div>
+          </div>
+
+          {/* Top Keywords */}
+          <div className="mb-6">
+            <h4 className="font-semibold mb-3 text-gray-700">Top Search Keywords</h4>
+            <div className="space-y-2">
+              {semrushData.topKeywords.slice(0, 3).map((keyword, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <span className="font-medium">{keyword.keyword}</span>
+                    <span className={`ml-2 text-xs px-2 py-1 rounded ${
+                      keyword.trend === 'rising' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {keyword.trend}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-blue-600">{keyword.volume.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">searches/mo</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Device Usage Chart */}
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">Device Preference</h4>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={semrushData.deviceUsage}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="percentage"
+                  label={({device, percentage}) => `${device}: ${percentage}%`}
+                >
+                  {semrushData.deviceUsage.map((entry, index) => (
+                    <Cell key={index} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* SparkToro Audience Insights */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+              <FaUsers className="text-purple-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">SparkToro Insights</h3>
+              <p className="text-sm text-gray-600">Audience & Influencer Data</p>
+            </div>
+          </div>
+
+          {/* Top Influencers */}
+          <div className="mb-6">
+            <h4 className="font-semibold mb-3 text-gray-700">Key Influencers</h4>
+            <div className="space-y-3">
+              {sparktoroData.influencers.map((influencer, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium">{influencer.name}</div>
+                    <div className="text-xs text-gray-500">{influencer.platform}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold">{influencer.followers}</div>
+                    <div className="text-xs text-green-600">{influencer.engagement}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Content Preferences Chart */}
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">Content Interest</h4>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={sparktoroData.contentPreferences} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" domain={[0, 100]} />
+                <YAxis dataKey="category" type="category" width={80} fontSize={10} />
+                <Tooltip />
+                <Bar dataKey="interest" fill="#9C27B0" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Buzzabout.ai Social Listening */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+              <FaComments className="text-green-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Buzzabout.ai Insights</h3>
+              <p className="text-sm text-gray-600">Social Listening & Sentiment</p>
+            </div>
+          </div>
+
+          {/* Sentiment Analysis */}
+          <div className="mb-6">
+            <h4 className="font-semibold mb-3 text-gray-700">Sentiment Analysis</h4>
+            <div className="space-y-3">
+              {buzzaboutData.sentiment.slice(0, 2).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between mb-2">
+                    <span className="font-medium">{item.category}</span>
+                    <span className="text-sm text-gray-600">{item.positive + item.neutral + item.negative}% coverage</span>
+                  </div>
+                  <div className="flex rounded-full h-3 overflow-hidden">
+                    <div className="bg-green-500" style={{width: `${item.positive}%`}}></div>
+                    <div className="bg-gray-300" style={{width: `${item.neutral}%`}}></div>
+                    <div className="bg-red-500" style={{width: `${item.negative}%`}}></div>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1 text-gray-600">
+                    <span>Positive: {item.positive}%</span>
+                    <span>Neutral: {item.neutral}%</span>
+                    <span>Negative: {item.negative}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trending Topics */}
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">Trending Conversations</h4>
+            <div className="space-y-2">
+              {buzzaboutData.trendingTopics.map((topic, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                  <div>
+                    <span className="font-medium text-sm">{topic.topic}</span>
+                    <div className="text-xs text-gray-500">{topic.mentions.toLocaleString()} mentions</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-green-600">{topic.growth}</div>
+                    <div className="text-xs text-gray-500">growth</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Resonate AI Psychographics */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
+              <FaBullseye className="text-orange-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Resonate AI Insights</h3>
+              <p className="text-sm text-gray-600">Psychographics & Motivations</p>
+            </div>
+          </div>
+
+          {/* Psychographic Traits */}
+          <div className="mb-6">
+            <h4 className="font-semibold mb-3 text-gray-700">Psychographic Profile</h4>
+            <div className="space-y-3">
+              {resonateData.psychographics.slice(0, 4).map((trait, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm font-medium">{trait.trait}</span>
+                  <div className="flex items-center">
+                    <div className="w-24 bg-gray-200 rounded-full h-2 mr-3">
+                      <div 
+                        className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                        style={{width: `${trait.score}%`}}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-bold text-orange-600">{trait.score}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lifestyle Segments */}
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">Lifestyle Segmentation</h4>
+            <ResponsiveContainer width="100%" height={160}>
+              <PieChart>
+                <Pie
+                  data={resonateData.lifestyleSegments}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                  dataKey="percentage"
+                  label={({segment, percentage}) => `${percentage}%`}
+                >
+                  {resonateData.lifestyleSegments.map((entry, index) => (
+                    <Cell key={index} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {resonateData.lifestyleSegments.map((segment, index) => (
+                <div key={index} className="flex items-center">
+                  <div 
+                    className="w-3 h-3 rounded mr-1"
+                    style={{backgroundColor: segment.color}}
+                  ></div>
+                  <span className="text-xs">{segment.segment}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Social Media Platforms - Enhanced */}
+      {persona_data?.media_consumption?.social_media_platforms?.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
+              <FaShare className="text-indigo-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Social Media Engagement</h3>
+              <p className="text-sm text-gray-600">Platform Usage & Preferences</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {persona_data.media_consumption.social_media_platforms.map((platform, index) => {
+              const engagement = sparktoroData.platformEngagement.find(p => p.platform === platform) || 
+                                { time: Math.floor(Math.random() * 50) + 10, engagement: Math.floor(Math.random() * 40) + 50 };
+              
+              return (
+                <div key={index} className="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
+                  <div className="flex items-center mb-3">
+                    {getSocialMediaIcon(platform)}
+                    <span className="text-sm font-montserrat font-medium text-gray-700">{platform}</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-indigo-600">{engagement.time}min</div>
+                    <div className="text-xs text-gray-500">daily usage</div>
+                    <div className="text-sm font-semibold text-green-600 mt-1">{engagement.engagement}%</div>
+                    <div className="text-xs text-gray-500">engagement</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Key Insights Summary */}
+      <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
+        <div className="flex items-center mb-6">
+          <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mr-4">
+            <FaLightbulb className="text-teal-600 text-xl" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Key Marketing Insights</h3>
+            <p className="text-sm text-gray-600">Data-Driven Recommendations</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">
+              <FaBullseye className="inline mr-2 text-orange-500" />
+              Primary Motivations
+            </h4>
+            <div className="space-y-2">
+              {resonateData.purchaseMotivations.slice(0, 3).map((motivation, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-orange-50 rounded-lg">
+                  <span className="text-sm">{motivation.motivation}</span>
+                  <span className="font-bold text-orange-600">{motivation.importance}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-3 text-gray-700">
+              <FaChartLine className="inline mr-2 text-green-500" />
+              Conversation Drivers
+            </h4>
+            <div className="space-y-2">
+              {buzzaboutData.conversationDrivers.slice(0, 3).map((driver, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-green-50 rounded-lg">
+                  <span className="text-sm">{driver.driver}</span>
+                  <span className="font-bold text-green-600">{driver.score}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Original Persona Data - Enhanced */}
+      {ai_insights && (
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <h3 className="text-xl font-bold mb-4 text-gray-800">AI-Generated Profile</h3>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pain_points && pain_points.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-3 text-red-600">
+                  <FaHeart className="inline mr-2" />
+                  Pain Points
+                </h4>
+                <ul className="space-y-2">
+                  {pain_points.map((point, index) => (
+                    <li key={index} className="text-sm p-2 bg-red-50 rounded border-l-3 border-red-500">
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {goals && goals.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-3 text-green-600">
+                  <FaBullseye className="inline mr-2" />
+                  Goals & Aspirations
+                </h4>
+                <ul className="space-y-2">
+                  {goals.map((goal, index) => (
+                    <li key={index} className="text-sm p-2 bg-green-50 rounded border-l-3 border-green-500">
+                      {goal}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {recommendations && recommendations.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-3 text-blue-600">
+                  <FaLightbulb className="inline mr-2" />
+                  Marketing Recommendations
+                </h4>
+                <ul className="space-y-2">
+                  {recommendations.map((rec, index) => (
+                    <li key={index} className="text-sm p-2 bg-blue-50 rounded border-l-3 border-blue-500">
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
