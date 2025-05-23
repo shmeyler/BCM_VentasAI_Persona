@@ -49,6 +49,8 @@ function App() {
               <Route path="/persona-wizard" element={<PersonaWizard />} />
               <Route path="/saved-personas" element={<SavedPersonas />} />
               <Route path="/data-sources" element={<DataSources />} />
+              <Route path="/persona/:id/visual" element={<PersonaTemplateWrapper />} />
+              <Route path="/persona/:id/detailed" element={<DetailedPersonaWrapper />} />
             </Routes>
           </main>
         </div>
