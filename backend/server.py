@@ -12,6 +12,8 @@ from datetime import datetime
 from enum import Enum
 import requests
 import random
+from external_integrations.unsplash import get_professional_headshot
+from external_integrations.data_sources import DataSourceOrchestrator
 
 
 ROOT_DIR = Path(__file__).parent
