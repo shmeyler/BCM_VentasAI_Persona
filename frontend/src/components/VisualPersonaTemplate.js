@@ -10,7 +10,8 @@ import {
   FaPinterest, 
   FaReddit, 
   FaDiscord,
-  FaMobile
+  FaMobile,
+  FaShare
 } from "react-icons/fa";
 
 const VisualPersonaTemplate = ({ generatedPersona }) => {
