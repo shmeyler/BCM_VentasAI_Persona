@@ -92,12 +92,13 @@ function App() {
               <div className="flex justify-between h-16">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 flex items-center">
-                    {/* BCM Logo placeholder - replace with actual logo */}
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3" style={{backgroundColor: 'var(--bcm-teal)'}}>
-                      <span className="text-white font-bold text-lg font-montserrat">B</span>
-                    </div>
+                    <img 
+                      src="https://mma.prnewswire.com/media/2444113/BCM_Updated_2024_FullName_Orange_Logo.jpg" 
+                      alt="Beeby Clark+Meyler Logo"
+                      className="w-16 h-auto object-contain mr-3"
+                    />
                     <div>
-                      <h1 className="text-xl bcm-title">BCM VentasAI</h1>
+                      <h1 className="text-xl bcm-title">VentasAI</h1>
                       <p className="text-sm text-gray-500 font-montserrat">Persona Generator</p>
                     </div>
                   </div>
