@@ -670,13 +670,20 @@ const DetailedPersonaView = ({ generatedPersona }) => {
       {/* Header */}
       <div className="mb-8 bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Detailed Persona Analysis: {generatedPersona.name}
-            </h1>
-            <p className="text-gray-600">
-              Comprehensive analytical report • Generated {new Date(generatedPersona.generated_at).toLocaleDateString()}
-            </p>
+          <div className="flex items-center">
+            <img 
+              src="https://mma.prnewswire.com/media/2444113/BCM_Updated_2024_FullName_Orange_Logo.jpg" 
+              alt="Beeby Clark+Meyler Logo"
+              className="w-24 h-auto object-contain mr-6"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                Detailed Persona Analysis: {generatedPersona.name}
+              </h1>
+              <p className="text-gray-600">
+                Comprehensive analytical report • Generated {new Date(generatedPersona.generated_at).toLocaleDateString()}
+              </p>
+            </div>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600">95%</div>
