@@ -5,6 +5,8 @@ import HomePage from "./components/HomePage";
 import PersonaWizard from "./components/PersonaWizard";
 import SavedPersonas from "./components/SavedPersonas";
 import DataSources from "./components/DataSources";
+import VisualPersonaTemplate from "./components/VisualPersonaTemplate";
+import DetailedPersonaView from "./components/DetailedPersonaView";
 
 function App() {
   return (
