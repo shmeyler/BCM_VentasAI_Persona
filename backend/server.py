@@ -353,6 +353,105 @@ async def get_status_checks():
     return [StatusCheck(**status_check) for status_check in status_checks]
 
 
+# Data Sources Integration Endpoints
+@api_router.get("/data-sources/status")
+async def get_data_sources_status():
+    """Get status of all data source integrations"""
+    return data_sources.get_data_source_status()
+
+@api_router.post("/personas/{persona_id}/enrich")
+async def enrich_persona_with_data_sources(persona_id: str):
+    """Enrich persona with data from SEMRush, SparkToro, and Buzzabout.ai"""
+    try:
+        # Get the persona data
+        persona = await db.personas.find_one({"id": persona_id})
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona not found")
+        
+        # Get enriched data from data sources
+        enriched_data = await data_sources.enrich_persona_data(persona)
+        
+        # Update persona with enriched data
+        update_data = {
+            "data_enrichment": enriched_data,
+            "updated_at": datetime.utcnow()
+        }
+        
+        await db.personas.update_one(
+            {"id": persona_id},
+            {"$set": update_data}
+        )
+        
+        # Return updated persona
+        updated_persona = await db.personas.find_one({"id": persona_id})
+        return PersonaData(**updated_persona)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to enrich persona: {str(e)}")
+
+@api_router.get("/personas/{persona_id}/insights")
+async def get_persona_insights(persona_id: str):
+    """Get detailed insights for a persona including data source enrichment"""
+    try:
+        persona = await db.personas.find_one({"id": persona_id})
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona not found")
+        
+        # Check if persona has enriched data
+        enriched_data = persona.get("data_enrichment")
+        if not enriched_data:
+            # Enrich the persona first
+            enriched_data = await data_sources.enrich_persona_data(persona)
+            await db.personas.update_one(
+                {"id": persona_id},
+                {"$set": {
+                    "data_enrichment": enriched_data,
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+        
+        # Structure insights for frontend consumption
+        insights = {
+            "persona_id": persona_id,
+            "search_behavior": enriched_data.get("search_insights", {}),
+            "audience_profile": enriched_data.get("audience_insights", {}),
+            "social_sentiment": enriched_data.get("social_insights", {}),
+            "data_quality": enriched_data.get("data_integration", {}),
+            "last_updated": enriched_data.get("generated_at")
+        }
+        
+        return insights
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get persona insights: {str(e)}")
+
+@api_router.get("/data-sources/demo")
+async def get_demo_data_sources():
+    """Get demo data from all data sources for testing"""
+    try:
+        demo_persona = {
+            "attributes": {
+                "selectedVertical": "Retail",
+                "selectedCategory": "Preferences & Psychographics", 
+                "selectedBehaviors": ["Quality-focused", "Brand loyal", "Sustainable shopping"]
+            },
+            "demographics": {
+                "age_range": "25-40",
+                "income_range": "$50,000-$75,000"
+            },
+            "media_consumption": {
+                "social_media_platforms": ["Instagram", "Facebook", "LinkedIn"]
+            }
+        }
+        
+        enriched_data = await data_sources.enrich_persona_data(demo_persona)
+        return enriched_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get demo data: {str(e)}")
+
+# END DATA SOURCES ENDPOINTS
+
 # Include the router in the main app
 app.include_router(api_router)
 
