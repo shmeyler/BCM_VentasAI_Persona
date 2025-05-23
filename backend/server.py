@@ -62,6 +62,11 @@ class Demographics(BaseModel):
     family_status: Optional[str] = None
 
 class Attributes(BaseModel):
+    # Resonate Taxonomy fields
+    selectedVertical: Optional[str] = None
+    selectedCategory: Optional[str] = None
+    selectedBehaviors: Optional[List[str]] = []
+    # Original custom fields
     interests: Optional[List[str]] = []
     behaviors: Optional[List[str]] = []
     values: Optional[List[str]] = []
