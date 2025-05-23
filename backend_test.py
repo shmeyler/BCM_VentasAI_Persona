@@ -363,14 +363,18 @@ def main():
     
     tester = BCMPersonaAPITester()
     
-    # Test sequence focusing on new features
+    # Test sequence focusing on new features and data sources
     tests = [
         tester.test_api_root,
+        tester.test_data_sources_status,
+        tester.test_demo_data_sources,
         tester.test_create_persona_demographics,
         tester.test_create_persona_attributes,
         tester.test_update_persona_with_resonate_taxonomy,
         tester.test_update_persona_media_consumption,
         tester.test_get_persona,
+        tester.test_persona_enrichment,
+        tester.test_persona_insights,
         tester.test_generate_persona,
         tester.test_list_personas,
         tester.test_list_generated_personas,
