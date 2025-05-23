@@ -211,7 +211,14 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
                 
                 <div>
                   <h3 className="text-xl font-bold mb-4 text-gray-800">Powered By</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                    <img 
+                      src="https://mma.prnewswire.com/media/2444113/BCM_Updated_2024_FullName_Orange_Logo.jpg" 
+                      alt="Beeby Clark+Meyler Logo"
+                      className="w-32 h-auto object-contain"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
                     <div className="flex items-center p-2 bg-blue-50 rounded-lg">
                       <FaSearch className="text-blue-600 mr-2" />
                       <span className="text-xs font-semibold">SEMRush</span>
