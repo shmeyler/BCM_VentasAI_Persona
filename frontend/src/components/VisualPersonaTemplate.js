@@ -44,6 +44,104 @@ import {
 const VisualPersonaTemplate = ({ generatedPersona }) => {
   const { persona_data, ai_insights, recommendations, pain_points, goals, communication_style, persona_image_url } = generatedPersona;
   
+  // Generate comprehensive mock data based on persona attributes
+  const generateMockDataSources = (persona) => {
+    const vertical = persona.attributes?.selectedVertical || "General";
+    const behaviors = persona.attributes?.selectedBehaviors || [];
+    const demographics = persona.demographics || {};
+    
+    // SEMRush Mock Data
+    const semrushData = {
+      topKeywords: [
+        { keyword: "sustainable fashion", volume: 45000, competition: 0.7, trend: "rising" },
+        { keyword: "eco friendly clothes", volume: 32000, competition: 0.6, trend: "stable" },
+        { keyword: "organic cotton", volume: 28000, competition: 0.8, trend: "rising" },
+        { keyword: "ethical brands", volume: 18000, competition: 0.5, trend: "rising" }
+      ],
+      deviceUsage: [
+        { device: "Mobile", percentage: 68, color: "#FF9800" },
+        { device: "Desktop", percentage: 25, color: "#004E5F" },
+        { device: "Tablet", percentage: 7, color: "#00BCD4" }
+      ],
+      searchIntent: [
+        { intent: "Research", value: 45 },
+        { intent: "Compare", value: 30 },
+        { intent: "Purchase", value: 25 }
+      ]
+    };
+
+    // SparkToro Mock Data
+    const sparktoroData = {
+      influencers: [
+        { name: "Sustainable Style Co", followers: "145K", engagement: "4.2%", platform: "Instagram" },
+        { name: "Eco Fashion Forward", followers: "89K", engagement: "3.8%", platform: "YouTube" },
+        { name: "Green Living Guru", followers: "67K", engagement: "5.1%", platform: "TikTok" }
+      ],
+      contentPreferences: [
+        { category: "Sustainability Tips", interest: 85 },
+        { category: "Product Reviews", interest: 78 },
+        { category: "Style Guides", interest: 72 },
+        { category: "Brand Stories", interest: 65 }
+      ],
+      platformEngagement: [
+        { platform: "Instagram", time: 45, engagement: 72 },
+        { platform: "YouTube", time: 38, engagement: 68 },
+        { platform: "Pinterest", time: 28, engagement: 61 },
+        { platform: "TikTok", time: 22, engagement: 59 }
+      ]
+    };
+
+    // Buzzabout.ai Mock Data
+    const buzzaboutData = {
+      sentiment: [
+        { category: "Overall", positive: 72, neutral: 20, negative: 8 },
+        { category: "Product Quality", positive: 78, neutral: 18, negative: 4 },
+        { category: "Customer Service", positive: 65, neutral: 25, negative: 10 },
+        { category: "Sustainability", positive: 84, neutral: 14, negative: 2 }
+      ],
+      trendingTopics: [
+        { topic: "Circular Fashion", mentions: 1250, sentiment: 0.82, growth: "+35%" },
+        { topic: "Sustainable Materials", mentions: 890, sentiment: 0.76, growth: "+22%" },
+        { topic: "Ethical Production", mentions: 672, sentiment: 0.79, growth: "+18%" }
+      ],
+      conversationDrivers: [
+        { driver: "Environmental Impact", score: 89 },
+        { driver: "Quality & Durability", score: 76 },
+        { driver: "Price Value", score: 68 },
+        { driver: "Style & Design", score: 74 }
+      ]
+    };
+
+    // Resonate AI Mock Data
+    const resonateData = {
+      psychographics: [
+        { trait: "Environmentally Conscious", score: 92 },
+        { trait: "Quality Focused", score: 85 },
+        { trait: "Brand Loyal", score: 73 },
+        { trait: "Socially Responsible", score: 88 },
+        { trait: "Innovation Seeking", score: 71 }
+      ],
+      lifestyleSegments: [
+        { segment: "Conscious Consumer", percentage: 35, color: "#4CAF50" },
+        { segment: "Quality Seeker", percentage: 28, color: "#FF9800" },
+        { segment: "Trendsetter", percentage: 22, color: "#00BCD4" },
+        { segment: "Value Conscious", percentage: 15, color: "#9C27B0" }
+      ],
+      purchaseMotivations: [
+        { motivation: "Environmental Impact", importance: 91 },
+        { motivation: "Product Quality", importance: 86 },
+        { motivation: "Brand Values", importance: 78 },
+        { motivation: "Style Appeal", importance: 74 },
+        { motivation: "Price Value", importance: 65 }
+      ]
+    };
+
+    return { semrushData, sparktoroData, buzzaboutData, resonateData };
+  };
+
+  const mockData = generateMockDataSources(persona_data);
+  const { semrushData, sparktoroData, buzzaboutData, resonateData } = mockData;
+  
   // Social Media Platform Logos/Icons
   const getSocialMediaIcon = (platform) => {
     const iconProps = { size: 20, className: "mr-2" };
