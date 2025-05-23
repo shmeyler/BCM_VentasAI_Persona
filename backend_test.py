@@ -246,6 +246,96 @@ class BCMPersonaAPITester:
         )
         return success
 
+    def test_data_sources_status(self):
+        """Test data sources status endpoint"""
+        success, response = self.run_test(
+            "Data Sources Status",
+            "GET",
+            "data-sources/status",
+            200
+        )
+        
+        if success:
+            # Check for expected data sources
+            expected_sources = ['semrush', 'sparktoro', 'buzzabout']
+            for source in expected_sources:
+                if source in response:
+                    status = response[source].get('status', 'unknown')
+                    print(f"   ✅ {source.upper()}: {status}")
+                else:
+                    print(f"   ❌ {source.upper()}: missing")
+            
+            if 'integration_health' in response:
+                print(f"   ✅ Integration health: {response['integration_health']}")
+        
+        return success
+
+    def test_demo_data_sources(self):
+        """Test demo data from all data sources"""
+        success, response = self.run_test(
+            "Demo Data Sources",
+            "GET",
+            "data-sources/demo",
+            200
+        )
+        
+        if success:
+            # Check for expected data insights
+            expected_insights = ['search_insights', 'audience_insights', 'social_insights']
+            for insight in expected_insights:
+                if insight in response:
+                    print(f"   ✅ {insight}: available")
+                else:
+                    print(f"   ❌ {insight}: missing")
+            
+            if 'data_integration' in response:
+                integration = response['data_integration']
+                print(f"   ✅ Data integration score: {integration.get('enrichment_score', 'N/A')}")
+        
+        return success
+
+    def test_persona_enrichment(self):
+        """Test persona enrichment with data sources"""
+        if not self.persona_id:
+            print("❌ Skipping - No persona ID available")
+            return False
+
+        success, response = self.run_test(
+            "Persona Data Enrichment",
+            "POST",
+            f"personas/{self.persona_id}/enrich",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Persona enriched successfully")
+        
+        return success
+
+    def test_persona_insights(self):
+        """Test getting persona insights"""
+        if not self.persona_id:
+            print("❌ Skipping - No persona ID available")
+            return False
+
+        success, response = self.run_test(
+            "Persona Insights",
+            "GET",
+            f"personas/{self.persona_id}/insights",
+            200
+        )
+        
+        if success:
+            # Check for expected insight categories
+            expected_insights = ['search_behavior', 'audience_profile', 'social_sentiment']
+            for insight in expected_insights:
+                if insight in response:
+                    print(f"   ✅ {insight}: available")
+                else:
+                    print(f"   ❌ {insight}: missing")
+        
+        return success
+
     def test_legacy_status_endpoints(self):
         """Test legacy status check endpoints for compatibility"""
         # Test creating a status check
