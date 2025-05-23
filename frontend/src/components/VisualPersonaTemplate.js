@@ -1,23 +1,38 @@
 import React from "react";
+import { 
+  FaFacebook, 
+  FaInstagram, 
+  FaTwitter, 
+  FaLinkedin, 
+  FaTiktok, 
+  FaYoutube, 
+  FaSnapchat, 
+  FaPinterest, 
+  FaReddit, 
+  FaDiscord,
+  FaMobile
+} from "react-icons/fa";
 
 const VisualPersonaTemplate = ({ generatedPersona }) => {
   const { persona_data, ai_insights, recommendations, pain_points, goals, communication_style, persona_image_url } = generatedPersona;
   
   // Social Media Platform Logos/Icons
   const getSocialMediaIcon = (platform) => {
+    const iconProps = { size: 20, className: "mr-2" };
+    
     const icons = {
-      'Facebook': '📘',
-      'Instagram': '📷',
-      'Twitter/X': '🐦',
-      'LinkedIn': '💼',
-      'TikTok': '🎵',
-      'YouTube': '📺',
-      'Snapchat': '👻',
-      'Pinterest': '📌',
-      'Reddit': '🤖',
-      'Discord': '🎮'
+      'Facebook': <FaFacebook {...iconProps} style={{ color: '#1877F2' }} />,
+      'Instagram': <FaInstagram {...iconProps} style={{ color: '#E4405F' }} />,
+      'Twitter/X': <FaTwitter {...iconProps} style={{ color: '#1DA1F2' }} />,
+      'LinkedIn': <FaLinkedin {...iconProps} style={{ color: '#0A66C2' }} />,
+      'TikTok': <FaTiktok {...iconProps} style={{ color: '#000000' }} />,
+      'YouTube': <FaYoutube {...iconProps} style={{ color: '#FF0000' }} />,
+      'Snapchat': <FaSnapchat {...iconProps} style={{ color: '#FFFC00' }} />,
+      'Pinterest': <FaPinterest {...iconProps} style={{ color: '#BD081C' }} />,
+      'Reddit': <FaReddit {...iconProps} style={{ color: '#FF4500' }} />,
+      'Discord': <FaDiscord {...iconProps} style={{ color: '#5865F2' }} />
     };
-    return icons[platform] || '📱';
+    return icons[platform] || <FaMobile {...iconProps} style={{ color: '#666' }} />;
   };
 
   // Device Icons
