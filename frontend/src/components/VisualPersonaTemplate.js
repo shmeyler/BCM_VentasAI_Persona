@@ -11,8 +11,35 @@ import {
   FaReddit, 
   FaDiscord,
   FaMobile,
-  FaShare
+  FaShare,
+  FaSearch,
+  FaUsers,
+  FaChartLine,
+  FaHeart,
+  FaEye,
+  FaShoppingCart,
+  FaClock,
+  FaGlobe,
+  FaBullseye,
+  FaLightbulb,
+  FaComments
 } from "react-icons/fa";
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Area,
+  AreaChart
+} from 'recharts';
 
 const VisualPersonaTemplate = ({ generatedPersona }) => {
   const { persona_data, ai_insights, recommendations, pain_points, goals, communication_style, persona_image_url } = generatedPersona;
