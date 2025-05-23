@@ -21,8 +21,6 @@ import random
 from external_integrations.unsplash import get_professional_headshot
 from external_integrations.data_sources import DataSourceOrchestrator
 
-
-ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Initialize data source orchestrator
