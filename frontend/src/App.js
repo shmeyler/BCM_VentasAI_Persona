@@ -1,12 +1,86 @@
 import React, { useState } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import HomePage from "./components/HomePage";
 import PersonaWizard from "./components/PersonaWizard";
 import SavedPersonas from "./components/SavedPersonas";
 import DataSources from "./components/DataSources";
 import VisualPersonaTemplate from "./components/VisualPersonaTemplate";
 import DetailedPersonaView from "./components/DetailedPersonaView";
+import axios from "axios";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+// Wrapper component for Visual Persona Template
+const PersonaTemplateWrapper = () => {
+  const { id } = useParams();
+  const [generatedPersona, setGeneratedPersona] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  React.useEffect(() => {
+    const fetchGeneratedPersona = async () => {
+      try {
+        const response = await axios.get(`${API}/generated-personas`);
+        const persona = response.data.find(p => p.persona_data.id === id);
+        
+        if (persona) {
+          setGeneratedPersona(persona);
+        } else {
+          setError("Generated persona not found");
+        }
+      } catch (err) {
+        setError("Failed to fetch persona data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGeneratedPersona();
+  }, [id]);
+
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="text-lg">Loading persona...</div></div>;
+  if (error) return <div className="flex justify-center items-center h-64"><div className="text-lg text-red-600">{error}</div></div>;
+  if (!generatedPersona) return <div className="flex justify-center items-center h-64"><div className="text-lg">Persona not found</div></div>;
+
+  return <VisualPersonaTemplate generatedPersona={generatedPersona} />;
+};
+
+// Wrapper component for Detailed Persona View
+const DetailedPersonaWrapper = () => {
+  const { id } = useParams();
+  const [generatedPersona, setGeneratedPersona] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  React.useEffect(() => {
+    const fetchGeneratedPersona = async () => {
+      try {
+        const response = await axios.get(`${API}/generated-personas`);
+        const persona = response.data.find(p => p.persona_data.id === id);
+        
+        if (persona) {
+          setGeneratedPersona(persona);
+        } else {
+          setError("Generated persona not found");
+        }
+      } catch (err) {
+        setError("Failed to fetch persona data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGeneratedPersona();
+  }, [id]);
+
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="text-lg">Loading detailed analysis...</div></div>;
+  if (error) return <div className="flex justify-center items-center h-64"><div className="text-lg text-red-600">{error}</div></div>;
+  if (!generatedPersona) return <div className="flex justify-center items-center h-64"><div className="text-lg">Persona not found</div></div>;
+
+  return <DetailedPersonaView generatedPersona={generatedPersona} />;
+};
 
 function App() {
   return (
