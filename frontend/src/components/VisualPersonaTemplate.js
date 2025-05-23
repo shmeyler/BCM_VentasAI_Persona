@@ -158,10 +158,13 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
                   boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
                 }}
               />
-              {/* Decorative overlay */}
-              <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white" 
-                   style={{background: 'linear-gradient(135deg, var(--bcm-orange), var(--bcm-cyan))'}}>
-                <span className="text-white font-bold text-sm font-montserrat">AI</span>
+              {/* BCM Logo overlay */}
+              <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-xl flex items-center justify-center shadow-lg border-4 border-white" 
+                   style={{background: 'linear-gradient(135deg, var(--bcm-orange), var(--bcm-teal))'}}>
+                <div className="text-center">
+                  <div className="text-white font-bold text-lg font-montserrat leading-none">BCM</div>
+                  <div className="text-white text-xs font-montserrat opacity-90">VentasAI</div>
+                </div>
               </div>
             </div>
           ) : (
