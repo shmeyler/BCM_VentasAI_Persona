@@ -185,12 +185,13 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
                 />
                 
                 {/* BCM Logo overlay */}
-                <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-xl flex items-center justify-center shadow-lg border-4 border-white" 
-                     style={{background: 'linear-gradient(135deg, var(--bcm-orange), var(--bcm-teal))'}}>
-                  <div className="text-center">
-                    <div className="text-white font-bold text-lg font-montserrat leading-none">BCM</div>
-                    <div className="text-white text-xs font-montserrat opacity-90">VentasAI</div>
-                  </div>
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-xl flex items-center justify-center shadow-lg border-4 border-white bg-white" 
+                     style={{background: 'white'}}>
+                  <img 
+                    src="https://mma.prnewswire.com/media/2444113/BCM_Updated_2024_FullName_Orange_Logo.jpg" 
+                    alt="Beeby Clark+Meyler Logo"
+                    className="w-20 h-auto object-contain"
+                  />
                 </div>
               </div>
             </div>
