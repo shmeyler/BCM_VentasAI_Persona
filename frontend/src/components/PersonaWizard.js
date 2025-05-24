@@ -220,7 +220,9 @@ const BasicInfoStep = ({ persona, updatePersona, onNext, saving }) => {
   const [name, setName] = useState(persona?.name || "");
 
   const handleNext = async () => {
-    if (await updatePersona({ name }, 2)) {
+    // Update the persona with the name first, then move to next step
+    const updated = await updatePersona({ name });
+    if (updated) {
       onNext();
     }
   };
