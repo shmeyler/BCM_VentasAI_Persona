@@ -1,6 +1,9 @@
 import sys
 import os
 from pathlib import Path
+import logging
+import requests
+import random
 
 # Add the current directory to Python path for external_integrations
 ROOT_DIR = Path(__file__).parent
