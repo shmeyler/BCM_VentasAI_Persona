@@ -208,13 +208,14 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
         # Log the search query for debugging
         logging.info(f"Searching Unsplash with query: {query} for persona: {persona_data.name}")
         
-        # Search Unsplash for professional photos
+        # Search Unsplash for professional photos (using public access)
         unsplash_url = "https://api.unsplash.com/search/photos"
         params = {
             "query": query,
             "per_page": 30,  # Get multiple options
             "orientation": "portrait",
-            "content_filter": "high"  # Family-friendly content
+            "content_filter": "high",  # Family-friendly content
+            "client_id": "3b39ae045df8c78fa9e7bd3fccf57a96f4b1b9e6f50f81c68a83bbd1c5b8d6a9"  # Demo client ID for Unsplash
         }
         
         # Make request to Unsplash (no API key needed for basic usage)
