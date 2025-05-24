@@ -122,6 +122,7 @@ class CreatePersonaRequest(BaseModel):
     name: Optional[str] = None
 
 class UpdatePersonaRequest(BaseModel):
+    name: Optional[str] = None
     demographics: Optional[Demographics] = None
     attributes: Optional[Attributes] = None
     media_consumption: Optional[MediaConsumption] = None
