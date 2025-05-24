@@ -218,28 +218,85 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
             "client_id": "3b39ae045df8c78fa9e7bd3fccf57a96f4b1b9e6f50f81c68a83bbd1c5b8d6a9"  # Demo client ID for Unsplash
         }
         
-        # Make request to Unsplash (no API key needed for basic usage)
-        response = requests.get(unsplash_url, params=params, timeout=10)
+        # For demo purposes, let's use a more predictable approach with Unsplash
+        # We'll generate a contextual URL based on the search terms
+        base_url = "https://images.unsplash.com"
         
-        if response.status_code == 200:
-            data = response.json()
-            results = data.get("results", [])
+        # Map search terms to Unsplash photo IDs for consistency
+        photo_mappings = {
+            # Female professionals
+            "female_young_tech": "photo-1494790108755-2616b612b3bb",  # Professional woman
+            "female_young_business": "photo-1580489944761-15a19d654956", # Business woman
+            "female_executive": "photo-1559598467-f8b76c8ac7b0",  # Executive woman
+            "female_professional": "photo-1531123897727-8f129e1688ce", # Professional woman
+            "female_healthcare": "photo-1582750433449-648ed127bb54", # Healthcare professional
             
-            if results:
-                # Use persona name hash for consistent selection
-                persona_hash = hash(persona_data.name or persona_data.id) if persona_data.name else hash(persona_data.id)
-                selected_index = abs(persona_hash) % min(len(results), 15)  # Use first 15 results for quality
-                selected_photo = results[selected_index]
-                
-                # Get the regular size image URL (good quality, reasonable size)
-                image_url = selected_photo["urls"]["regular"]
-                
-                logging.info(f"Successfully found Unsplash image: {image_url} for {persona_data.name}")
-                return image_url
+            # Male professionals  
+            "male_young_tech": "photo-1507003211169-0a1dd7228f2d",  # Tech professional
+            "male_young_business": "photo-1472099645785-5658abf4ff4e", # Business man
+            "male_executive": "photo-1560250097-0b93528c311a",  # Executive man
+            "male_professional": "photo-1519085360753-af0119f7cbe7", # Professional man
+            "male_healthcare": "photo-1612349317150-e413f6a5b16d", # Healthcare professional
+            
+            # General professional fallbacks
+            "general_professional": "photo-1507003211169-0a1dd7228f2d",
+            "business_person": "photo-1494790108755-2616b612b3bb"
+        }
+        
+        # Determine the best photo mapping based on demographics
+        gender_key = "general"
+        age_key = "professional"
+        occupation_key = "professional"
+        
+        if demographics.gender:
+            gender_lower = demographics.gender.lower()
+            if "female" in gender_lower or "woman" in gender_lower:
+                gender_key = "female"
+            elif "male" in gender_lower or "man" in gender_lower:
+                gender_key = "male"
+        
+        if demographics.age_range:
+            if any(age in demographics.age_range for age in ["18-24", "25-40"]):
+                age_key = "young"
             else:
-                logging.warning(f"No Unsplash results found for query: {query}")
+                age_key = "executive"
+        
+        if demographics.occupation:
+            occ_lower = demographics.occupation.lower()
+            if any(term in occ_lower for term in ["tech", "engineer", "developer"]):
+                occupation_key = "tech"
+            elif any(term in occ_lower for term in ["manager", "executive", "director"]):
+                occupation_key = "executive"
+            elif any(term in occ_lower for term in ["healthcare", "doctor", "nurse"]):
+                occupation_key = "healthcare"
+            else:
+                occupation_key = "business"
+        
+        # Build the mapping key
+        mapping_key = f"{gender_key}_{age_key}_{occupation_key}"
+        
+        # Find the best matching photo ID
+        photo_id = None
+        if mapping_key in photo_mappings:
+            photo_id = photo_mappings[mapping_key]
         else:
-            logging.error(f"Unsplash API error: {response.status_code}")
+            # Try fallback combinations
+            fallbacks = [
+                f"{gender_key}_{occupation_key}",
+                f"{gender_key}_professional",
+                f"{gender_key}_{age_key}_business",
+                "general_professional"
+            ]
+            
+            for fallback in fallbacks:
+                if fallback in photo_mappings:
+                    photo_id = photo_mappings[fallback]
+                    break
+        
+        if photo_id:
+            image_url = f"{base_url}/{photo_id}?w=400&h=400&fit=crop&crop=face"
+            logging.info(f"Selected contextual image: {image_url} for {persona_data.name} (mapping: {mapping_key})")
+            return image_url
             
     except Exception as e:
         logging.error(f"Error getting Unsplash image: {str(e)}")
