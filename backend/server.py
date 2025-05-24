@@ -246,6 +246,8 @@ async def update_persona(persona_id: str, request: UpdatePersonaRequest):
     persona_data = PersonaData(**persona)
     
     # Update fields if provided
+    if request.name is not None:
+        persona_data.name = request.name
     if request.demographics:
         persona_data.demographics = request.demographics
     if request.attributes:
