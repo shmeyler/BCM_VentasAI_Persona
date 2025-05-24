@@ -225,9 +225,9 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
         # Map search terms to Unsplash photo IDs for consistency
         photo_mappings = {
             # Female professionals
-            "female_young_tech": "photo-1494790108755-2616b612b3bb",  # Professional woman
+            "female_young_tech": "photo-1531123897727-8f129e1688ce",  # Professional woman (replaced broken ID)
             "female_young_business": "photo-1580489944761-15a19d654956", # Business woman
-            "female_executive": "photo-1559598467-f8b76c8ac7b0",  # Executive woman
+            "female_executive": "photo-1580489944761-15a19d654956",  # Executive woman (replaced broken ID)
             "female_professional": "photo-1531123897727-8f129e1688ce", # Professional woman
             "female_healthcare": "photo-1582750433449-648ed127bb54", # Healthcare professional
             
