@@ -147,11 +147,38 @@ const HomePage = () => {
         <h2 className="text-2xl font-bold font-montserrat mb-4 bcm-heading">
           Powered by Leading Data Sources
         </h2>
-        <div className="flex justify-center items-center space-x-8 text-gray-500 font-montserrat">
-          <div>Resonate rAI</div>
-          <div>SparkToro</div>
-          <div>SEMRush</div>
-          <div>Buzzabout.ai</div>
+        <div className="flex justify-center items-center space-x-12 py-8">
+          {/* Resonate rAI */}
+          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-2 rounded-lg shadow-md">
+              <span className="text-lg font-bold">R</span>
+            </div>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-purple-600">Resonate rAI</span>
+          </div>
+
+          {/* SparkToro */}
+          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg shadow-md">
+              <span className="text-lg font-bold">ST</span>
+            </div>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-orange-600">SparkToro</span>
+          </div>
+
+          {/* SEMRush */}
+          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg shadow-md">
+              <span className="text-lg font-bold">SR</span>
+            </div>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-blue-600">SEMRush</span>
+          </div>
+
+          {/* Buzzabout.ai */}
+          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
+            <div className="bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-2 rounded-lg shadow-md">
+              <span className="text-lg font-bold">BA</span>
+            </div>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-green-600">Buzzabout.ai</span>
+          </div>
         </div>
       </div>
     </div>
