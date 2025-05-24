@@ -274,7 +274,7 @@ async def generate_persona(persona_id: str):
     
     persona_data = PersonaData(**persona)
     
-    # Generate persona image
+    # Generate persona image using the comprehensive function
     persona_image_url = await generate_persona_image(persona_data)
     
     # Mock AI generation for now (replace with actual AI service)
