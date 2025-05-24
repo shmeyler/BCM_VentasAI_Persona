@@ -135,38 +135,75 @@ class GeneratePersonaRequest(BaseModel):
 
 # Helper function to generate persona image using Unsplash
 async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
-    """Get a professional headshot from Unsplash based on demographic data"""
+    """Get a professional headshot from Unsplash based on comprehensive demographic data"""
     try:
         # Build search query from persona data
         demographics = persona_data.demographics
+        attributes = persona_data.attributes
         
         # Extract key information
-        age_range = demographics.age_range or "30-40"
+        age_range = demographics.age_range or "25-40"
         gender = demographics.gender or "person"
+        occupation = demographics.occupation or "professional"
         
-        # Build search terms based on demographics
+        # Build sophisticated search terms based on demographics and attributes
         search_terms = ["professional", "business", "headshot"]
         
         # Add gender-specific terms
         if gender.lower() in ["male", "man"]:
-            search_terms.extend(["businessman", "man"])
+            search_terms.extend(["businessman", "man", "male"])
         elif gender.lower() in ["female", "woman"]:
-            search_terms.extend(["businesswoman", "woman"])
+            search_terms.extend(["businesswoman", "woman", "female"])
         else:
             search_terms.extend(["professional"])
         
-        # Add age-related terms
+        # Add age-related terms with more precision
         if age_range:
-            if any(age in age_range for age in ["18-24", "25-40"]):
-                search_terms.append("young")
-            elif any(age in age_range for age in ["41-56", "57-75"]):
-                search_terms.append("executive")
+            if "18-24" in age_range:
+                search_terms.extend(["young", "millennial", "student"])
+            elif "25-40" in age_range:
+                search_terms.extend(["professional", "millennial", "adult"])
+            elif "41-56" in age_range:
+                search_terms.extend(["executive", "manager", "experienced"])
+            elif "57-75" in age_range:
+                search_terms.extend(["senior", "executive", "experienced"])
         
-        # Create search query
-        query = " ".join(search_terms)
+        # Add occupation-based terms
+        if occupation:
+            occ_lower = occupation.lower()
+            if "tech" in occ_lower or "engineer" in occ_lower or "developer" in occ_lower:
+                search_terms.extend(["tech", "professional"])
+            elif "manager" in occ_lower or "executive" in occ_lower:
+                search_terms.extend(["executive", "business"])
+            elif "creative" in occ_lower or "designer" in occ_lower:
+                search_terms.extend(["creative", "designer"])
+            elif "teacher" in occ_lower or "education" in occ_lower:
+                search_terms.extend(["professional", "educator"])
+            elif "healthcare" in occ_lower or "doctor" in occ_lower or "nurse" in occ_lower:
+                search_terms.extend(["healthcare", "professional"])
         
-        # Log the search query
-        logging.info(f"Searching Unsplash with query: {query}")
+        # Add attributes-based terms for more context
+        if attributes and attributes.selectedVertical:
+            vertical_lower = attributes.selectedVertical.lower()
+            if "retail" in vertical_lower:
+                search_terms.extend(["retail", "customer"])
+            elif "financial" in vertical_lower:
+                search_terms.extend(["finance", "business"])
+            elif "health" in vertical_lower:
+                search_terms.extend(["healthcare", "wellness"])
+            elif "automotive" in vertical_lower:
+                search_terms.extend(["professional", "business"])
+            elif "travel" in vertical_lower:
+                search_terms.extend(["travel", "professional"])
+            elif "technology" in vertical_lower:
+                search_terms.extend(["tech", "professional"])
+        
+        # Create search query (limit to avoid too long queries)
+        unique_terms = list(dict.fromkeys(search_terms))[:8]  # Remove duplicates and limit
+        query = " ".join(unique_terms)
+        
+        # Log the search query for debugging
+        logging.info(f"Searching Unsplash with query: {query} for persona: {persona_data.name}")
         
         # Search Unsplash for professional photos
         unsplash_url = "https://api.unsplash.com/search/photos"
@@ -185,13 +222,15 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
             results = data.get("results", [])
             
             if results:
-                # Randomly select from the first 10 results for variety
-                selected_photo = random.choice(results[:10])
+                # Use persona name hash for consistent selection
+                persona_hash = hash(persona_data.name or persona_data.id) if persona_data.name else hash(persona_data.id)
+                selected_index = abs(persona_hash) % min(len(results), 15)  # Use first 15 results for quality
+                selected_photo = results[selected_index]
                 
                 # Get the regular size image URL (good quality, reasonable size)
                 image_url = selected_photo["urls"]["regular"]
                 
-                logging.info(f"Successfully found Unsplash image: {image_url}")
+                logging.info(f"Successfully found Unsplash image: {image_url} for {persona_data.name}")
                 return image_url
             else:
                 logging.warning(f"No Unsplash results found for query: {query}")
@@ -202,6 +241,15 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
         logging.error(f"Error getting Unsplash image: {str(e)}")
     
     # Return a fallback professional placeholder if Unsplash fails
+    # Use different fallbacks based on gender if available
+    if demographics.gender:
+        gender_lower = demographics.gender.lower()
+        if "male" in gender_lower or "man" in gender_lower:
+            return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
+        elif "female" in gender_lower or "woman" in gender_lower:
+            return "https://images.unsplash.com/photo-1494790108755-2616b612b3bb?w=400&h=400&fit=crop&crop=face"
+    
+    # Default fallback
     return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
 
 
