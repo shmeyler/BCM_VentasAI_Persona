@@ -308,7 +308,7 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
         if "male" in gender_lower or "man" in gender_lower:
             return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
         elif "female" in gender_lower or "woman" in gender_lower:
-            return "https://images.unsplash.com/photo-1494790108755-2616b612b3bb?w=400&h=400&fit=crop&crop=face"
+            return "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
     
     # Default fallback
     return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
