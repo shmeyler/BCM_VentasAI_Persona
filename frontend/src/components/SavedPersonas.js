@@ -36,11 +36,13 @@ const SavedPersonas = () => {
     }
 
     try {
-      await axios.delete(`${API}/personas/${personaId}`);
-      
       if (isGenerated) {
-        setGeneratedPersonas(prev => prev.filter(p => p.persona_data.id !== personaId));
+        // Delete generated persona using the generated-personas endpoint
+        await axios.delete(`${API}/generated-personas/${personaId}`);
+        setGeneratedPersonas(prev => prev.filter(p => p.id !== personaId));
       } else {
+        // Delete draft persona using the personas endpoint
+        await axios.delete(`${API}/personas/${personaId}`);
         setPersonas(prev => prev.filter(p => p.id !== personaId));
       }
     } catch (error) {
