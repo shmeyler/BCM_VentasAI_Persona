@@ -149,33 +149,49 @@ const HomePage = () => {
         </h2>
         <div className="flex justify-center items-center space-x-12 py-8">
           {/* Resonate rAI */}
-          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
-            <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-lg font-bold">R</span>
+          <div className="flex flex-col items-center space-y-3 group hover:scale-105 transition-transform duration-200">
+            <div className="w-16 h-16 bg-white rounded-lg shadow-md p-2 flex items-center justify-center">
+              <img 
+                src="https://www.insightplatforms.com/wp-content/uploads/2023/10/resonate-Logo-Square-Insight-Platforms.png" 
+                alt="Resonate Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-sm font-medium text-gray-600 group-hover:text-purple-600">Resonate rAI</span>
           </div>
 
           {/* SparkToro */}
-          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-lg font-bold">ST</span>
+          <div className="flex flex-col items-center space-y-3 group hover:scale-105 transition-transform duration-200">
+            <div className="w-16 h-16 bg-white rounded-lg shadow-md p-2 flex items-center justify-center">
+              <img 
+                src="https://sparktoro.com/img/product/sparktoro-logo.c08f697d63cf1cb31c7388dd16efbfa9.svg" 
+                alt="SparkToro Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-sm font-medium text-gray-600 group-hover:text-orange-600">SparkToro</span>
           </div>
 
           {/* SEMRush */}
-          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-lg font-bold">SR</span>
+          <div className="flex flex-col items-center space-y-3 group hover:scale-105 transition-transform duration-200">
+            <div className="w-16 h-16 bg-white rounded-lg shadow-md p-2 flex items-center justify-center">
+              <img 
+                src="https://prowly-prod.s3.eu-west-1.amazonaws.com/uploads/60169/assets/601030/-41b7df259e181179ec6cf7184d77bffe.png" 
+                alt="SEMRush Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-sm font-medium text-gray-600 group-hover:text-blue-600">SEMRush</span>
           </div>
 
           {/* Buzzabout.ai */}
-          <div className="flex flex-col items-center space-y-2 group hover:scale-105 transition-transform duration-200">
-            <div className="bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-lg font-bold">BA</span>
+          <div className="flex flex-col items-center space-y-3 group hover:scale-105 transition-transform duration-200">
+            <div className="w-16 h-16 bg-white rounded-lg shadow-md p-2 flex items-center justify-center">
+              <img 
+                src="https://ph-files.imgix.net/f9de4bc8-e4a2-4fda-9d5e-5b9c65cfd911.jpeg?auto=compress&codec=mozjpeg&cs=strip&auto=format&w=64&h=64&fit=crop&frame=1&dpr=2" 
+                alt="Buzzabout AI Logo"
+                className="w-full h-full object-contain rounded"
+              />
             </div>
             <span className="text-sm font-medium text-gray-600 group-hover:text-green-600">Buzzabout.ai</span>
           </div>
