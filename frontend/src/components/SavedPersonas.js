@@ -165,7 +165,7 @@ const SavedPersonas = () => {
                         Visual Template
                       </a>
                       <button
-                        onClick={() => deletePersona(generatedPersona.persona_data.id, true)}
+                        onClick={() => deletePersona(generatedPersona.id, true)}
                         className="text-red-600 hover:text-red-800 text-sm font-medium font-montserrat"
                       >
                         Delete
