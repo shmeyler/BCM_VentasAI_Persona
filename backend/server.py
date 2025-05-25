@@ -457,6 +457,15 @@ async def delete_persona(persona_id: str):
     return {"message": "Persona deleted successfully"}
 
 
+@api_router.delete("/generated-personas/{generated_persona_id}")
+async def delete_generated_persona(generated_persona_id: str):
+    """Delete a generated persona"""
+    result = await db.generated_personas.delete_one({"id": generated_persona_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Generated persona not found")
+    return {"message": "Generated persona deleted successfully"}
+
+
 # Legacy Status Check Routes (keeping for compatibility)
 @api_router.get("/")
 async def root():
