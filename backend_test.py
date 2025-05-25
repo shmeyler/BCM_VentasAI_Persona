@@ -246,6 +246,68 @@ class BCMPersonaAPITester:
         )
         return success
 
+    def test_delete_generated_persona(self):
+        """Test deleting a generated persona - CRITICAL FIX BEING TESTED"""
+        print("\n🔥 === CRITICAL TEST: Generated Persona Deletion ===")
+        
+        # First get list of generated personas
+        success, response = self.run_test(
+            "List Generated Personas for Deletion Test",
+            "GET",
+            "generated-personas",
+            200
+        )
+        
+        if not success:
+            print("❌ Cannot test deletion - failed to get generated personas list")
+            return False
+        
+        generated_personas = response if isinstance(response, list) else []
+        if not generated_personas:
+            print("❌ No generated personas available for deletion test")
+            return False
+        
+        # Get the first generated persona ID
+        generated_persona_id = generated_personas[0].get('id')
+        if not generated_persona_id:
+            print("❌ Generated persona has no ID field")
+            return False
+        
+        print(f"   Testing deletion of generated persona: {generated_persona_id}")
+        
+        # CRITICAL TEST: Delete the generated persona
+        success, response = self.run_test(
+            "Delete Generated Persona - CRITICAL FIX",
+            "DELETE",
+            f"generated-personas/{generated_persona_id}",
+            200
+        )
+        
+        if success:
+            print("   ✅ CRITICAL FIX VERIFIED: Generated persona deletion works!")
+            
+            # Verify it's actually deleted by checking the list again
+            success_verify, response_verify = self.run_test(
+                "Verify Generated Persona Deleted",
+                "GET",
+                "generated-personas",
+                200
+            )
+            
+            if success_verify:
+                remaining_personas = response_verify if isinstance(response_verify, list) else []
+                deleted_persona_still_exists = any(p.get('id') == generated_persona_id for p in remaining_personas)
+                
+                if not deleted_persona_still_exists:
+                    print("   ✅ VERIFICATION PASSED: Persona successfully removed from list")
+                else:
+                    print("   ⚠️  VERIFICATION WARNING: Persona still appears in list")
+            
+        else:
+            print("   ❌ CRITICAL FIX FAILED: Generated persona deletion still has issues!")
+        
+        return success
+
     def test_data_sources_status(self):
         """Test data sources status endpoint"""
         success, response = self.run_test(
