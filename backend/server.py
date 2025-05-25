@@ -230,6 +230,9 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
             "female_executive": "photo-1580489944761-15a19d654956",  # Executive woman (replaced broken ID)
             "female_professional": "photo-1531123897727-8f129e1688ce", # Professional woman
             "female_healthcare": "photo-1582750433449-648ed127bb54", # Healthcare professional
+            "female_executive_executive": "photo-1580489944761-15a19d654956", # Female executive (compound key)
+            "female_young_executive": "photo-1580489944761-15a19d654956", # Young female executive
+            "female_professional_executive": "photo-1580489944761-15a19d654956", # Professional female executive
             
             # Male professionals  
             "male_young_tech": "photo-1507003211169-0a1dd7228f2d",  # Tech professional
@@ -237,10 +240,13 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
             "male_executive": "photo-1560250097-0b93528c311a",  # Executive man
             "male_professional": "photo-1519085360753-af0119f7cbe7", # Professional man
             "male_healthcare": "photo-1612349317150-e413f6a5b16d", # Healthcare professional
+            "male_executive_executive": "photo-1560250097-0b93528c311a", # Male executive (compound key)
+            "male_young_executive": "photo-1560250097-0b93528c311a", # Young male executive
+            "male_professional_executive": "photo-1560250097-0b93528c311a", # Professional male executive
             
             # General professional fallbacks
             "general_professional": "photo-1507003211169-0a1dd7228f2d",
-            "business_person": "photo-1494790108755-2616b612b3bb"
+            "business_person": "photo-1531123897727-8f129e1688ce"  # Fixed broken ID
         }
         
         # Determine the best photo mapping based on demographics
