@@ -425,7 +425,7 @@ def main():
     
     tester = BCMPersonaAPITester()
     
-    # Test sequence focusing on new features and data sources
+    # Test sequence focusing on new features and CRITICAL FIXES
     tests = [
         tester.test_api_root,
         tester.test_data_sources_status,
@@ -440,6 +440,7 @@ def main():
         tester.test_generate_persona,
         tester.test_list_personas,
         tester.test_list_generated_personas,
+        tester.test_delete_generated_persona,  # CRITICAL FIX TEST
         tester.test_legacy_status_endpoints,
         tester.test_delete_persona
     ]
