@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class BCMPersonaAPITester:
-    def __init__(self, base_url="https://f5baf5c2-75b5-49f9-a5be-8c88a473d9c2.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://5723ff75-4165-4b59-917c-cb207fa4725b.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
