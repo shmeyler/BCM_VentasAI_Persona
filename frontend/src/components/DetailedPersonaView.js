@@ -685,9 +685,20 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">95%</div>
-            <div className="text-sm text-gray-500">Confidence Score</div>
+          <div className="flex items-center gap-4">
+            <a
+              href={`/persona/${generatedPersona.persona_data.id}/visual`}
+              className="bcm-btn-secondary text-sm py-2 px-4 flex items-center hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Visual Template
+            </a>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-600">95%</div>
+              <div className="text-sm text-gray-500">Confidence Score</div>
+            </div>
           </div>
         </div>
       </div>
