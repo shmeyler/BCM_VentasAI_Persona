@@ -171,6 +171,17 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
             <h1 className="text-3xl font-bold font-montserrat">{persona_data?.name || "Generated Persona"}</h1>
             <p className="text-lg opacity-90">Data-Driven Consumer Profile</p>
           </div>
+          <div className="absolute bottom-4 right-8">
+            <a
+              href={`/persona/${persona_data?.id}/detailed`}
+              className="bg-white text-blue-600 hover:bg-blue-50 transition-colors px-4 py-2 rounded-lg flex items-center font-medium text-sm shadow-md"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Detailed Analysis
+            </a>
+          </div>
         </div>
         
         <div className="p-8">
