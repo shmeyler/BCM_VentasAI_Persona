@@ -694,12 +694,12 @@ const DetailedPersonaView = ({ generatedPersona }) => {
 
       {/* Tabbed Interface */}
       <Tab.Group>
-        <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1 mb-8">
+        <Tab.List className="flex flex-wrap gap-2 rounded-xl bg-blue-900/20 p-2 mb-8 lg:gap-1 lg:space-x-1">
           {tabs.map((tab, index) => (
             <Tab
               key={index}
               className={({ selected }) =>
-                `w-full rounded-lg py-3 px-4 text-sm font-medium leading-5 text-blue-700 transition-all
+                `flex-1 min-w-0 rounded-lg py-2 px-2 lg:py-3 lg:px-4 text-xs lg:text-sm font-medium leading-5 text-blue-700 transition-all
                 ${selected
                   ? 'bg-white text-blue-700 shadow'
                   : 'text-blue-600 hover:bg-white/20 hover:text-blue-600'
@@ -707,8 +707,8 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               }
             >
               <div className="flex items-center justify-center">
-                <tab.icon className="mr-2" size={16} />
-                {tab.name}
+                <tab.icon className="mr-1 lg:mr-2 flex-shrink-0" size={14} />
+                <span className="truncate text-center">{tab.name}</span>
               </div>
             </Tab>
           ))}
