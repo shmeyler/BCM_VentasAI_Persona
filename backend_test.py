@@ -468,8 +468,8 @@ class BCMPersonaAPITester:
         return success
 
     def test_export_google_slides(self):
-        """Test Google Slides export endpoint - NEW EXPORT FUNCTIONALITY"""
-        print("\n🔥 === NEW FEATURE TEST: Google Slides Export ===")
+        """Test Google Slides export endpoint - FIXED EXPORT FUNCTIONALITY"""
+        print("\n🔥 === CRITICAL TEST: FIXED Google Slides Export ===")
         
         # First get a generated persona to test with
         success, response = self.run_test(
@@ -494,11 +494,11 @@ class BCMPersonaAPITester:
             print("❌ Generated persona has no ID field")
             return False
         
-        print(f"   Testing Google Slides export for persona: {generated_persona_id}")
+        print(f"   Testing FIXED Google Slides export for persona: {generated_persona_id}")
         
-        # Test Google Slides export endpoint
+        # Test Google Slides export endpoint - SHOULD NOW RETURN 200 INSTEAD OF 500
         success, response = self.run_test(
-            "Google Slides Export - NEW FEATURE",
+            "Google Slides Export - FIXED FUNCTIONALITY",
             "POST",
             "export/google-slides",
             200,
@@ -506,15 +506,35 @@ class BCMPersonaAPITester:
         )
         
         if success:
-            print("   ✅ Google Slides export endpoint works!")
+            print("   ✅ CRITICAL FIX VERIFIED: Google Slides export endpoint now returns 200!")
             if 'persona_data' in response:
                 print("   ✅ Persona data included in response")
             if response.get('success'):
                 print("   ✅ Success flag is True")
             if 'message' in response:
                 print(f"   ✅ Message: {response['message']}")
+            
+            # CRITICAL: Test JSON serialization (ObjectId fix)
+            try:
+                json.dumps(response)
+                print("   ✅ CRITICAL FIX VERIFIED: Response is JSON serializable (ObjectId issue fixed)")
+            except Exception as e:
+                print(f"   ❌ CRITICAL ISSUE: Response not JSON serializable: {str(e)}")
+                return False
         else:
-            print("   ❌ Google Slides export endpoint failed!")
+            print("   ❌ CRITICAL ISSUE: Google Slides export endpoint still failing!")
+        
+        # Test with persona_id as well
+        if self.persona_id:
+            success2, response2 = self.run_test(
+                "Google Slides Export with persona_id",
+                "POST",
+                "export/google-slides",
+                200,
+                data={"persona_id": self.persona_id}
+            )
+            if success2:
+                print("   ✅ Google Slides export also works with persona_id")
         
         return success
 
