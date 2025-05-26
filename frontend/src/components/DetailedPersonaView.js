@@ -687,6 +687,10 @@ const DetailedPersonaView = ({ generatedPersona }) => {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ExportPersona 
+              generatedPersona={generatedPersona}
+              className="export-button"
+            />
             <a
               href={`/persona/${generatedPersona.persona_data.id}/visual`}
               className="bcm-btn-secondary text-sm py-2 px-4 flex items-center hover:bg-gray-100 transition-colors"
