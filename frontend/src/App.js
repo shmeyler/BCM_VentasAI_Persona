@@ -93,9 +93,9 @@ function App() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0 flex items-center">
                     <img 
-                      src="https://mma.prnewswire.com/media/2444113/BCM_Updated_2024_FullName_Orange_Logo.jpg" 
+                      src="https://www.beebyclarkmeyler.com/hs-fs/hubfs/BCM_2024_Logo_Update_White.png?width=3825&height=4950&name=BCM_2024_Logo_Update_White.png" 
                       alt="Beeby Clark+Meyler Logo"
-                      className="h-10 w-auto object-contain mr-4 bg-white rounded px-2 py-1"
+                      className="h-10 w-auto object-contain mr-4"
                     />
                     <div className="border-l-2 border-orange-300 pl-4">
                       <h1 className="text-xl font-bold text-white font-montserrat">VentasAI</h1>
