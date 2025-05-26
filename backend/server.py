@@ -471,6 +471,71 @@ async def delete_generated_persona(generated_persona_id: str):
 async def root():
     return {"message": "BCM VentasAI Persona Generator API", "version": "1.0.0"}
 
+@api_router.post("/export/google-slides")
+async def export_to_google_slides(request: dict):
+    """Export persona to Google Slides"""
+    try:
+        persona_id = request.get("persona_id")
+        generated_persona_id = request.get("generated_persona_id")
+        
+        if not persona_id and not generated_persona_id:
+            raise HTTPException(status_code=400, detail="Either persona_id or generated_persona_id is required")
+        
+        # Get persona data
+        persona_data = None
+        if generated_persona_id:
+            generated_persona = await db.generated_personas.find_one({"id": generated_persona_id})
+            if not generated_persona:
+                raise HTTPException(status_code=404, detail="Generated persona not found")
+            persona_data = generated_persona
+        else:
+            persona = await db.personas.find_one({"id": persona_id})
+            if not persona:
+                raise HTTPException(status_code=404, detail="Persona not found")
+            persona_data = {"persona_data": persona}
+        
+        return {
+            "success": True,
+            "persona_data": persona_data,
+            "message": "Persona data prepared for Google Slides export"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error preparing Google Slides export: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export preparation failed: {str(e)}")
+
+@api_router.post("/export/pdf-data")
+async def get_pdf_export_data(request: dict):
+    """Get persona data formatted for PDF export"""
+    try:
+        persona_id = request.get("persona_id")
+        generated_persona_id = request.get("generated_persona_id")
+        
+        if not persona_id and not generated_persona_id:
+            raise HTTPException(status_code=400, detail="Either persona_id or generated_persona_id is required")
+        
+        # Get persona data
+        persona_data = None
+        if generated_persona_id:
+            generated_persona = await db.generated_personas.find_one({"id": generated_persona_id})
+            if not generated_persona:
+                raise HTTPException(status_code=404, detail="Generated persona not found")
+            persona_data = generated_persona
+        else:
+            persona = await db.personas.find_one({"id": persona_id})
+            if not persona:
+                raise HTTPException(status_code=404, detail="Persona not found")
+            persona_data = {"persona_data": persona}
+        
+        return {
+            "success": True,
+            "persona_data": persona_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error preparing PDF export data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"PDF data preparation failed: {str(e)}")
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_dict = input.dict()
