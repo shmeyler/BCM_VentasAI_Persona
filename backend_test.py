@@ -398,6 +398,106 @@ class BCMPersonaAPITester:
         
         return success
 
+    def test_export_pdf_data(self):
+        """Test PDF export data endpoint - NEW EXPORT FUNCTIONALITY"""
+        print("\n🔥 === NEW FEATURE TEST: PDF Export Data ===")
+        
+        # First get a generated persona to test with
+        success, response = self.run_test(
+            "List Generated Personas for Export Test",
+            "GET",
+            "generated-personas",
+            200
+        )
+        
+        if not success:
+            print("❌ Cannot test PDF export - failed to get generated personas list")
+            return False
+        
+        generated_personas = response if isinstance(response, list) else []
+        if not generated_personas:
+            print("❌ No generated personas available for PDF export test")
+            return False
+        
+        # Get the first generated persona ID
+        generated_persona_id = generated_personas[0].get('id')
+        if not generated_persona_id:
+            print("❌ Generated persona has no ID field")
+            return False
+        
+        print(f"   Testing PDF export data for persona: {generated_persona_id}")
+        
+        # Test PDF export data endpoint
+        success, response = self.run_test(
+            "PDF Export Data - NEW FEATURE",
+            "POST",
+            "export/pdf-data",
+            200,
+            data={"generated_persona_id": generated_persona_id}
+        )
+        
+        if success:
+            print("   ✅ PDF export data endpoint works!")
+            if 'persona_data' in response:
+                print("   ✅ Persona data included in response")
+            if response.get('success'):
+                print("   ✅ Success flag is True")
+        else:
+            print("   ❌ PDF export data endpoint failed!")
+        
+        return success
+
+    def test_export_google_slides(self):
+        """Test Google Slides export endpoint - NEW EXPORT FUNCTIONALITY"""
+        print("\n🔥 === NEW FEATURE TEST: Google Slides Export ===")
+        
+        # First get a generated persona to test with
+        success, response = self.run_test(
+            "List Generated Personas for Google Slides Test",
+            "GET",
+            "generated-personas",
+            200
+        )
+        
+        if not success:
+            print("❌ Cannot test Google Slides export - failed to get generated personas list")
+            return False
+        
+        generated_personas = response if isinstance(response, list) else []
+        if not generated_personas:
+            print("❌ No generated personas available for Google Slides export test")
+            return False
+        
+        # Get the first generated persona ID
+        generated_persona_id = generated_personas[0].get('id')
+        if not generated_persona_id:
+            print("❌ Generated persona has no ID field")
+            return False
+        
+        print(f"   Testing Google Slides export for persona: {generated_persona_id}")
+        
+        # Test Google Slides export endpoint
+        success, response = self.run_test(
+            "Google Slides Export - NEW FEATURE",
+            "POST",
+            "export/google-slides",
+            200,
+            data={"generated_persona_id": generated_persona_id}
+        )
+        
+        if success:
+            print("   ✅ Google Slides export endpoint works!")
+            if 'persona_data' in response:
+                print("   ✅ Persona data included in response")
+            if response.get('success'):
+                print("   ✅ Success flag is True")
+            if 'message' in response:
+                print(f"   ✅ Message: {response['message']}")
+        else:
+            print("   ❌ Google Slides export endpoint failed!")
+        
+        return success
+
     def test_legacy_status_endpoints(self):
         """Test legacy status check endpoints for compatibility"""
         # Test creating a status check
