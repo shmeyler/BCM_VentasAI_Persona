@@ -172,7 +172,11 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
             <h1 className="text-3xl font-bold font-montserrat">{persona_data?.name || "Generated Persona"}</h1>
             <p className="text-lg opacity-90">Data-Driven Consumer Profile</p>
           </div>
-          <div className="absolute bottom-4 right-8">
+          <div className="absolute bottom-4 right-8 flex items-center gap-3">
+            <ExportPersona 
+              generatedPersona={generatedPersona}
+              className="export-button"
+            />
             <a
               href={`/persona/${persona_data?.id}/detailed`}
               className="bg-white text-blue-600 hover:bg-blue-50 transition-colors px-4 py-2 rounded-lg flex items-center font-medium text-sm shadow-md"
