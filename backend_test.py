@@ -540,6 +540,8 @@ def main():
         tester.test_generate_persona,
         tester.test_list_personas,
         tester.test_list_generated_personas,
+        tester.test_export_pdf_data,  # NEW EXPORT FUNCTIONALITY TEST
+        tester.test_export_google_slides,  # NEW EXPORT FUNCTIONALITY TEST
         tester.test_delete_generated_persona,  # CRITICAL FIX TEST
         tester.test_legacy_status_endpoints,
         tester.test_delete_persona
