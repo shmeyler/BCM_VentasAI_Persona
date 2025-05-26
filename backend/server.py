@@ -482,17 +482,22 @@ async def export_to_google_slides(request: dict):
             raise HTTPException(status_code=400, detail="Either persona_id or generated_persona_id is required")
         
         # Get persona data
-        persona_data = None
         if generated_persona_id:
-            generated_persona = await db.generated_personas.find_one({"id": generated_persona_id})
-            if not generated_persona:
+            generated_persona_doc = await db.generated_personas.find_one({"id": generated_persona_id})
+            if not generated_persona_doc:
                 raise HTTPException(status_code=404, detail="Generated persona not found")
-            persona_data = generated_persona
+            
+            # Convert to JSON-serializable format
+            generated_persona = GeneratedPersona(**generated_persona_doc)
+            persona_data = generated_persona.dict()
         else:
-            persona = await db.personas.find_one({"id": persona_id})
-            if not persona:
+            persona_doc = await db.personas.find_one({"id": persona_id})
+            if not persona_doc:
                 raise HTTPException(status_code=404, detail="Persona not found")
-            persona_data = {"persona_data": persona}
+            
+            # Convert to JSON-serializable format
+            persona = PersonaData(**persona_doc)
+            persona_data = {"persona_data": persona.dict()}
         
         return {
             "success": True,
@@ -515,17 +520,22 @@ async def get_pdf_export_data(request: dict):
             raise HTTPException(status_code=400, detail="Either persona_id or generated_persona_id is required")
         
         # Get persona data
-        persona_data = None
         if generated_persona_id:
-            generated_persona = await db.generated_personas.find_one({"id": generated_persona_id})
-            if not generated_persona:
+            generated_persona_doc = await db.generated_personas.find_one({"id": generated_persona_id})
+            if not generated_persona_doc:
                 raise HTTPException(status_code=404, detail="Generated persona not found")
-            persona_data = generated_persona
+            
+            # Convert to JSON-serializable format
+            generated_persona = GeneratedPersona(**generated_persona_doc)
+            persona_data = generated_persona.dict()
         else:
-            persona = await db.personas.find_one({"id": persona_id})
-            if not persona:
+            persona_doc = await db.personas.find_one({"id": persona_id})
+            if not persona_doc:
                 raise HTTPException(status_code=404, detail="Persona not found")
-            persona_data = {"persona_data": persona}
+            
+            # Convert to JSON-serializable format
+            persona = PersonaData(**persona_doc)
+            persona_data = {"persona_data": persona.dict()}
         
         return {
             "success": True,
