@@ -163,7 +163,7 @@ const VisualPersonaTemplate = ({ generatedPersona }) => {
   };
 
   return (
-    <div className="visual-persona-template p-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen font-montserrat">
+    <div id="persona-content" className="visual-persona-template p-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen font-montserrat">
       {/* Header Section with Professional Image */}
       <div className="mb-8 bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 h-32 relative">
