@@ -399,8 +399,8 @@ class BCMPersonaAPITester:
         return success
 
     def test_export_pdf_data(self):
-        """Test PDF export data endpoint - NEW EXPORT FUNCTIONALITY"""
-        print("\n🔥 === NEW FEATURE TEST: PDF Export Data ===")
+        """Test PDF export data endpoint - FIXED EXPORT FUNCTIONALITY"""
+        print("\n🔥 === CRITICAL TEST: FIXED PDF Export Data ===")
         
         # First get a generated persona to test with
         success, response = self.run_test(
@@ -425,11 +425,11 @@ class BCMPersonaAPITester:
             print("❌ Generated persona has no ID field")
             return False
         
-        print(f"   Testing PDF export data for persona: {generated_persona_id}")
+        print(f"   Testing FIXED PDF export data for persona: {generated_persona_id}")
         
-        # Test PDF export data endpoint
+        # Test PDF export data endpoint - SHOULD NOW RETURN 200 INSTEAD OF 500
         success, response = self.run_test(
-            "PDF Export Data - NEW FEATURE",
+            "PDF Export Data - FIXED FUNCTIONALITY",
             "POST",
             "export/pdf-data",
             200,
@@ -437,13 +437,33 @@ class BCMPersonaAPITester:
         )
         
         if success:
-            print("   ✅ PDF export data endpoint works!")
+            print("   ✅ CRITICAL FIX VERIFIED: PDF export data endpoint now returns 200!")
             if 'persona_data' in response:
                 print("   ✅ Persona data included in response")
             if response.get('success'):
                 print("   ✅ Success flag is True")
+            
+            # CRITICAL: Test JSON serialization (ObjectId fix)
+            try:
+                json.dumps(response)
+                print("   ✅ CRITICAL FIX VERIFIED: Response is JSON serializable (ObjectId issue fixed)")
+            except Exception as e:
+                print(f"   ❌ CRITICAL ISSUE: Response not JSON serializable: {str(e)}")
+                return False
         else:
-            print("   ❌ PDF export data endpoint failed!")
+            print("   ❌ CRITICAL ISSUE: PDF export data endpoint still failing!")
+        
+        # Test with persona_id as well
+        if self.persona_id:
+            success2, response2 = self.run_test(
+                "PDF Export Data with persona_id",
+                "POST",
+                "export/pdf-data",
+                200,
+                data={"persona_id": self.persona_id}
+            )
+            if success2:
+                print("   ✅ PDF export also works with persona_id")
         
         return success
 
