@@ -24,6 +24,7 @@ import {
   FaLightbulb,
   FaComments
 } from "react-icons/fa";
+import ExportPersona from './ExportPersona';
 import { 
   PieChart, 
   Pie, 
