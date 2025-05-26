@@ -57,6 +57,7 @@ import {
   ScatterChart,
   Scatter
 } from 'recharts';
+import ExportPersona from './ExportPersona';
 
 const DetailedPersonaView = ({ generatedPersona }) => {
   const { persona_data, ai_insights, recommendations, pain_points, goals, communication_style, persona_image_url } = generatedPersona;
