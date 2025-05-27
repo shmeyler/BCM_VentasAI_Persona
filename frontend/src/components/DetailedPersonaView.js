@@ -709,7 +709,7 @@ const DetailedPersonaView = ({ generatedPersona }) => {
       </div>
 
       {/* Tabbed Interface */}
-      <Tab.Group>
+      <TabGroup>
         <Tab.List className="flex flex-wrap gap-2 rounded-xl bg-blue-900/20 p-2 mb-8 lg:gap-1 lg:space-x-1">
           {tabs.map((tab, index) => (
             <Tab
