@@ -62,7 +62,12 @@ const HomePage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
           {/* Start with Demographics */}
-          <div className="bcm-card" onClick={() => createPersona("demographics")}>
+          <div 
+            className={`bcm-card cursor-pointer transition-all duration-200 ${
+              selectedMethod === 'demographics' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
+            }`} 
+            onClick={() => handleCardClick("demographics")}
+          >
             <div 
               className="flex items-center justify-center w-20 h-20 rounded-full mx-auto mb-6"
               style={{backgroundColor: 'var(--bcm-teal-light)'}}
