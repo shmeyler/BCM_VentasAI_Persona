@@ -360,6 +360,13 @@ const KeyDemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving })
     { value: "76+", label: "76+ (Silent)" }
   ];
 
+  const locationTypes = [
+    "Urban",
+    "Suburban", 
+    "Rural",
+    "Coastal"
+  ];
+
   return (
     <div className="form-section">
       <h2 className="text-xl font-bold font-montserrat bcm-heading mb-4">Key Demographics</h2>
