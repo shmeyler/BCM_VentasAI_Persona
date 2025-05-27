@@ -728,7 +728,7 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               </div>
             </Tab>
           ))}
-        </Tab.List>
+        </TabList>
         
         <Tab.Panels>
           <Tab.Panel><OverviewTab /></Tab.Panel>
