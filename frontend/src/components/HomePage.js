@@ -8,16 +8,22 @@ const API = `${BACKEND_URL}/api`;
 const HomePage = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState(null); // Track selected method
+  const [selectedMethod, setSelectedMethod] = useState(null);
+
+  console.log('BACKEND_URL:', BACKEND_URL); // Debug log
+  console.log('API:', API); // Debug log
 
   const createPersona = async (startingMethod) => {
+    console.log('createPersona called with:', startingMethod); // Debug log
     setIsCreating(true);
     try {
+      console.log('Making API call to:', `${API}/personas`); // Debug log
       const response = await axios.post(`${API}/personas`, {
         starting_method: startingMethod,
         name: `New Persona ${new Date().toLocaleDateString()}`
       });
       
+      console.log('API response:', response.data); // Debug log
       // Navigate to wizard with the created persona ID
       navigate(`/persona-wizard?id=${response.data.id}&method=${startingMethod}`);
     } catch (error) {
@@ -29,13 +35,16 @@ const HomePage = () => {
   };
 
   const handleCardClick = (method) => {
+    console.log('Card clicked:', method); // Debug log
     setSelectedMethod(method);
-    // Visual feedback only - actual creation happens on Next button click
   };
 
   const handleNext = () => {
+    console.log('Next button clicked, selectedMethod:', selectedMethod); // Debug log
     if (selectedMethod) {
       createPersona(selectedMethod);
+    } else {
+      console.log('No method selected'); // Debug log
     }
   };
 
