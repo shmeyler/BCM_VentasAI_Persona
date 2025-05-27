@@ -754,7 +754,7 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               <p className="text-gray-600">Marketing recommendations and strategic insights would go here...</p>
             </div>
           </Tab.Panel>
-        </Tab.Panels>
+        </TabPanels>
       </TabGroup>
     </div>
   );
