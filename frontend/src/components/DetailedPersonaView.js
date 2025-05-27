@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tab } from '@headlessui/react';
+import { Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
 import { 
   FaFacebook, 
   FaInstagram, 
