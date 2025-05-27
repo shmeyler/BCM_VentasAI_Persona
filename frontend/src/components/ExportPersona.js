@@ -260,21 +260,29 @@ const ExportPersona = ({ persona, generatedPersona, className = "" }) => {
 
   // PDF Export using html2canvas + jsPDF
   const exportToSimplePDF = async () => {
+    console.log('Starting PDF export...');
     setIsExporting(true);
     try {
       const element = document.getElementById('persona-content');
+      console.log('Found element:', element);
+      
       if (!element) {
+        console.error('Element persona-content not found');
         alert('Persona content not found. Please make sure you are on the persona page.');
         return;
       }
 
+      console.log('Starting html2canvas...');
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true
       });
+      console.log('Canvas created:', canvas);
 
       const imgData = canvas.toDataURL('image/png');
+      console.log('Image data created, length:', imgData.length);
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const imgWidth = 210;
       const pageHeight = 295;
@@ -283,6 +291,7 @@ const ExportPersona = ({ persona, generatedPersona, className = "" }) => {
 
       let position = 0;
 
+      console.log('Adding image to PDF...');
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
@@ -293,10 +302,12 @@ const ExportPersona = ({ persona, generatedPersona, className = "" }) => {
         heightLeft -= pageHeight;
       }
 
+      console.log('Saving PDF...');
       pdf.save(`${persona_data?.name || 'persona'}-visual-template.pdf`);
+      console.log('PDF export completed successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
+      alert(`Error generating PDF: ${error.message}`);
     } finally {
       setIsExporting(false);
       setShowExportMenu(false);
