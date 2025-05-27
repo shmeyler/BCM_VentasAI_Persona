@@ -741,19 +741,19 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               <h3 className="text-xl font-bold mb-4">Search Behavior Analysis</h3>
               <p className="text-gray-600">Search behavior insights and keyword analysis would go here...</p>
             </div>
-          </Tab.Panel>
-          <Tab.Panel>
+          </TabPanel>
+          <TabPanel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Social Listening Insights</h3>
               <p className="text-gray-600">Social listening data and sentiment analysis would go here...</p>
             </div>
-          </Tab.Panel>
-          <Tab.Panel>
+          </TabPanel>
+          <TabPanel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Strategic Recommendations</h3>
               <p className="text-gray-600">Marketing recommendations and strategic insights would go here...</p>
             </div>
-          </Tab.Panel>
+          </TabPanel>
         </TabPanels>
       </TabGroup>
     </div>
