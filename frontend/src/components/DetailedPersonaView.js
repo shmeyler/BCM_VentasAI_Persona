@@ -730,7 +730,7 @@ const DetailedPersonaView = ({ generatedPersona }) => {
           ))}
         </TabList>
         
-        <Tab.Panels>
+        <TabPanels>
           <Tab.Panel><OverviewTab /></Tab.Panel>
           <Tab.Panel><DemographicsTab /></Tab.Panel>
           <Tab.Panel><MediaConsumptionTab /></Tab.Panel>
