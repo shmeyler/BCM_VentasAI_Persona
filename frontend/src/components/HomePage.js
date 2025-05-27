@@ -55,8 +55,11 @@ const HomePage = () => {
           <h2 className="text-3xl font-bold font-montserrat mb-3 bcm-heading">
             How would you like to start?
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-2">
             Choose your preferred approach to building your marketing persona
+          </p>
+          <p className="text-sm text-blue-600 font-medium">
+            👆 Click on one of the options below, then click "Next" to continue
           </p>
         </div>
 
