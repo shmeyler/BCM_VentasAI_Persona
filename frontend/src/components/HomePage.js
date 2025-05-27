@@ -162,9 +162,9 @@ const HomePage = () => {
         </button>
         <button 
           type="button" 
-          disabled={!selectedMethod || isCreating}
           onClick={handleNext}
-          className="bcm-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bcm-btn-primary"
+          style={{backgroundColor: selectedMethod ? '#007bff' : '#ccc'}}
         >
           {isCreating ? (
             <div className="flex items-center">
