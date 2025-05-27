@@ -61,6 +61,13 @@ const DemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving, isFi
     "Retired"
   ];
 
+  const locationTypes = [
+    "Urban",
+    "Suburban", 
+    "Rural",
+    "Coastal"
+  ];
+
   return (
     <div className="form-section">
       <h2 className="text-xl font-bold mb-4">Demographics</h2>
