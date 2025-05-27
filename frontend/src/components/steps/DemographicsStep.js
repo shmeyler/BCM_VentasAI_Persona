@@ -150,15 +150,20 @@ const DemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving, isFi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Location
+            Primary Location
           </label>
-          <input
-            type="text"
+          <select
             value={demographics.location}
             onChange={(e) => handleInputChange("location", e.target.value)}
-            placeholder="e.g., New York City, Rural Texas, Suburban Chicago"
             className="form-field"
-          />
+          >
+            <option value="">Select location type</option>
+            {locationTypes.map(location => (
+              <option key={location} value={location}>
+                {location}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
