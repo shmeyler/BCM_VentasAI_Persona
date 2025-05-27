@@ -731,12 +731,12 @@ const DetailedPersonaView = ({ generatedPersona }) => {
         </TabList>
         
         <TabPanels>
-          <Tab.Panel><OverviewTab /></Tab.Panel>
-          <Tab.Panel><DemographicsTab /></Tab.Panel>
-          <Tab.Panel><MediaConsumptionTab /></Tab.Panel>
-          <Tab.Panel><PsychographicsTab /></Tab.Panel>
-          <Tab.Panel><DeviceTimingTab /></Tab.Panel>
-          <Tab.Panel>
+          <TabPanel><OverviewTab /></TabPanel>
+          <TabPanel><DemographicsTab /></TabPanel>
+          <TabPanel><MediaConsumptionTab /></TabPanel>
+          <TabPanel><PsychographicsTab /></TabPanel>
+          <TabPanel><DeviceTimingTab /></TabPanel>
+          <TabPanel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Search Behavior Analysis</h3>
               <p className="text-gray-600">Search behavior insights and keyword analysis would go here...</p>
