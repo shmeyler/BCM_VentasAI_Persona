@@ -97,16 +97,16 @@ def _get_mock_unsplash_image(demographics: Dict[str, Any], persona_name: str) ->
     # Base Unsplash image IDs for professional headshots
     # These are real Unsplash image IDs that represent professional photos
     professional_images = [
-        "5bYxXawHOQg",  # Professional woman
-        "WNoLnJo7tS8",  # Professional man
-        "mEZ3PoFGs_k",  # Business woman
-        "iFgRcqHznqg",  # Business man
-        "6anudmpILw4",  # Professional headshot
-        "Zz5LQe-VSMY",  # Business professional
-        "7YVZYZeITc8",  # Corporate headshot
-        "IF9TK5Uy-KI",  # Professional woman
-        "rDEOVtE7vOs",  # Business man
-        "JwMGy1h-JsY"   # Professional portrait
+        "1507003211169-0a1dd7228f2d",  # Professional woman
+        "1560250097-0b93528c311a",     # Professional man  
+        "1573496359-ca1c49d2ad38",     # Business woman
+        "1472099645785-5658abf4ff4e",  # Business man
+        "1580489944761-15a19d654956",  # Professional headshot woman
+        "1531123897727-8f129e1688ce",  # Business professional woman
+        "1566492031773-4f4e44671d66",  # Corporate headshot man
+        "1551836022-d5c648451b83",     # Professional woman
+        "1519085360753-af0119f7c949",  # Business man
+        "1507081323647-4d250478b919"   # Professional portrait
     ]
     
     # Select image based on demographics for consistency
