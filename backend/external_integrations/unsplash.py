@@ -128,7 +128,7 @@ def _get_mock_unsplash_image(demographics: Dict[str, Any], persona_name: str) ->
     image_id = image_options[hash(persona_name) % len(image_options)]
     
     # Return properly formatted Unsplash URL with professional parameters
-    return f"https://images.unsplash.com/photo-1{image_id}?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=400&fit=crop&crop=face"
+    return f"https://images.unsplash.com/photo-{image_id}?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=400&crop=face"
 
 def get_image_attribution(image_url: str) -> Dict[str, str]:
     """Get attribution information for Unsplash image"""
