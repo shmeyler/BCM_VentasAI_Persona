@@ -272,13 +272,44 @@ const ExportPersona = ({ persona, generatedPersona, className = "" }) => {
         return;
       }
 
+      // Hide export buttons and controls during capture
+      const exportButtons = document.querySelectorAll('.export-button, [class*="export"], .bcm-btn-primary');
+      const dropdownMenus = document.querySelectorAll('[class*="dropdown"], [class*="menu"], .absolute.right-0');
+      
+      console.log('Hiding UI elements for clean export...');
+      exportButtons.forEach(btn => {
+        btn.style.visibility = 'hidden';
+      });
+      dropdownMenus.forEach(menu => {
+        menu.style.display = 'none';
+      });
+
+      // Wait a moment for the UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       console.log('Starting html2canvas...');
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        ignoreElements: (element) => {
+          // Additional check to ignore export-related elements
+          return element.classList.contains('export-button') || 
+                 element.classList.contains('bcm-btn-primary') ||
+                 element.textContent?.includes('Export') ||
+                 element.classList.contains('absolute');
+        }
       });
       console.log('Canvas created:', canvas);
+
+      // Restore UI elements
+      console.log('Restoring UI elements...');
+      exportButtons.forEach(btn => {
+        btn.style.visibility = 'visible';
+      });
+      dropdownMenus.forEach(menu => {
+        menu.style.display = '';
+      });
 
       const imgData = canvas.toDataURL('image/png');
       console.log('Image data created, length:', imgData.length);
@@ -308,6 +339,16 @@ const ExportPersona = ({ persona, generatedPersona, className = "" }) => {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert(`Error generating PDF: ${error.message}`);
+      
+      // Ensure UI elements are restored even if there's an error
+      const exportButtons = document.querySelectorAll('.export-button, [class*="export"], .bcm-btn-primary');
+      const dropdownMenus = document.querySelectorAll('[class*="dropdown"], [class*="menu"], .absolute.right-0');
+      exportButtons.forEach(btn => {
+        btn.style.visibility = 'visible';
+      });
+      dropdownMenus.forEach(menu => {
+        menu.style.display = '';
+      });
     } finally {
       setIsExporting(false);
       setShowExportMenu(false);
