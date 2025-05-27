@@ -100,7 +100,12 @@ const HomePage = () => {
           </div>
 
           {/* Start with Attributes */}
-          <div className="bcm-card-cyan" onClick={() => createPersona("attributes")}>
+          <div 
+            className={`bcm-card-cyan cursor-pointer transition-all duration-200 ${
+              selectedMethod === 'attributes' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
+            }`} 
+            onClick={() => handleCardClick("attributes")}
+          >
             <div 
               className="flex items-center justify-center w-20 h-20 rounded-full mx-auto mb-6"
               style={{backgroundColor: 'var(--bcm-cyan-light)'}}
