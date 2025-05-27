@@ -15,11 +15,9 @@ const HomePage = () => {
 
   const createPersona = async (startingMethod) => {
     console.log('createPersona called with:', startingMethod);
-    alert(`Creating persona with method: ${startingMethod}`); // Debug
     setIsCreating(true);
     try {
       console.log('Making API call to:', `${API}/personas`);
-      alert(`Making API call to: ${API}/personas`); // Debug
       
       const response = await axios.post(`${API}/personas`, {
         starting_method: startingMethod,
@@ -27,15 +25,13 @@ const HomePage = () => {
       });
       
       console.log('API response:', response.data);
-      alert(`API success! Persona ID: ${response.data.id}`); // Debug
       
       // Navigate to wizard with the created persona ID
       const navUrl = `/persona-wizard?id=${response.data.id}&method=${startingMethod}`;
-      alert(`About to navigate to: ${navUrl}`); // Debug
       navigate(navUrl);
     } catch (error) {
       console.error("Error creating persona:", error);
-      alert(`API Error: ${error.message}`); // Debug
+      alert(`Failed to create persona: ${error.message}`);
     } finally {
       setIsCreating(false);
     }
