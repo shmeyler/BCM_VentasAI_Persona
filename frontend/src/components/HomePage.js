@@ -8,6 +8,7 @@ const API = `${BACKEND_URL}/api`;
 const HomePage = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState(null); // Track selected method
 
   const createPersona = async (startingMethod) => {
     setIsCreating(true);
@@ -24,6 +25,17 @@ const HomePage = () => {
       alert("Failed to create persona. Please try again.");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleCardClick = (method) => {
+    setSelectedMethod(method);
+    // Visual feedback only - actual creation happens on Next button click
+  };
+
+  const handleNext = () => {
+    if (selectedMethod) {
+      createPersona(selectedMethod);
     }
   };
 
