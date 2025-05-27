@@ -150,7 +150,8 @@ const HomePage = () => {
         </button>
         <button 
           type="button" 
-          disabled={isCreating}
+          disabled={!selectedMethod || isCreating}
+          onClick={handleNext}
           className="bcm-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isCreating ? (
@@ -159,7 +160,7 @@ const HomePage = () => {
               Creating...
             </div>
           ) : (
-            "Next"
+            selectedMethod ? "Start Creating Persona" : "Select an Option Above"
           )}
         </button>
       </div>
