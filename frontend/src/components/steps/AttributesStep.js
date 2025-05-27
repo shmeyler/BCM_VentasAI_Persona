@@ -15,152 +15,231 @@ const AttributesStep = ({ persona, updatePersona, onNext, onPrev, saving, isFirs
 
   // Resonate Taxonomy structure
   const resonateTaxonomy = {
+    "Values & Motivations": {
+      "Core Values": [
+        "Family values", "Personal achievement", "Social responsibility", "Financial security", 
+        "Freedom & independence", "Creativity & self-expression", "Health & wellness", "Spirituality"
+      ],
+      "Motivational Drivers": [
+        "Status seeking", "Quality focused", "Value conscious", "Convenience driven", 
+        "Experience seeking", "Innovation adoption", "Tradition respect", "Community belonging"
+      ],
+      "Life Priorities": [
+        "Career advancement", "Work-life balance", "Family time", "Personal growth",
+        "Financial stability", "Health maintenance", "Social connections", "Environmental impact"
+      ]
+    },
+    "Demographics": {
+      "Age & Generation": [
+        "Gen Z (18-24)", "Millennials (25-40)", "Gen X (41-56)", "Baby Boomers (57-75)", "Silent Generation (76+)"
+      ],
+      "Geographic": [
+        "Urban dwellers", "Suburban families", "Rural communities", "Coastal residents", 
+        "City center professionals", "Small town residents", "Metropolitan areas"
+      ],
+      "Income & Employment": [
+        "High income ($100K+)", "Middle income ($50K-100K)", "Lower income (<$50K)", 
+        "Professional workers", "Blue collar workers", "Entrepreneurs", "Retirees", "Students"
+      ],
+      "Life Stage": [
+        "Young professionals", "New parents", "Established families", "Empty nesters", 
+        "Pre-retirees", "Active retirees", "Single households", "Multi-generational families"
+      ]
+    },
+    "Consumer Preferences": {
+      "Shopping Behaviors": [
+        "Online shopping preference", "In-store experience seekers", "Comparison shoppers", "Impulse buyers",
+        "Brand loyal customers", "Deal hunters", "Quality over price", "Sustainable shoppers"
+      ],
+      "Purchase Motivations": [
+        "Necessity purchases", "Emotional purchases", "Status purchases", "Gift giving",
+        "Investment mindset", "Immediate gratification", "Research-heavy decisions", "Peer influenced"
+      ],
+      "Brand Relationships": [
+        "Premium brand preference", "Value brand focus", "Local brand support", "Innovation seekers",
+        "Trusted brand loyalty", "New brand exploration", "Ethical brand alignment", "Celebrity endorsed"
+      ]
+    },
+    "Media": {
+      "Content Consumption": [
+        "Social media heavy users", "Traditional TV watchers", "Streaming service subscribers", "Podcast listeners",
+        "News readers", "YouTube viewers", "TikTok users", "Instagram engaged", "LinkedIn professionals"
+      ],
+      "Device Preferences": [
+        "Mobile-first users", "Desktop workers", "Tablet consumers", "Smart TV viewers",
+        "Wearable tech users", "Gaming console players", "Smart home adopters", "Voice assistant users"
+      ],
+      "Information Sources": [
+        "Peer recommendations", "Expert reviews", "Influencer content", "Brand direct communication",
+        "News media", "Social proof", "User-generated content", "Professional networks"
+      ]
+    },
     "Retail": {
-      "Preferences & Psychographics": [
-        "Personal values", "Retail selection traits", "Apparel drivers", "Furniture drivers", 
-        "Quality-focused", "Price-conscious", "Brand loyal", "Trend-following", "Sustainable shopping"
+      "Shopping Preferences": [
+        "Department store shoppers", "Boutique explorers", "Discount store hunters", "Online marketplace users",
+        "Direct-to-consumer buyers", "Subscription service users", "Pop-up store visitors", "Warehouse club members"
       ],
-      "Market Behaviors": [
-        "Past purchases", "Future purchases", "Brands shopped", "Online vs in-store", 
-        "Holiday shopping", "Name-brand loyalty", "Impulse buying", "Research-heavy shopping"
+      "Retail Behaviors": [
+        "Seasonal shoppers", "Sales event participants", "Early adopters", "Last-minute buyers",
+        "Bulk purchasers", "Frequent returners", "Review writers", "Social sharers"
       ],
-      "In-Market": [
-        "Apparel shopping", "Electronics shopping", "Home goods shopping", "Future spending plans",
-        "Seasonal purchases", "Gift buying", "Home improvement", "Fashion updates"
-      ],
-      "Media & Demographics": [
-        "Age group", "Gender", "Income level", "Ethnicity", "Device usage", "Channel preferences",
-        "Social media engagement", "Digital vs traditional media"
+      "Store Loyalty": [
+        "Single retailer loyal", "Multi-store shoppers", "Private label buyers", "Member program participants",
+        "Store credit card users", "Mobile app users", "Email subscriber", "Rewards program active"
       ]
     },
-    "CPG": {
-      "Preferences & Psychographics": [
-        "Snack reasons", "Vitamin reasons", "Beauty routines", "Food sustainability", 
-        "Shopping attitudes", "Health consciousness", "Convenience seeking", "Organic preference"
+    "Apparel": {
+      "Fashion Preferences": [
+        "Trend followers", "Classic style preference", "Casual wear focus", "Professional attire",
+        "Athletic wear enthusiasts", "Luxury fashion buyers", "Vintage/thrift shoppers", "Sustainable fashion"
       ],
-      "Market Behaviors": [
-        "Product types", "Brand preferences", "Spending levels", "Purchase methods",
-        "Bulk buying", "Subscription services", "Store loyalty", "Coupon usage"
+      "Shopping Patterns": [
+        "Seasonal wardrobe updates", "Occasion-based buying", "Investment piece focus", "Fast fashion consumers",
+        "Brand loyal shoppers", "Size-inclusive shoppers", "Color-coordinated buyers", "Style influencer followers"
       ],
-      "In-Market": [
-        "Online grocery", "Beverage frequency", "Snack frequency", "Pet food brands",
-        "Personal care", "Household essentials", "Health supplements", "Beauty products"
-      ],
-      "Media & Demographics": [
-        "Streaming usage", "Platform engagement", "TV network preferences", "Digital content consumption",
-        "Mobile app usage", "Email engagement", "Video content", "Social commerce"
+      "Fit & Function": [
+        "Comfort prioritized", "Performance features", "Professional appearance", "Casual lifestyle",
+        "Active lifestyle", "Climate considerations", "Body type considerations", "Age-appropriate styling"
       ]
     },
-    "Financial Services": {
-      "Preferences & Psychographics": [
-        "Credit card features", "Bank switching reasons", "Insurance priorities", "Crypto motivators",
-        "NFT motivators", "Investment philosophy", "Risk tolerance", "Financial planning approach"
+    "Home & Family": {
+      "Home Priorities": [
+        "Interior design focused", "Functionality over aesthetics", "Smart home technology", "Energy efficiency",
+        "Family-friendly spaces", "Entertainment areas", "Home office setup", "Outdoor living spaces"
       ],
-      "Market Behaviors": [
-        "Bank account types", "Insurance coverage", "Investment firms", "Trading frequency",
-        "Digital banking", "Mobile payments", "Credit management", "Savings habits"
+      "Family Dynamics": [
+        "Child-centered decisions", "Pet-friendly choices", "Multi-generational living", "Single-person households",
+        "Couple without children", "Blended families", "Empty nest adjustments", "Caregiver responsibilities"
       ],
-      "In-Market": [
-        "Credit card applications", "Loan shopping", "Insurance switches", "Life changes",
-        "Investment planning", "Retirement planning", "Home buying", "Business banking"
-      ],
-      "Media & Demographics": [
-        "Financial TV shows", "Device preferences", "Digital usage by product", "News consumption",
-        "Professional networks", "Investment apps", "Financial podcasts", "Advisory services"
+      "Household Management": [
+        "Organized & planned", "Spontaneous & flexible", "Budget-conscious", "Time-saving solutions",
+        "DIY enthusiasts", "Professional service users", "Technology adopters", "Traditional methods"
       ]
     },
     "Health & Pharma": {
-      "Conditions": [
-        "Diabetes", "Cardiac conditions", "Autoimmune disorders", "Mental health", "Allergies",
-        "Chronic pain", "Sleep disorders", "Digestive issues", "Skin conditions", "Vision issues"
+      "Health Attitudes": [
+        "Preventive care focused", "Treatment-oriented", "Natural/alternative medicine", "Traditional medicine",
+        "Health optimization", "Condition management", "Wellness lifestyle", "Medical skepticism"
       ],
-      "Health Management": [
-        "Vaccine likelihood", "Diet intentions", "Doctor visits", "OTC medications",
-        "Preventive care", "Wellness programs", "Fitness routines", "Mental health support"
+      "Healthcare Behaviors": [
+        "Regular check-ups", "Symptom-driven visits", "Specialist consultations", "Self-diagnosis attempts",
+        "Second opinion seekers", "Medication compliant", "Side effect concerned", "Cost-conscious care"
       ],
-      "Pharma Personality": [
-        "Rx compliance", "Doctor trust", "Information sources", "Generic preference",
-        "Alternative medicine", "Clinical trials", "Side effect concerns", "Cost sensitivity"
+      "Wellness Practices": [
+        "Fitness routine followers", "Nutrition conscious", "Mental health aware", "Stress management",
+        "Sleep quality focused", "Supplement users", "Meditation/mindfulness", "Work-life balance seekers"
+      ]
+    },
+    "Restaurants": {
+      "Dining Preferences": [
+        "Fine dining experiences", "Casual family restaurants", "Fast-casual options", "Quick service needs",
+        "Local establishment support", "Chain restaurant familiarity", "Ethnic cuisine exploration", "Comfort food preference"
       ],
-      "Caregiver Role": [
-        "Caregiver type", "Services provided", "Care recipient", "Support needs",
-        "Time commitment", "Emotional support", "Medical advocacy", "Care coordination"
+      "Dining Behaviors": [
+        "Frequent dine-out", "Occasion-based dining", "Takeout/delivery preference", "Meal planning focused",
+        "Social dining experiences", "Solo dining comfortable", "Group event organizers", "Food adventure seekers"
       ],
-      "Media & Demographics": [
-        "Health content engagement", "Medical information sources", "Channel preferences",
-        "Age considerations", "Gender factors", "Digital health tools", "Telemedicine usage"
+      "Food Values": [
+        "Quality ingredients", "Value pricing", "Healthy options", "Indulgent treats",
+        "Local sourcing", "Sustainable practices", "Cultural authenticity", "Innovation/fusion"
+      ]
+    },
+    "Food & Non-Alcoholic Beverages": {
+      "Consumption Patterns": [
+        "Health-conscious choices", "Convenience-driven purchases", "Premium product preference", "Value-seeking behavior",
+        "Organic/natural focus", "Processed food acceptance", "Local/artisanal support", "Global brand preference"
+      ],
+      "Beverage Preferences": [
+        "Coffee culture participants", "Tea enthusiasts", "Soft drink consumers", "Energy drink users",
+        "Health drink adopters", "Sparkling water fans", "Juice drink preference", "Sports drink users"
+      ],
+      "Dietary Considerations": [
+        "No dietary restrictions", "Vegetarian/vegan", "Gluten-free needs", "Low-carb/keto",
+        "Organic preference", "Non-GMO focus", "Allergen awareness", "Portion-controlled eating"
+      ]
+    },
+    "Alcohol & Tobacco": {
+      "Alcohol Consumption": [
+        "Social drinkers", "Wine enthusiasts", "Craft beer lovers", "Spirit connoisseurs",
+        "Occasional drinkers", "Health-conscious drinkers", "Non-alcoholic alternative seekers", "Abstainers"
+      ],
+      "Drinking Occasions": [
+        "Social gatherings", "Dinner accompaniment", "Celebration events", "Relaxation moments",
+        "Professional networking", "Cultural experiences", "Special occasions only", "Daily routine"
+      ],
+      "Tobacco Attitudes": [
+        "Non-users", "Former users", "Occasional users", "Regular users",
+        "Alternative product users", "Cessation interested", "Social smokers", "Health-concerned users"
       ]
     },
     "Automotive": {
-      "Preferences & Psychographics": [
-        "Brand preferences", "Green vehicles", "Important features", "Owner mindset",
-        "Performance vs efficiency", "Safety priorities", "Technology features", "Style preferences"
+      "Vehicle Preferences": [
+        "Luxury vehicle buyers", "Practical transportation", "Performance enthusiasts", "Eco-friendly options",
+        "Family-oriented features", "Technology-rich vehicles", "Classic/vintage interest", "Utility/work vehicles"
       ],
-      "Market Behaviors": [
-        "Make/model preferences", "Cost considerations", "Ownership patterns", "New vs used",
-        "Financing options", "Trade-in behavior", "Maintenance approach", "Upgrade frequency"
+      "Purchase Behavior": [
+        "New car buyers", "Used car shoppers", "Lease preference", "Cash purchasers",
+        "Trade-in focused", "Brand loyal customers", "Deal negotiators", "Research-heavy buyers"
       ],
-      "In-Market": [
-        "Purchase timeframe", "Auto brand consideration", "EV likelihood", "Feature priorities",
-        "Budget range", "Financing needs", "Trade-in timing", "Research phase"
-      ],
-      "Media & Demographics": [
-        "Channel engagement", "Show preferences", "Creative strategy", "Digital touchpoints",
-        "Dealer interactions", "Review platforms", "Social influence", "Video content"
+      "Ownership Patterns": [
+        "Long-term ownership", "Frequent upgraders", "Multi-vehicle households", "Single vehicle reliance",
+        "Car sharing users", "Public transport preference", "Walking/cycling focused", "Ride-sharing regular"
       ]
     },
-    "Travel": {
-      "Preferences & Psychographics": [
-        "Cruise line choice", "Hotel selection", "Leisure trip reasons", "Travel style",
-        "Adventure vs relaxation", "Cultural interests", "Budget considerations", "Group vs solo"
+    "Financial Services & Insurance": {
+      "Financial Attitudes": [
+        "Conservative investors", "Aggressive growth seekers", "Risk-averse savers", "Diversification focused",
+        "DIY financial management", "Professional advice seekers", "Technology adopters", "Traditional banking preference"
       ],
-      "Market Behaviors": [
-        "Booking methods", "Loyalty programs", "Past destinations", "Travel frequency",
-        "Advance planning", "Last-minute deals", "Package vs individual", "Travel insurance"
+      "Banking Behaviors": [
+        "Digital banking users", "Branch visit preference", "Multiple account holders", "Single bank loyalty",
+        "Mobile payment users", "Cash preference", "Credit utilizers", "Debit-focused users"
       ],
-      "In-Market": [
-        "Vacation spending", "Cruise intent", "Luggage purchases", "Destination research",
-        "Accommodation booking", "Activity planning", "Transportation needs", "Travel gear"
-      ],
-      "Media & Demographics": [
-        "Tablet usage", "Streaming services", "Holiday timing", "Travel content consumption",
-        "Social sharing", "Review platforms", "Travel apps", "Inspiration sources"
+      "Insurance Priorities": [
+        "Comprehensive coverage", "Minimum required coverage", "Premium service expectations", "Cost-focused decisions",
+        "Bundle service preference", "Individual policy management", "Claim experience influenced", "Prevention focused"
       ]
     },
     "Technology & Telecom": {
-      "Preferences & Psychographics": [
-        "Provider switching reasons", "Service speed importance", "Price sensitivity", "Feature priorities",
-        "Data usage patterns", "Device preferences", "Innovation adoption", "Customer service expectations"
+      "Technology Adoption": [
+        "Early adopters", "Mainstream users", "Late adopters", "Technology resistant",
+        "Innovation enthusiasts", "Practical feature focused", "Brand ecosystem loyal", "Best value seekers"
       ],
-      "Market Behaviors": [
-        "Current provider", "Contract status", "Service bundles", "Device upgrade patterns",
-        "Family plans", "Business services", "Add-on services", "Payment methods"
+      "Device Usage": [
+        "Smartphone dependent", "Multi-device users", "Computer-centric", "Tablet preference",
+        "Gaming focused", "Streaming optimized", "Work productivity tools", "Social connection devices"
       ],
-      "In-Market": [
-        "Switch intent", "Data usage growth", "Device upgrades", "Service changes",
-        "Plan optimization", "New features", "Coverage needs", "Cost reduction"
-      ],
-      "Media & Demographics": [
-        "Platform usage", "Device consumption", "Tech content engagement", "Digital behavior",
-        "Social media activity", "Streaming patterns", "Gaming behavior", "App usage"
+      "Service Expectations": [
+        "Premium service level", "Basic needs coverage", "Unlimited usage plans", "Pay-per-use preference",
+        "Family plan users", "Individual account holders", "Business service needs", "International usage"
       ]
     },
-    "Political & Advocacy": {
-      "Values & Motivations": [
-        "Equality", "Environmentalism", "Community safety", "Freedom", "Justice",
-        "Economic policy", "Social issues", "Foreign policy", "Local governance", "Civil rights"
+    "Travel & Hospitality": {
+      "Travel Preferences": [
+        "Luxury experiences", "Budget-conscious travel", "Adventure seekers", "Relaxation focused",
+        "Cultural exploration", "Business travel frequent", "Family-friendly options", "Solo travel comfortable"
       ],
-      "Positioning": [
-        "Gun control", "Abortion rights", "Climate change", "Immigration", "Healthcare",
-        "Education policy", "Tax policy", "Criminal justice", "Workers' rights", "Religious freedom"
+      "Booking Behaviors": [
+        "Direct booking preference", "Third-party platform users", "Last-minute planners", "Advance reservation makers",
+        "Package deal seekers", "À la carte customizers", "Loyalty program participants", "Deal comparison shoppers"
       ],
-      "In-Market": [
-        "Issue-based engagement", "Voting behavior", "Donation patterns", "Volunteer activities",
-        "Petition signing", "Rally attendance", "Advocacy campaigns", "Policy awareness"
+      "Travel Frequency": [
+        "Frequent travelers", "Occasional vacationers", "Business trip regular", "Weekend getaway preference",
+        "Annual vacation takers", "Spontaneous trip makers", "Seasonal travelers", "Staycation preference"
+      ]
+    },
+    "Politics & Advocacy": {
+      "Political Engagement": [
+        "Highly engaged voters", "Occasional participants", "Issue-focused advocates", "Party loyal supporters",
+        "Independent thinkers", "Politically disengaged", "Local politics focused", "National politics followers"
       ],
-      "Media & Demographics": [
-        "Social/CTV engagement", "Political content consumption", "News sources", "Information sharing",
-        "Fact-checking behavior", "Echo chamber awareness", "Cross-party dialogue", "Civic participation"
+      "Advocacy Interests": [
+        "Environmental causes", "Social justice issues", "Economic policies", "Healthcare advocacy",
+        "Education reform", "Civil rights support", "Veterans affairs", "Religious freedom"
+      ],
+      "Information Sources": [
+        "Multiple news sources", "Single source preference", "Social media informed", "Traditional media reliance",
+        "Peer discussion influenced", "Expert analysis seekers", "Primary source researchers", "Headline scanners"
       ]
     }
   };
