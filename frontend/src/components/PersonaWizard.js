@@ -395,15 +395,20 @@ const KeyDemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving })
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 font-montserrat">
-            Primary Location/Market
+            Primary Location
           </label>
-          <input
-            type="text"
+          <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g., Urban areas, Suburban families, Rural communities"
             className="form-field font-montserrat"
-          />
+          >
+            <option value="">Select location type</option>
+            {locationTypes.map(locationType => (
+              <option key={locationType} value={locationType}>
+                {locationType}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-gray-500 mt-1 font-montserrat">
             Our AI will use this to suggest corresponding demographic characteristics.
           </p>
