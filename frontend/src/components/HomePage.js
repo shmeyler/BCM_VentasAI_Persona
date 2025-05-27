@@ -47,14 +47,11 @@ const HomePage = () => {
   };
 
   const handleNext = () => {
-    alert(`Button clicked! Selected method: ${selectedMethod}`); // Test alert
     console.log('Next button clicked, selectedMethod:', selectedMethod);
     if (selectedMethod) {
-      alert('About to call createPersona'); // Debug
       createPersona(selectedMethod);
     } else {
       console.log('No method selected');
-      alert('Please select a method first');
     }
   };
 
