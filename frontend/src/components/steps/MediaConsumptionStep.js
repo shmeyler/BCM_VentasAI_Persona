@@ -368,6 +368,33 @@ const MediaConsumptionStep = ({ persona, updatePersona, onNext, onPrev, saving, 
         )}
       </div>
 
+      {preFilledFromDemographics && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-800 font-montserrat">
+                🎯 AI-Generated Media Preferences
+              </h3>
+              <p className="text-sm text-green-700 mt-1 font-montserrat">
+                Based on the demographic profile you provided, we've pre-filled media consumption preferences using Resonate AI data patterns. 
+                These selections reflect typical behaviors for someone with this demographic profile. You can review and adjust any selections as needed.
+              </p>
+              <div className="mt-2 text-xs text-green-600 font-montserrat">
+                <strong>Generated from:</strong> {persona?.demographics?.age_range && `${persona.demographics.age_range} age group`}
+                {persona?.demographics?.gender && `, ${persona.demographics.gender}`}
+                {persona?.demographics?.location && `, ${persona.demographics.location} location`}
+                {persona?.demographics?.occupation && `, ${persona.demographics.occupation}`}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {!isEditing && (
         <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-blue-800 text-sm font-montserrat">
