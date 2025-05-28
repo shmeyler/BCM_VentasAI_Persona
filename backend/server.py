@@ -137,188 +137,84 @@ class GeneratePersonaRequest(BaseModel):
     persona_id: str
 
 
-# Helper function to generate persona image using Unsplash
+# Helper function to generate persona image using OpenAI DALL-E
 async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
-    """Get a professional headshot from Unsplash based on comprehensive demographic data"""
+    """Generate a professional headshot using OpenAI DALL-E based on demographic data"""
     try:
-        # Build search query from persona data
+        # Extract demographics
         demographics = persona_data.demographics
-        attributes = persona_data.attributes
+        if not demographics:
+            logging.warning(f"No demographics available for persona {persona_data.name}")
+            return None
         
-        # Extract key information
-        age_range = demographics.age_range or "25-40"
-        gender = demographics.gender or "person"
-        occupation = demographics.occupation or "professional"
-        
-        # Build sophisticated search terms based on demographics and attributes
-        search_terms = ["professional", "business", "headshot"]
-        
-        # Add gender-specific terms
-        if gender.lower() in ["male", "man"]:
-            search_terms.extend(["businessman", "man", "male"])
-        elif gender.lower() in ["female", "woman"]:
-            search_terms.extend(["businesswoman", "woman", "female"])
-        else:
-            search_terms.extend(["professional"])
-        
-        # Add age-related terms with more precision
-        if age_range:
-            if "18-24" in age_range:
-                search_terms.extend(["young", "millennial", "student"])
-            elif "25-40" in age_range:
-                search_terms.extend(["professional", "millennial", "adult"])
-            elif "41-56" in age_range:
-                search_terms.extend(["executive", "manager", "experienced"])
-            elif "57-75" in age_range:
-                search_terms.extend(["senior", "executive", "experienced"])
-        
-        # Add occupation-based terms
-        if occupation:
-            occ_lower = occupation.lower()
-            if "tech" in occ_lower or "engineer" in occ_lower or "developer" in occ_lower:
-                search_terms.extend(["tech", "professional"])
-            elif "manager" in occ_lower or "executive" in occ_lower:
-                search_terms.extend(["executive", "business"])
-            elif "creative" in occ_lower or "designer" in occ_lower:
-                search_terms.extend(["creative", "designer"])
-            elif "teacher" in occ_lower or "education" in occ_lower:
-                search_terms.extend(["professional", "educator"])
-            elif "healthcare" in occ_lower or "doctor" in occ_lower or "nurse" in occ_lower:
-                search_terms.extend(["healthcare", "professional"])
-        
-        # Add attributes-based terms for more context
-        if attributes and attributes.selectedVertical:
-            vertical_lower = attributes.selectedVertical.lower()
-            if "retail" in vertical_lower:
-                search_terms.extend(["retail", "customer"])
-            elif "financial" in vertical_lower:
-                search_terms.extend(["finance", "business"])
-            elif "health" in vertical_lower:
-                search_terms.extend(["healthcare", "wellness"])
-            elif "automotive" in vertical_lower:
-                search_terms.extend(["professional", "business"])
-            elif "travel" in vertical_lower:
-                search_terms.extend(["travel", "professional"])
-            elif "technology" in vertical_lower:
-                search_terms.extend(["tech", "professional"])
-        
-        # Create search query (limit to avoid too long queries)
-        unique_terms = list(dict.fromkeys(search_terms))[:8]  # Remove duplicates and limit
-        query = " ".join(unique_terms)
-        
-        # Log the search query for debugging
-        logging.info(f"Searching Unsplash with query: {query} for persona: {persona_data.name}")
-        
-        # Search Unsplash for professional photos (using public access)
-        unsplash_url = "https://api.unsplash.com/search/photos"
-        params = {
-            "query": query,
-            "per_page": 30,  # Get multiple options
-            "orientation": "portrait",
-            "content_filter": "high",  # Family-friendly content
-            "client_id": "3b39ae045df8c78fa9e7bd3fccf57a96f4b1b9e6f50f81c68a83bbd1c5b8d6a9"  # Demo client ID for Unsplash
+        # Convert PersonaData demographics to dictionary for OpenAI generator
+        demographics_dict = {
+            'age_range': demographics.age_range,
+            'gender': demographics.gender,
+            'occupation': demographics.occupation,
+            'location': demographics.location,
+            'income_range': demographics.income_range,
+            'education': demographics.education
         }
         
-        # For demo purposes, let's use a more predictable approach with Unsplash
-        # We'll generate a contextual URL based on the search terms
-        base_url = "https://images.unsplash.com"
+        logging.info(f"Generating OpenAI headshot for {persona_data.name} with demographics: {demographics_dict}")
         
-        # Map search terms to Unsplash photo IDs for consistency
-        photo_mappings = {
-            # Female professionals
-            "female_young_tech": "photo-1531123897727-8f129e1688ce",  # Professional woman (replaced broken ID)
-            "female_young_business": "photo-1580489944761-15a19d654956", # Business woman
-            "female_executive": "photo-1580489944761-15a19d654956",  # Executive woman (replaced broken ID)
-            "female_professional": "photo-1531123897727-8f129e1688ce", # Professional woman
-            "female_healthcare": "photo-1582750433449-648ed127bb54", # Healthcare professional
-            "female_executive_executive": "photo-1580489944761-15a19d654956", # Female executive (compound key)
-            "female_young_executive": "photo-1580489944761-15a19d654956", # Young female executive
-            "female_professional_executive": "photo-1580489944761-15a19d654956", # Professional female executive
-            
-            # Male professionals  
-            "male_young_tech": "photo-1507003211169-0a1dd7228f2d",  # Tech professional
-            "male_young_business": "photo-1472099645785-5658abf4ff4e", # Business man
-            "male_executive": "photo-1560250097-0b93528c311a",  # Executive man
-            "male_professional": "photo-1519085360753-af0119f7cbe7", # Professional man
-            "male_healthcare": "photo-1612349317150-e413f6a5b16d", # Healthcare professional
-            "male_executive_executive": "photo-1560250097-0b93528c311a", # Male executive (compound key)
-            "male_young_executive": "photo-1560250097-0b93528c311a", # Young male executive
-            "male_professional_executive": "photo-1560250097-0b93528c311a", # Professional male executive
-            
-            # General professional fallbacks
-            "general_professional": "photo-1507003211169-0a1dd7228f2d",
-            "business_person": "photo-1531123897727-8f129e1688ce"  # Fixed broken ID
-        }
+        # Generate image using OpenAI DALL-E
+        image_url = await generate_persona_image_openai(demographics_dict)
         
-        # Determine the best photo mapping based on demographics
-        gender_key = "general"
-        age_key = "professional"
-        occupation_key = "professional"
-        
-        if demographics.gender:
-            gender_lower = demographics.gender.lower()
-            if "female" in gender_lower or "woman" in gender_lower:
-                gender_key = "female"
-            elif "male" in gender_lower or "man" in gender_lower:
-                gender_key = "male"
-        
-        if demographics.age_range:
-            if any(age in demographics.age_range for age in ["18-24", "25-40"]):
-                age_key = "young"
-            else:
-                age_key = "executive"
-        
-        if demographics.occupation:
-            occ_lower = demographics.occupation.lower()
-            if any(term in occ_lower for term in ["tech", "engineer", "developer"]):
-                occupation_key = "tech"
-            elif any(term in occ_lower for term in ["manager", "executive", "director"]):
-                occupation_key = "executive"
-            elif any(term in occ_lower for term in ["healthcare", "doctor", "nurse"]):
-                occupation_key = "healthcare"
-            else:
-                occupation_key = "business"
-        
-        # Build the mapping key
-        mapping_key = f"{gender_key}_{age_key}_{occupation_key}"
-        
-        # Find the best matching photo ID
-        photo_id = None
-        if mapping_key in photo_mappings:
-            photo_id = photo_mappings[mapping_key]
-        else:
-            # Try fallback combinations
-            fallbacks = [
-                f"{gender_key}_{occupation_key}",
-                f"{gender_key}_professional",
-                f"{gender_key}_{age_key}_business",
-                "general_professional"
-            ]
-            
-            for fallback in fallbacks:
-                if fallback in photo_mappings:
-                    photo_id = photo_mappings[fallback]
-                    break
-        
-        if photo_id:
-            image_url = f"{base_url}/{photo_id}?w=400&h=400&fit=crop&crop=face"
-            logging.info(f"Selected contextual image: {image_url} for {persona_data.name} (mapping: {mapping_key})")
+        if image_url:
+            logging.info(f"Successfully generated OpenAI headshot for {persona_data.name}: {image_url}")
             return image_url
+        else:
+            logging.warning(f"OpenAI image generation failed for {persona_data.name}, using fallback")
+            return await _get_fallback_image(demographics_dict)
             
     except Exception as e:
-        logging.error(f"Error getting Unsplash image: {str(e)}")
+        logging.error(f"Error generating OpenAI image for {persona_data.name}: {str(e)}")
+        # Fallback to Unsplash if OpenAI fails
+        return await _get_fallback_image(demographics.dict() if demographics else {})
+
+async def _get_fallback_image(demographics_dict: dict) -> str:
+    """Fallback to Unsplash if OpenAI fails"""
+    try:
+        from external_integrations.unsplash import get_professional_headshot
+        
+        # Build search terms for Unsplash fallback
+        search_terms = ["professional", "headshot", "business"]
+        
+        gender = demographics_dict.get('gender', '')
+        if gender:
+            if gender.lower() in ['male', 'man']:
+                search_terms.extend(["businessman", "male"])
+            elif gender.lower() in ['female', 'woman']:
+                search_terms.extend(["businesswoman", "female"])
+        
+        occupation = demographics_dict.get('occupation', '')
+        if occupation:
+            if 'executive' in occupation.lower() or 'director' in occupation.lower():
+                search_terms.append("executive")
+            elif 'tech' in occupation.lower() or 'engineer' in occupation.lower():
+                search_terms.append("tech")
+        
+        query = " ".join(search_terms[:5])  # Limit query length
+        
+        # Try to get Unsplash image
+        unsplash_url = await get_professional_headshot(query, demographics_dict)
+        if unsplash_url:
+            logging.info(f"Using Unsplash fallback image: {unsplash_url}")
+            return unsplash_url
+            
+    except Exception as e:
+        logging.error(f"Fallback image generation also failed: {str(e)}")
     
-    # Return a fallback professional placeholder if Unsplash fails
-    # Use different fallbacks based on gender if available
-    if demographics.gender:
-        gender_lower = demographics.gender.lower()
-        if "male" in gender_lower or "man" in gender_lower:
-            return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-        elif "female" in gender_lower or "woman" in gender_lower:
-            return "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
-    
-    # Default fallback
-    return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
+    # Final fallback to default professional image
+    gender = demographics_dict.get('gender', '').lower()
+    if 'male' in gender:
+        return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
+    elif 'female' in gender:
+        return "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
+    else:
+        return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
 
 
 # Legacy Status Check Models (keeping for compatibility)
