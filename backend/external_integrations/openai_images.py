@@ -166,11 +166,22 @@ class OpenAIImageGenerator:
         else:
             return "professional office background"
 
-# Create a global instance
-openai_generator = OpenAIImageGenerator()
+# Create a global instance with lazy loading
+_openai_generator = None
+
+def get_openai_generator():
+    global _openai_generator
+    if _openai_generator is None:
+        _openai_generator = OpenAIImageGenerator()
+    return _openai_generator
 
 async def generate_persona_image_openai(demographics: Dict[str, Any]) -> Optional[str]:
     """
     Main function to generate persona headshot using OpenAI DALL-E
     """
-    return await openai_generator.generate_persona_headshot(demographics)
+    try:
+        generator = get_openai_generator()
+        return await generator.generate_persona_headshot(demographics)
+    except Exception as e:
+        print(f"Error initializing OpenAI generator: {e}")
+        return None
