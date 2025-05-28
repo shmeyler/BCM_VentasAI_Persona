@@ -22,7 +22,8 @@ from enum import Enum
 import requests
 import random
 from external_integrations.unsplash import get_professional_headshot
-from external_integrations.data_sources import DataSourceOrchestrator
+from external_integrations.data_sources import DataSourceOrchestrator, get_comprehensive_persona_data, map_demographics_to_attributes
+from external_integrations.openai_images import generate_persona_image_openai
 
 load_dotenv(ROOT_DIR / '.env')
 
