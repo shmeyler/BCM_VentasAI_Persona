@@ -3,10 +3,17 @@ import asyncio
 from openai import OpenAI
 from typing import Optional, Dict, Any
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 class OpenAIImageGenerator:
     def __init__(self):
-        self.client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY environment variable is required")
+        self.client = OpenAI(api_key=api_key)
     
     async def generate_persona_headshot(self, demographics: Dict[str, Any]) -> Optional[str]:
         """
