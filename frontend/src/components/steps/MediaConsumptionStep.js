@@ -13,6 +13,7 @@ const MediaConsumptionStep = ({ persona, updatePersona, onNext, onPrev, saving, 
 
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [preFilledFromDemographics, setPreFilledFromDemographics] = useState(false);
   
   // Separate state for news sources text input
   const [newsSourcesText, setNewsSourcesText] = useState(
@@ -27,6 +28,161 @@ const MediaConsumptionStep = ({ persona, updatePersona, onNext, onPrev, saving, 
     entertainment: false,
     news_advertising: false
   });
+
+  // Resonate AI-based demographic mapping (dummy data simulating API responses)
+  const getMediaPreferencesFromDemographics = (demographics) => {
+    const age = demographics?.age_range || '';
+    const gender = demographics?.gender || '';
+    const location = demographics?.location || '';
+    const occupation = demographics?.occupation || '';
+    const income = demographics?.income_range || '';
+    
+    console.log('Generating media preferences for:', { age, gender, location, occupation, income });
+
+    let preferences = {
+      social_media_platforms: [],
+      content_types: [],
+      consumption_time: "",
+      preferred_devices: [],
+      news_sources: [],
+      entertainment_preferences: [],
+      advertising_receptivity: ""
+    };
+
+    // Age-based preferences (simulating Resonate AI data)
+    if (age.includes('18-24')) {
+      preferences.social_media_platforms = ['TikTok', 'Instagram', 'Snapchat', 'Twitter/X', 'YouTube'];
+      preferences.content_types = ['Videos', 'Stories/Reels', 'Social media posts', 'Live streams', 'User-generated content'];
+      preferences.consumption_time = '4-6 hours';
+      preferences.preferred_devices = ['Smartphone', 'Laptop', 'Gaming console'];
+      preferences.entertainment_preferences = ['Streaming services', 'Gaming', 'Music', 'Comedy'];
+      preferences.advertising_receptivity = 'Moderately receptive';
+      preferences.news_sources = ['Social media', 'YouTube', 'TikTok', 'Instagram'];
+    } else if (age.includes('25-40')) {
+      preferences.social_media_platforms = ['Instagram', 'Facebook', 'LinkedIn', 'Twitter/X', 'YouTube'];
+      preferences.content_types = ['Social media posts', 'Videos', 'Podcasts', 'News articles', 'Streaming shows'];
+      preferences.consumption_time = '2-4 hours';
+      preferences.preferred_devices = ['Smartphone', 'Laptop', 'Tablet', 'Smart TV'];
+      preferences.entertainment_preferences = ['Streaming services', 'Podcasts', 'Movies', 'Drama series'];
+      preferences.advertising_receptivity = 'Moderately receptive';
+      preferences.news_sources = ['Online news sites', 'Social media', 'Podcasts', 'News apps'];
+    } else if (age.includes('41-56')) {
+      preferences.social_media_platforms = ['Facebook', 'LinkedIn', 'YouTube', 'Instagram'];
+      preferences.content_types = ['News articles', 'Email newsletters', 'Videos', 'Podcasts', 'Blogs'];
+      preferences.consumption_time = '2-4 hours';
+      preferences.preferred_devices = ['Smartphone', 'Laptop', 'Desktop', 'Smart TV'];
+      preferences.entertainment_preferences = ['Traditional TV', 'Streaming services', 'News', 'Documentaries'];
+      preferences.advertising_receptivity = 'Somewhat resistant';
+      preferences.news_sources = ['Traditional news outlets', 'Email newsletters', 'News websites', 'LinkedIn'];
+    } else if (age.includes('57-75') || age.includes('76+')) {
+      preferences.social_media_platforms = ['Facebook', 'YouTube', 'LinkedIn'];
+      preferences.content_types = ['News articles', 'Email newsletters', 'Traditional TV', 'Videos'];
+      preferences.consumption_time = '2-4 hours';
+      preferences.preferred_devices = ['Desktop', 'Tablet', 'Smart TV', 'Smartphone'];
+      preferences.entertainment_preferences = ['Traditional TV', 'News', 'Documentaries', 'Movies'];
+      preferences.advertising_receptivity = 'Highly resistant';
+      preferences.news_sources = ['Traditional news outlets', 'Television news', 'Newspapers', 'Radio'];
+    }
+
+    // Gender-based adjustments (based on Resonate data patterns)
+    if (gender === 'Female') {
+      if (!preferences.social_media_platforms.includes('Pinterest')) {
+        preferences.social_media_platforms.push('Pinterest');
+      }
+      if (!preferences.content_types.includes('Blogs')) {
+        preferences.content_types.push('Blogs');
+      }
+      preferences.entertainment_preferences.push('Reality shows');
+    } else if (gender === 'Male') {
+      if (!preferences.social_media_platforms.includes('Reddit')) {
+        preferences.social_media_platforms.push('Reddit');
+      }
+      preferences.entertainment_preferences.push('Sports');
+      if (age.includes('18-24') || age.includes('25-40')) {
+        preferences.entertainment_preferences.push('Gaming');
+      }
+    }
+
+    // Location-based adjustments
+    if (location === 'Urban') {
+      preferences.content_types.push('Local news', 'Transportation apps');
+      preferences.news_sources.push('Local news websites', 'City-specific apps');
+    } else if (location === 'Suburban') {
+      preferences.content_types.push('Family content', 'Home improvement');
+      preferences.entertainment_preferences.push('Family shows');
+    } else if (location === 'Rural') {
+      preferences.entertainment_preferences.push('Traditional TV', 'Radio');
+      preferences.news_sources.push('Local newspapers', 'Radio news');
+    } else if (location === 'Coastal') {
+      preferences.content_types.push('Travel content', 'Lifestyle blogs');
+      preferences.entertainment_preferences.push('Travel shows');
+    }
+
+    // Occupation-based adjustments
+    if (occupation?.toLowerCase().includes('executive') || occupation?.toLowerCase().includes('manager')) {
+      if (!preferences.social_media_platforms.includes('LinkedIn')) {
+        preferences.social_media_platforms.push('LinkedIn');
+      }
+      preferences.content_types.push('Business news', 'Industry reports');
+      preferences.news_sources.push('Business publications', 'Industry newsletters');
+      preferences.advertising_receptivity = 'Somewhat resistant';
+    } else if (occupation?.toLowerCase().includes('engineer') || occupation?.toLowerCase().includes('tech')) {
+      if (!preferences.social_media_platforms.includes('Reddit')) {
+        preferences.social_media_platforms.push('Reddit');
+      }
+      preferences.content_types.push('Tech blogs', 'Podcasts');
+      preferences.entertainment_preferences.push('Gaming', 'Documentaries');
+    } else if (occupation?.toLowerCase().includes('healthcare')) {
+      preferences.content_types.push('Professional journals', 'Health news');
+      preferences.news_sources.push('Medical publications', 'Health websites');
+    }
+
+    // Income-based adjustments
+    if (income?.includes('$100,000+')) {
+      preferences.advertising_receptivity = 'Somewhat resistant';
+      preferences.content_types.push('Premium content', 'Subscription services');
+    } else if (income?.includes('$50,000') || income?.includes('$75,000')) {
+      preferences.advertising_receptivity = 'Moderately receptive';
+    }
+
+    // Remove duplicates and limit selections
+    preferences.social_media_platforms = [...new Set(preferences.social_media_platforms)].slice(0, 6);
+    preferences.content_types = [...new Set(preferences.content_types)].slice(0, 8);
+    preferences.preferred_devices = [...new Set(preferences.preferred_devices)].slice(0, 5);
+    preferences.entertainment_preferences = [...new Set(preferences.entertainment_preferences)].slice(0, 6);
+    preferences.news_sources = [...new Set(preferences.news_sources)];
+
+    return preferences;
+  };
+
+  // Pre-fill based on demographics when component loads
+  useEffect(() => {
+    const demographics = persona?.demographics;
+    
+    // Only pre-fill if we have demographics and haven't already pre-filled
+    if (demographics && !preFilledFromDemographics && !persona?.media_consumption?.social_media_platforms?.length) {
+      console.log('Pre-filling media consumption based on demographics:', demographics);
+      
+      const demographicPreferences = getMediaPreferencesFromDemographics(demographics);
+      
+      setMediaConsumption(demographicPreferences);
+      setNewsSourcesText(demographicPreferences.news_sources.join(', '));
+      setPreFilledFromDemographics(true);
+      setHasChanges(true);
+      
+      // Show notification about pre-filling
+      setTimeout(() => {
+        // Auto-expand sections that have pre-filled content
+        setExpandedSections({
+          social_media: true,
+          content_consumption: true,
+          devices_time: true,
+          entertainment: true,
+          news_advertising: true
+        });
+      }, 500);
+    }
+  }, [persona?.demographics, preFilledFromDemographics]);
 
   // Initialize editing state
   useEffect(() => {
