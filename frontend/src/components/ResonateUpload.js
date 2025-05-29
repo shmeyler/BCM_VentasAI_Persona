@@ -5,9 +5,10 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     demographics: null,
     audienceInsights: null,
     categoryAffinity: null,
-    mediaPlanning: null,
+    mediaConsumption: null,
+    personalValues: null,
     researchReport: null,
-    charts: []
+    additionalData: []
   });
 
   const [parsedData, setParsedData] = useState(null);
