@@ -99,115 +99,12 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
 
 
   const parseExtractedFiles = async () => {
-    setIsProcessing(true);
-    try {
-      // Simulate file parsing process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Mock comprehensive parsed data from all files
-      const mockParsedData = {
-        demographics: {
-          ageDistribution: [
-            { range: '18-24', percentage: 12, source: 'Demographics_2025_05_08.png' },
-            { range: '25-34', percentage: 35, source: 'Demographics_2025_05_08.png' },
-            { range: '35-44', percentage: 28, source: 'Demographics_2025_05_08.png' },
-            { range: '45-54', percentage: 18, source: 'Demographics_2025_05_08.png' },
-            { range: '55+', percentage: 7, source: 'Demographics_2025_05_08.png' }
-          ],
-          genderSplit: [
-            { gender: 'Male', percentage: 47, source: 'Demographics_2025_05_08.png' },
-            { gender: 'Female', percentage: 51, source: 'Demographics_2025_05_08.png' },
-            { gender: 'Other', percentage: 2, source: 'Demographics_2025_05_08.png' }
-          ],
-          incomeDistribution: [
-            { range: '$50K-75K', percentage: 32, source: 'Demographics_2025_05_08.png' },
-            { range: '$75K-100K', percentage: 28, source: 'Demographics_2025_05_08.png' },
-            { range: '$100K+', percentage: 40, source: 'Demographics_2025_05_08.png' }
-          ],
-          geography: [
-            { region: 'Urban', percentage: 65, source: 'Demographics_2025_05_08.png' },
-            { region: 'Suburban', percentage: 28, source: 'Demographics_2025_05_08.png' },
-            { region: 'Rural', percentage: 7, source: 'Demographics_2025_05_08.png' }
-          ]
-        },
-        psychographics: {
-          values: [
-            { value: 'Innovation', strength: 'High', percentage: 78, source: 'Personal_Values_2025_05_08.xlsx' },
-            { value: 'Quality', strength: 'High', percentage: 82, source: 'Personal_Values_2025_05_08.xlsx' },
-            { value: 'Convenience', strength: 'Medium', percentage: 65, source: 'Personal_Values_2025_05_08.xlsx' },
-            { value: 'Price Consciousness', strength: 'Medium', percentage: 58, source: 'Personal_Values_2025_05_08.xlsx' }
-          ],
-          interests: [
-            { interest: 'Technology', affinity: 85, source: 'Audience_Introduction_2025_05_08.pdf' },
-            { interest: 'Travel', affinity: 72, source: 'Audience_Introduction_2025_05_08.pdf' },
-            { interest: 'Health & Wellness', affinity: 68, source: 'Audience_Introduction_2025_05_08.pdf' },
-            { interest: 'Professional Development', affinity: 71, source: 'Audience_Introduction_2025_05_08.pdf' }
-          ],
-          behaviors: [
-            { behavior: 'Early Adopter', likelihood: 'High', source: 'Audience_Introduction_2025_05_08.pdf' },
-            { behavior: 'Brand Loyal', likelihood: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' },
-            { behavior: 'Research Heavy', likelihood: 'High', source: 'Audience_Introduction_2025_05_08.pdf' }
-          ]
-        },
-        mediaConsumption: {
-          platforms: [
-            { platform: 'Instagram', usage: 78, timeSpent: '45min/day', source: 'Media_Consumption_2025_05_08.pdf' },
-            { platform: 'Facebook', usage: 65, timeSpent: '32min/day', source: 'Media_Consumption_2025_05_08.pdf' },
-            { platform: 'LinkedIn', usage: 58, timeSpent: '28min/day', source: 'Media_Consumption_2025_05_08.pdf' },
-            { platform: 'TikTok', usage: 42, timeSpent: '25min/day', source: 'Media_Consumption_2025_05_08.pdf' },
-            { platform: 'YouTube', usage: 71, timeSpent: '52min/day', source: 'Media_Consumption_2025_05_08.pdf' }
-          ],
-          devices: [
-            { device: 'Mobile', usage: 85, primaryTime: 'Throughout day', source: 'Media_Consumption_2025_05_08.pdf' },
-            { device: 'Desktop', usage: 62, primaryTime: 'Work hours', source: 'Media_Consumption_2025_05_08.pdf' },
-            { device: 'Tablet', usage: 34, primaryTime: 'Evening', source: 'Media_Consumption_2025_05_08.pdf' }
-          ],
-          contentPreferences: [
-            { type: 'Educational Content', preference: 'High', source: 'Media_Consumption_2025_05_08.pdf' },
-            { type: 'Product Reviews', preference: 'High', source: 'Media_Consumption_2025_05_08.pdf' },
-            { type: 'Industry News', preference: 'Medium', source: 'Media_Consumption_2025_05_08.pdf' },
-            { type: 'Entertainment', preference: 'Medium', source: 'Media_Consumption_2025_05_08.pdf' }
-          ]
-        },
-        brandAffinity: {
-          topBrands: [
-            { brand: 'Apple', affinity: 87, category: 'Technology', source: 'Brand_Affinity_2025_05_08.csv' },
-            { brand: 'Amazon', affinity: 82, category: 'E-commerce', source: 'Brand_Affinity_2025_05_08.csv' },
-            { brand: 'Google', affinity: 79, category: 'Technology', source: 'Brand_Affinity_2025_05_08.csv' },
-            { brand: 'Nike', affinity: 73, category: 'Athletic Wear', source: 'Brand_Affinity_2025_05_08.csv' }
-          ],
-          categoryAffinities: [
-            { category: 'Technology', affinity: 'Very High', source: 'Brand_Affinity_2025_05_08.csv' },
-            { category: 'E-commerce', affinity: 'High', source: 'Brand_Affinity_2025_05_08.csv' },
-            { category: 'Financial Services', affinity: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' },
-            { category: 'Travel', affinity: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' }
-          ]
-        },
-        insights: {
-          keyFindings: [
-            'Tech-savvy professional demographic with high innovation adoption',
-            'Strong preference for quality over price',
-            'Heavy mobile usage with Instagram as primary platform',
-            'High brand loyalty to premium technology brands',
-            'Values educational content and peer recommendations'
-          ],
-          recommendedActions: [
-            'Focus marketing on Instagram and LinkedIn platforms',
-            'Emphasize product quality and innovation in messaging',
-            'Create educational content series',
-            'Partner with technology influencers',
-            'Develop mobile-first user experiences'
-          ]
-        }
-      };
-
-      setParsedData(mockParsedData);
+    // Parsing is now handled automatically when uploading the ZIP file
+    // This function is kept for backward compatibility with the UI
+    if (parsedData) {
       setShowDataPreview(true);
-    } catch (error) {
-      console.error('Error parsing files:', error);
-      alert('Error parsing uploaded files. Please check the file formats and try again.');
-    } finally {
-      setIsProcessing(false);
+    } else {
+      setUploadError('No parsed data available. Please upload a ZIP file first.');
     }
   };
 
