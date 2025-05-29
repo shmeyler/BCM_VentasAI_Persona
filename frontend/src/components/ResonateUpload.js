@@ -1,164 +1,180 @@
 import React, { useState } from 'react';
 
 const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
-  const [uploadedFiles, setUploadedFiles] = useState({
-    demographics: null,
-    audienceInsights: null,
-    categoryAffinity: null,
-    mediaConsumption: null,
-    personalValues: null,
-    researchReport: null,
-    additionalData: []
-  });
-
+  const [uploadedZip, setUploadedZip] = useState(null);
+  const [extractedFiles, setExtractedFiles] = useState([]);
   const [parsedData, setParsedData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+  const [showDataPreview, setShowDataPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadErrors, setUploadErrors] = useState({});
+  const [uploadError, setUploadError] = useState(null);
 
-  const fileRequirements = {
-    demographics: {
-      name: 'Demographics Report',
-      description: 'Demographic analysis (PNG charts, PDF reports, or data files)',
-      accept: '.png,.pdf,.csv,.xls,.xlsx,.ppt,.pptx',
-      maxSize: '25MB',
-      required: true
-    },
-    audienceInsights: {
-      name: 'Audience Insights',
-      description: 'Audience behavior and psychographic data (any format)',
-      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
-      maxSize: '25MB',
-      required: true
-    },
-    categoryAffinity: {
-      name: 'Category/Brand Affinity',
-      description: 'Brand preferences and category affinity data',
-      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
-      maxSize: '25MB',
-      required: false
-    },
-    mediaConsumption: {
-      name: 'Media Consumption',
-      description: 'Media planning and consumption analysis',
-      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
-      maxSize: '25MB',
-      required: false
-    },
-    personalValues: {
-      name: 'Personal Values & Motivations',
-      description: 'Values, motivations, and psychographic insights',
-      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
-      maxSize: '25MB',
-      required: false
-    },
-    researchReport: {
-      name: 'Comprehensive Research Report',
-      description: 'Full Resonate research presentation or summary',
-      accept: '.pdf,.ppt,.pptx,.docx',
-      maxSize: '50MB',
-      required: false
-    },
-    additionalData: {
-      name: 'Additional Data Files',
-      description: 'Supporting charts, tables, or supplementary analysis',
-      accept: '.png,.pdf,.csv,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg',
-      maxSize: '25MB each',
-      required: false,
-      multiple: true
-    }
+  const zipRequirements = {
+    maxSize: '100MB',
+    accept: '.zip',
+    expectedFiles: [
+      'Demographics data (PNG, PDF, CSV, XLS)',
+      'Audience insights (any format)',
+      'Category/Brand affinity data',
+      'Media consumption analysis',
+      'Personal values & motivations',
+      'Research presentations',
+      'Supporting charts and visualizations'
+    ]
   };
 
-  const handleFileUpload = (fileType, files) => {
-    const fileList = Array.from(files);
-    
-    // Validate file size and type
-    const errors = {};
-    const maxSizes = {
-      demographics: 25 * 1024 * 1024, // 25MB
-      audienceInsights: 25 * 1024 * 1024,
-      categoryAffinity: 25 * 1024 * 1024,
-      mediaConsumption: 25 * 1024 * 1024,
-      personalValues: 25 * 1024 * 1024,
-      researchReport: 50 * 1024 * 1024,
-      additionalData: 25 * 1024 * 1024
-    };
+  const handleZipUpload = (files) => {
+    const zipFile = files[0];
+    const maxSize = 100 * 1024 * 1024; // 100MB
 
-    fileList.forEach(file => {
-      if (file.size > maxSizes[fileType]) {
-        errors[fileType] = `File too large. Maximum size: ${fileRequirements[fileType].maxSize}`;
-        return;
-      }
-    });
+    if (!zipFile) return;
 
-    if (Object.keys(errors).length > 0) {
-      setUploadErrors(prev => ({ ...prev, ...errors }));
+    // Validate file type
+    if (!zipFile.name.toLowerCase().endsWith('.zip')) {
+      setUploadError('Please upload a ZIP file containing your Resonate reports.');
       return;
     }
 
-    // Clear any previous errors
-    setUploadErrors(prev => ({ ...prev, [fileType]: null }));
-
-    // Update uploaded files
-    if (fileType === 'additionalData') {
-      setUploadedFiles(prev => ({
-        ...prev,
-        additionalData: [...prev.additionalData, ...fileList]
-      }));
-    } else {
-      setUploadedFiles(prev => ({
-        ...prev,
-        [fileType]: fileList[0]
-      }));
+    // Validate file size
+    if (zipFile.size > maxSize) {
+      setUploadError('ZIP file too large. Maximum size: 100MB');
+      return;
     }
+
+    setUploadError(null);
+    setUploadedZip(zipFile);
+    
+    // Simulate ZIP extraction for preview
+    simulateZipExtraction(zipFile);
   };
 
-  const removeFile = (fileType, index = null) => {
-    if (fileType === 'additionalData' && index !== null) {
-      setUploadedFiles(prev => ({
-        ...prev,
-        additionalData: prev.additionalData.filter((_, i) => i !== index)
-      }));
-    } else {
-      setUploadedFiles(prev => ({
-        ...prev,
-        [fileType]: null
-      }));
-    }
+  const simulateZipExtraction = (zipFile) => {
+    setIsProcessing(true);
+    
+    // Mock extracted files list (in real implementation, this would extract the ZIP)
+    setTimeout(() => {
+      const mockExtractedFiles = [
+        { name: 'Demographics_2025_05_08.png', type: 'Demographics', format: 'PNG', size: '2.1 MB' },
+        { name: 'Audience_Introduction_2025_05_08.pdf', type: 'Audience Insights', format: 'PDF', size: '1.8 MB' },
+        { name: 'Brand_Affinity_2025_05_08.csv', type: 'Category Affinity', format: 'CSV', size: '456 KB' },
+        { name: 'Media_Consumption_2025_05_08.pdf', type: 'Media Planning', format: 'PDF', size: '3.2 MB' },
+        { name: 'Personal_Values_2025_05_08.xlsx', type: 'Personal Values', format: 'Excel', size: '789 KB' },
+        { name: 'Research_Recommendations.pptx', type: 'Research Report', format: 'PowerPoint', size: '12.4 MB' },
+        { name: 'site_affinity_charts.png', type: 'Supporting Data', format: 'PNG', size: '1.6 MB' },
+        { name: 'category_metrics.csv', type: 'Supporting Data', format: 'CSV', size: '234 KB' }
+      ];
+
+      setExtractedFiles(mockExtractedFiles);
+      setShowFilePreview(true);
+      setIsProcessing(false);
+    }, 2000);
   };
 
-  const parseUploadedFiles = async () => {
+  const parseExtractedFiles = async () => {
     setIsProcessing(true);
     try {
       // Simulate file parsing process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Mock parsed data structure
+      // Mock comprehensive parsed data from all files
       const mockParsedData = {
         demographics: {
-          ageRanges: ['18-24: 15%', '25-34: 35%', '35-44: 30%', '45-54: 20%'],
-          gender: ['Male: 45%', 'Female: 53%', 'Other: 2%'],
-          income: ['$50K-75K: 40%', '$75K-100K: 35%', '$100K+: 25%'],
-          education: ['Bachelor: 45%', 'Master: 30%', 'High School: 25%']
+          ageDistribution: [
+            { range: '18-24', percentage: 12, source: 'Demographics_2025_05_08.png' },
+            { range: '25-34', percentage: 35, source: 'Demographics_2025_05_08.png' },
+            { range: '35-44', percentage: 28, source: 'Demographics_2025_05_08.png' },
+            { range: '45-54', percentage: 18, source: 'Demographics_2025_05_08.png' },
+            { range: '55+', percentage: 7, source: 'Demographics_2025_05_08.png' }
+          ],
+          genderSplit: [
+            { gender: 'Male', percentage: 47, source: 'Demographics_2025_05_08.png' },
+            { gender: 'Female', percentage: 51, source: 'Demographics_2025_05_08.png' },
+            { gender: 'Other', percentage: 2, source: 'Demographics_2025_05_08.png' }
+          ],
+          incomeDistribution: [
+            { range: '$50K-75K', percentage: 32, source: 'Demographics_2025_05_08.png' },
+            { range: '$75K-100K', percentage: 28, source: 'Demographics_2025_05_08.png' },
+            { range: '$100K+', percentage: 40, source: 'Demographics_2025_05_08.png' }
+          ],
+          geography: [
+            { region: 'Urban', percentage: 65, source: 'Demographics_2025_05_08.png' },
+            { region: 'Suburban', percentage: 28, source: 'Demographics_2025_05_08.png' },
+            { region: 'Rural', percentage: 7, source: 'Demographics_2025_05_08.png' }
+          ]
         },
         psychographics: {
-          values: ['Innovation: High', 'Tradition: Medium', 'Achievement: High'],
-          interests: ['Technology', 'Travel', 'Health & Wellness', 'Education'],
-          behaviors: ['Early Adopter', 'Brand Loyal', 'Price Conscious']
+          values: [
+            { value: 'Innovation', strength: 'High', percentage: 78, source: 'Personal_Values_2025_05_08.xlsx' },
+            { value: 'Quality', strength: 'High', percentage: 82, source: 'Personal_Values_2025_05_08.xlsx' },
+            { value: 'Convenience', strength: 'Medium', percentage: 65, source: 'Personal_Values_2025_05_08.xlsx' },
+            { value: 'Price Consciousness', strength: 'Medium', percentage: 58, source: 'Personal_Values_2025_05_08.xlsx' }
+          ],
+          interests: [
+            { interest: 'Technology', affinity: 85, source: 'Audience_Introduction_2025_05_08.pdf' },
+            { interest: 'Travel', affinity: 72, source: 'Audience_Introduction_2025_05_08.pdf' },
+            { interest: 'Health & Wellness', affinity: 68, source: 'Audience_Introduction_2025_05_08.pdf' },
+            { interest: 'Professional Development', affinity: 71, source: 'Audience_Introduction_2025_05_08.pdf' }
+          ],
+          behaviors: [
+            { behavior: 'Early Adopter', likelihood: 'High', source: 'Audience_Introduction_2025_05_08.pdf' },
+            { behavior: 'Brand Loyal', likelihood: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' },
+            { behavior: 'Research Heavy', likelihood: 'High', source: 'Audience_Introduction_2025_05_08.pdf' }
+          ]
         },
         mediaConsumption: {
-          platforms: ['Instagram: 75%', 'Facebook: 65%', 'LinkedIn: 45%', 'TikTok: 30%'],
-          devices: ['Mobile: 80%', 'Desktop: 60%', 'Tablet: 35%'],
-          timeSpent: ['2-4 hours daily: 50%', '1-2 hours: 30%', '4+ hours: 20%']
+          platforms: [
+            { platform: 'Instagram', usage: 78, timeSpent: '45min/day', source: 'Media_Consumption_2025_05_08.pdf' },
+            { platform: 'Facebook', usage: 65, timeSpent: '32min/day', source: 'Media_Consumption_2025_05_08.pdf' },
+            { platform: 'LinkedIn', usage: 58, timeSpent: '28min/day', source: 'Media_Consumption_2025_05_08.pdf' },
+            { platform: 'TikTok', usage: 42, timeSpent: '25min/day', source: 'Media_Consumption_2025_05_08.pdf' },
+            { platform: 'YouTube', usage: 71, timeSpent: '52min/day', source: 'Media_Consumption_2025_05_08.pdf' }
+          ],
+          devices: [
+            { device: 'Mobile', usage: 85, primaryTime: 'Throughout day', source: 'Media_Consumption_2025_05_08.pdf' },
+            { device: 'Desktop', usage: 62, primaryTime: 'Work hours', source: 'Media_Consumption_2025_05_08.pdf' },
+            { device: 'Tablet', usage: 34, primaryTime: 'Evening', source: 'Media_Consumption_2025_05_08.pdf' }
+          ],
+          contentPreferences: [
+            { type: 'Educational Content', preference: 'High', source: 'Media_Consumption_2025_05_08.pdf' },
+            { type: 'Product Reviews', preference: 'High', source: 'Media_Consumption_2025_05_08.pdf' },
+            { type: 'Industry News', preference: 'Medium', source: 'Media_Consumption_2025_05_08.pdf' },
+            { type: 'Entertainment', preference: 'Medium', source: 'Media_Consumption_2025_05_08.pdf' }
+          ]
         },
-        categoryAffinity: {
-          brands: ['Apple: 85%', 'Nike: 70%', 'Starbucks: 65%', 'Amazon: 90%'],
-          categories: ['Technology: High', 'Fashion: Medium', 'Food & Beverage: High']
+        brandAffinity: {
+          topBrands: [
+            { brand: 'Apple', affinity: 87, category: 'Technology', source: 'Brand_Affinity_2025_05_08.csv' },
+            { brand: 'Amazon', affinity: 82, category: 'E-commerce', source: 'Brand_Affinity_2025_05_08.csv' },
+            { brand: 'Google', affinity: 79, category: 'Technology', source: 'Brand_Affinity_2025_05_08.csv' },
+            { brand: 'Nike', affinity: 73, category: 'Athletic Wear', source: 'Brand_Affinity_2025_05_08.csv' }
+          ],
+          categoryAffinities: [
+            { category: 'Technology', affinity: 'Very High', source: 'Brand_Affinity_2025_05_08.csv' },
+            { category: 'E-commerce', affinity: 'High', source: 'Brand_Affinity_2025_05_08.csv' },
+            { category: 'Financial Services', affinity: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' },
+            { category: 'Travel', affinity: 'Medium', source: 'Brand_Affinity_2025_05_08.csv' }
+          ]
+        },
+        insights: {
+          keyFindings: [
+            'Tech-savvy professional demographic with high innovation adoption',
+            'Strong preference for quality over price',
+            'Heavy mobile usage with Instagram as primary platform',
+            'High brand loyalty to premium technology brands',
+            'Values educational content and peer recommendations'
+          ],
+          recommendedActions: [
+            'Focus marketing on Instagram and LinkedIn platforms',
+            'Emphasize product quality and innovation in messaging',
+            'Create educational content series',
+            'Partner with technology influencers',
+            'Develop mobile-first user experiences'
+          ]
         }
       };
 
       setParsedData(mockParsedData);
-      setShowPreview(true);
+      setShowDataPreview(true);
     } catch (error) {
       console.error('Error parsing files:', error);
       alert('Error parsing uploaded files. Please check the file formats and try again.');
@@ -169,34 +185,34 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
 
   const handleNext = async () => {
     if (!parsedData) {
-      alert('Please upload and parse your Resonate data files first.');
+      alert('Please upload and parse your Resonate data ZIP file first.');
       return;
     }
 
-    // Create persona data from parsed Resonate data
+    // Create persona data from comprehensive parsed Resonate data
     const resonatePersonaData = {
       starting_method: 'resonate_upload',
       resonate_data: parsedData,
       demographics: {
-        age_range: '25-34', // Derived from parsed data
-        gender: 'Female',   // Derived from parsed data
+        age_range: '25-34', // Primary demographic from parsed data
+        gender: 'Female',   // Primary demographic from parsed data
         income_range: '$75,000-$100,000',
         education: 'Bachelor degree',
-        location: 'Urban',  // Could be parsed from location data
+        location: 'Urban',
         occupation: 'Full Time Employed',
         family_status: 'Single'
       },
       attributes: {
         selectedVertical: 'Technology & Telecom',
         selectedCategory: 'Technology Adoption',
-        selectedAttributes: ['Early Adopter', 'Innovation Focused', 'Brand Loyal']
+        selectedAttributes: ['Early Adopter', 'Innovation Focused', 'Quality Driven']
       },
       media_consumption: {
-        social_media_platforms: ['Instagram', 'Facebook', 'LinkedIn'],
+        social_media_platforms: ['Instagram', 'Facebook', 'LinkedIn', 'YouTube'],
         preferred_devices: ['Mobile', 'Desktop'],
         consumption_time: '2-4 hours',
-        news_sources: ['Social Media', 'Online News Sites'],
-        entertainment_preferences: ['Streaming Services', 'Podcasts']
+        news_sources: ['Social Media', 'Industry Publications'],
+        entertainment_preferences: ['Educational Content', 'Product Reviews']
       }
     };
 
@@ -211,26 +227,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     }
   };
 
-  const getUploadedFilesList = () => {
-    const files = [];
-    Object.entries(uploadedFiles).forEach(([type, file]) => {
-      if (type === 'additionalData') {
-        file.forEach((dataFile, index) => {
-          files.push({ type: `additionalData-${index}`, name: dataFile.name, file: dataFile });
-        });
-      } else if (file) {
-        files.push({ type, name: file.name, file });
-      }
-    });
-    return files;
-  };
-
-  const canProceed = () => {
-    const requiredFiles = Object.entries(fileRequirements)
-      .filter(([_, req]) => req.required)
-      .map(([type, _]) => type);
-    
-    return requiredFiles.every(type => uploadedFiles[type] !== null);
+  const removeZipFile = () => {
+    setUploadedZip(null);
+    setExtractedFiles([]);
+    setParsedData(null);
+    setShowFilePreview(false);
+    setShowDataPreview(false);
+    setUploadError(null);
   };
 
   return (
