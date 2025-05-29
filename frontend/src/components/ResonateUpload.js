@@ -17,45 +17,52 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
 
   const fileRequirements = {
     demographics: {
-      name: 'Demographics Data',
-      description: 'Demographics CSV file (e.g., Demographics_2025_05_08.csv)',
-      accept: '.csv',
-      maxSize: '5MB',
+      name: 'Demographics Report',
+      description: 'Demographic analysis (PNG charts, PDF reports, or data files)',
+      accept: '.png,.pdf,.csv,.xls,.xlsx,.ppt,.pptx',
+      maxSize: '25MB',
       required: true
     },
     audienceInsights: {
       name: 'Audience Insights',
-      description: 'Audience metrics CSV file (e.g., Audience_Insights_2025_05_08.csv)',
-      accept: '.csv',
-      maxSize: '5MB',
+      description: 'Audience behavior and psychographic data (any format)',
+      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
+      maxSize: '25MB',
       required: true
     },
     categoryAffinity: {
-      name: 'Category Affinity',
-      description: 'Category/Brand affinity CSV file (e.g., category_affinity.csv)',
-      accept: '.csv',
-      maxSize: '10MB',
+      name: 'Category/Brand Affinity',
+      description: 'Brand preferences and category affinity data',
+      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
+      maxSize: '25MB',
       required: false
     },
-    mediaPlanning: {
-      name: 'Media Planning Report',
-      description: 'Media consumption PDF report',
-      accept: '.pdf',
-      maxSize: '20MB',
+    mediaConsumption: {
+      name: 'Media Consumption',
+      description: 'Media planning and consumption analysis',
+      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
+      maxSize: '25MB',
+      required: false
+    },
+    personalValues: {
+      name: 'Personal Values & Motivations',
+      description: 'Values, motivations, and psychographic insights',
+      accept: '.csv,.pdf,.png,.xls,.xlsx,.ppt,.pptx',
+      maxSize: '25MB',
       required: false
     },
     researchReport: {
-      name: 'Research Presentation',
-      description: 'PowerPoint research recommendations (e.g., .pptx)',
-      accept: '.pptx,.ppt',
+      name: 'Comprehensive Research Report',
+      description: 'Full Resonate research presentation or summary',
+      accept: '.pdf,.ppt,.pptx,.docx',
       maxSize: '50MB',
       required: false
     },
-    charts: {
-      name: 'Supporting Charts',
-      description: 'Bar charts, visualizations (PNG, PDF)',
-      accept: '.png,.pdf,.jpg,.jpeg',
-      maxSize: '10MB each',
+    additionalData: {
+      name: 'Additional Data Files',
+      description: 'Supporting charts, tables, or supplementary analysis',
+      accept: '.png,.pdf,.csv,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg',
+      maxSize: '25MB each',
       required: false,
       multiple: true
     }
