@@ -100,10 +100,10 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     setUploadErrors(prev => ({ ...prev, [fileType]: null }));
 
     // Update uploaded files
-    if (fileType === 'charts') {
+    if (fileType === 'additionalData') {
       setUploadedFiles(prev => ({
         ...prev,
-        charts: [...prev.charts, ...fileList]
+        additionalData: [...prev.additionalData, ...fileList]
       }));
     } else {
       setUploadedFiles(prev => ({
