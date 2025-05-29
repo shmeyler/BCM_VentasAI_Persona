@@ -68,6 +68,16 @@ const DemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving, isFi
     "Coastal"
   ];
 
+  const employmentStatuses = [
+    "Student",
+    "Homemaker", 
+    "Full Time Employed",
+    "Part Time Employed",
+    "Retired",
+    "Military",
+    "Other"
+  ];
+
   return (
     <div className="form-section">
       <h2 className="text-xl font-bold mb-4">Demographics</h2>
