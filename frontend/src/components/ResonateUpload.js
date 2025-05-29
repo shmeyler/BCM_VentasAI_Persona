@@ -23,6 +23,55 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     ]
   };
 
+  const processZipFile = async (zipFile) => {
+    setIsProcessing(true);
+    setShowFilePreview(false);
+    setShowDataPreview(false);
+    
+    try {
+      // Create FormData to send the file
+      const formData = new FormData();
+      formData.append('file', zipFile);
+
+      // Get backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Call real backend API to process the ZIP file
+      const response = await fetch(`${backendUrl}/api/personas/resonate-upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to process ZIP file');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Set extracted files and parsed data from real backend response
+        setExtractedFiles(result.extracted_files);
+        setParsedData(result.parsed_data);
+        setShowFilePreview(true);
+        setShowDataPreview(true); // Show data preview directly since we have parsed data
+      } else {
+        throw new Error(result.message || 'Failed to process ZIP file');
+      }
+      
+    } catch (error) {
+      console.error('Error processing ZIP file:', error);
+      setUploadError(`Error processing file: ${error.message}`);
+      // Reset states on error
+      setExtractedFiles([]);
+      setParsedData(null);
+      setShowFilePreview(false);
+      setShowDataPreview(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleZipUpload = (files) => {
     const zipFile = files[0];
     const maxSize = 100 * 1024 * 1024; // 100MB
