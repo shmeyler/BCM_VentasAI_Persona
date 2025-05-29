@@ -45,6 +45,16 @@
   @apply shadow-xl;
 }
 
+.bcm-card-green {
+  @apply bg-white border-2 rounded-xl p-8 shadow-lg transition-all cursor-pointer;
+  border-color: #10B981;
+}
+
+.bcm-card-green:hover {
+  transform: translateY(-8px);
+  @apply shadow-xl;
+}
+
 .step-indicator {
   @apply flex items-center justify-center w-8 h-8 rounded-full border-2 font-semibold text-sm;
 }
