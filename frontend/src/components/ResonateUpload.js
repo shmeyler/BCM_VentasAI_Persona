@@ -383,36 +383,84 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h4 className="font-semibold mb-3 font-montserrat">Demographics</h4>
               <div className="space-y-2 text-sm">
-                <div><strong>Age:</strong> {parsedData.demographics.ageRanges.join(', ')}</div>
-                <div><strong>Gender:</strong> {parsedData.demographics.gender.join(', ')}</div>
-                <div><strong>Income:</strong> {parsedData.demographics.income.join(', ')}</div>
-                <div><strong>Education:</strong> {parsedData.demographics.education.join(', ')}</div>
+                <div><strong>Age Distribution:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.demographics.ageDistribution.map((age, i) => (
+                    <li key={i}>{age.range}: {age.percentage}%</li>
+                  ))}
+                </ul>
+                <div><strong>Gender Split:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.demographics.genderSplit.map((gender, i) => (
+                    <li key={i}>{gender.gender}: {gender.percentage}%</li>
+                  ))}
+                </ul>
+                <div><strong>Income Distribution:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.demographics.incomeDistribution.map((income, i) => (
+                    <li key={i}>{income.range}: {income.percentage}%</li>
+                  ))}
+                </ul>
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h4 className="font-semibold mb-3 font-montserrat">Psychographics</h4>
               <div className="space-y-2 text-sm">
-                <div><strong>Values:</strong> {parsedData.psychographics.values.join(', ')}</div>
-                <div><strong>Interests:</strong> {parsedData.psychographics.interests.join(', ')}</div>
-                <div><strong>Behaviors:</strong> {parsedData.psychographics.behaviors.join(', ')}</div>
+                <div><strong>Values:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.psychographics.values.map((value, i) => (
+                    <li key={i}>{value.value}: {value.strength} ({value.percentage}%)</li>
+                  ))}
+                </ul>
+                <div><strong>Interests:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.psychographics.interests.map((interest, i) => (
+                    <li key={i}>{interest.interest}: {interest.affinity}% affinity</li>
+                  ))}
+                </ul>
+                <div><strong>Behaviors:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.psychographics.behaviors.map((behavior, i) => (
+                    <li key={i}>{behavior.behavior}: {behavior.likelihood}</li>
+                  ))}
+                </ul>
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h4 className="font-semibold mb-3 font-montserrat">Media Consumption</h4>
               <div className="space-y-2 text-sm">
-                <div><strong>Platforms:</strong> {parsedData.mediaConsumption.platforms.join(', ')}</div>
-                <div><strong>Devices:</strong> {parsedData.mediaConsumption.devices.join(', ')}</div>
-                <div><strong>Time Spent:</strong> {parsedData.mediaConsumption.timeSpent.join(', ')}</div>
+                <div><strong>Platforms:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.mediaConsumption.platforms.map((platform, i) => (
+                    <li key={i}>{platform.platform}: {platform.usage}% ({platform.timeSpent})</li>
+                  ))}
+                </ul>
+                <div><strong>Devices:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.mediaConsumption.devices.map((device, i) => (
+                    <li key={i}>{device.device}: {device.usage}% ({device.primaryTime})</li>
+                  ))}
+                </ul>
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-semibold mb-3 font-montserrat">Category Affinity</h4>
+              <h4 className="font-semibold mb-3 font-montserrat">Brand Affinity</h4>
               <div className="space-y-2 text-sm">
-                <div><strong>Brands:</strong> {parsedData.categoryAffinity.brands.join(', ')}</div>
-                <div><strong>Categories:</strong> {parsedData.categoryAffinity.categories.join(', ')}</div>
+                <div><strong>Top Brands:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.brandAffinity.topBrands.map((brand, i) => (
+                    <li key={i}>{brand.brand}: {brand.affinity}% ({brand.category})</li>
+                  ))}
+                </ul>
+                <div><strong>Category Affinities:</strong></div>
+                <ul className="list-disc list-inside">
+                  {parsedData.brandAffinity.categoryAffinities.map((category, i) => (
+                    <li key={i}>{category.category}: {category.affinity}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
