@@ -419,7 +419,10 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
 
           <div className="flex justify-center">
             <button
-              onClick={() => setShowPreview(false)}
+              onClick={() => {
+                setShowDataPreview(false);
+                setShowFilePreview(false);
+              }}
               className="bcm-btn-outline mr-4"
             >
               ← Edit Files
@@ -444,9 +447,9 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
           ← Previous
         </button>
         
-        {!showPreview && getUploadedFilesList().length > 0 && (
+        {!showDataPreview && uploadedZip && (
           <div className="text-sm text-gray-600 font-montserrat">
-            {getUploadedFilesList().length} file(s) uploaded
+            ZIP file uploaded: {uploadedZip.name}
           </div>
         )}
       </div>
