@@ -170,6 +170,10 @@ const PersonaWizard = () => {
         return <KeyAttributesStep {...commonProps} />;
       case "key_demographics":
         return <KeyDemographicsStep {...commonProps} />;
+      case "resonate_upload":
+        return <ResonateUpload {...commonProps} />;
+      case "review_resonate":
+        return <ReviewResonateStep {...commonProps} />;
       case "ai_mapping":
         return <AIMappingStep {...commonProps} />;
       case "media_consumption":
