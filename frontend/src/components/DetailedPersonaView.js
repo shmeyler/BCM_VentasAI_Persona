@@ -709,8 +709,8 @@ const DetailedPersonaView = ({ generatedPersona }) => {
       </div>
 
       {/* Tabbed Interface */}
-      <TabGroup>
-        <TabList className="flex flex-wrap gap-2 rounded-xl bg-blue-900/20 p-2 mb-8 lg:gap-1 lg:space-x-1">
+      <Tab.Group>
+        <Tab.List className="flex flex-wrap gap-2 rounded-xl bg-blue-900/20 p-2 mb-8 lg:gap-1 lg:space-x-1">
           {tabs.map((tab, index) => (
             <Tab
               key={index}
@@ -728,34 +728,34 @@ const DetailedPersonaView = ({ generatedPersona }) => {
               </div>
             </Tab>
           ))}
-        </TabList>
+        </Tab.List>
         
-        <TabPanels>
-          <TabPanel><OverviewTab /></TabPanel>
-          <TabPanel><DemographicsTab /></TabPanel>
-          <TabPanel><MediaConsumptionTab /></TabPanel>
-          <TabPanel><PsychographicsTab /></TabPanel>
-          <TabPanel><DeviceTimingTab /></TabPanel>
-          <TabPanel>
+        <Tab.Panels>
+          <Tab.Panel><OverviewTab /></Tab.Panel>
+          <Tab.Panel><DemographicsTab /></Tab.Panel>
+          <Tab.Panel><MediaConsumptionTab /></Tab.Panel>
+          <Tab.Panel><PsychographicsTab /></Tab.Panel>
+          <Tab.Panel><DeviceTimingTab /></Tab.Panel>
+          <Tab.Panel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Search Behavior Analysis</h3>
               <p className="text-gray-600">Search behavior insights and keyword analysis would go here...</p>
             </div>
-          </TabPanel>
-          <TabPanel>
+          </Tab.Panel>
+          <Tab.Panel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Social Listening Insights</h3>
               <p className="text-gray-600">Social listening data and sentiment analysis would go here...</p>
             </div>
-          </TabPanel>
-          <TabPanel>
+          </Tab.Panel>
+          <Tab.Panel>
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h3 className="text-xl font-bold mb-4">Strategic Recommendations</h3>
               <p className="text-gray-600">Marketing recommendations and strategic insights would go here...</p>
             </div>
-          </TabPanel>
-        </TabPanels>
-      </TabGroup>
+          </Tab.Panel>
+        </Tab.Panels>
+      </Tab.Group>
     </div>
   );
 };
