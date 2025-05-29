@@ -44,8 +44,8 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     setUploadError(null);
     setUploadedZip(zipFile);
     
-    // Simulate ZIP extraction for preview
-    simulateZipExtraction(zipFile);
+    // Process the ZIP file immediately with real parsing
+    processZipFile(zipFile);
   };
 
   const simulateZipExtraction = (zipFile) => {
