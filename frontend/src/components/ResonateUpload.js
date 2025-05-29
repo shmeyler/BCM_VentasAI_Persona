@@ -74,12 +74,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     // Validate file size and type
     const errors = {};
     const maxSizes = {
-      demographics: 5 * 1024 * 1024, // 5MB
-      audienceInsights: 5 * 1024 * 1024,
-      categoryAffinity: 10 * 1024 * 1024,
-      mediaPlanning: 20 * 1024 * 1024,
+      demographics: 25 * 1024 * 1024, // 25MB
+      audienceInsights: 25 * 1024 * 1024,
+      categoryAffinity: 25 * 1024 * 1024,
+      mediaConsumption: 25 * 1024 * 1024,
+      personalValues: 25 * 1024 * 1024,
       researchReport: 50 * 1024 * 1024,
-      charts: 10 * 1024 * 1024
+      additionalData: 25 * 1024 * 1024
     };
 
     fileList.forEach(file => {
