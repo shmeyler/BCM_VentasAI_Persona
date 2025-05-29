@@ -214,9 +214,9 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
   const getUploadedFilesList = () => {
     const files = [];
     Object.entries(uploadedFiles).forEach(([type, file]) => {
-      if (type === 'charts') {
-        file.forEach((chartFile, index) => {
-          files.push({ type: `charts-${index}`, name: chartFile.name, file: chartFile });
+      if (type === 'additionalData') {
+        file.forEach((dataFile, index) => {
+          files.push({ type: `additionalData-${index}`, name: dataFile.name, file: dataFile });
         });
       } else if (file) {
         files.push({ type, name: file.name, file });
