@@ -9,7 +9,8 @@ import random
 ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -21,9 +22,12 @@ from datetime import datetime
 from enum import Enum
 import requests
 import random
+import tempfile
+import aiofiles
 from external_integrations.unsplash import get_professional_headshot
 from external_integrations.data_sources import DataSourceOrchestrator
 from external_integrations.openai_images import generate_persona_image_openai
+from external_integrations.file_parsers import parse_resonate_zip
 
 load_dotenv(ROOT_DIR / '.env')
 
