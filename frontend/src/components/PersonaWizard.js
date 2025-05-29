@@ -35,6 +35,15 @@ const PersonaWizard = () => {
         { id: 6, name: "Review & Refine", component: "review_refine" },
         { id: 7, name: "Generate Persona", component: "generate" }
       ];
+    } else if (startingMethod === "resonate_upload") {
+      return [
+        { id: 1, name: "Basic Info", component: "basic" },
+        { id: 2, name: "Upload Data", component: "resonate_upload" },
+        { id: 3, name: "Review Data", component: "review_resonate" },
+        { id: 4, name: "Media Consumption", component: "media_consumption" },
+        { id: 5, name: "Review & Refine", component: "review_refine" },
+        { id: 6, name: "Generate Persona", component: "generate" }
+      ];
     } else {
       return [
         { id: 1, name: "Basic Info", component: "basic" },
