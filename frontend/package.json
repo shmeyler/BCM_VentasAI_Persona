@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@headlessui/react": "^2.2.4",
+    "@headlessui/react": "^1.7.0",
     "@heroicons/react": "^2.2.0",
     "@react-pdf/renderer": "^4.3.0",
     "axios": "^1.8.4",
