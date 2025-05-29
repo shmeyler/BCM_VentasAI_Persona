@@ -33,7 +33,7 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
       const formData = new FormData();
       formData.append('file', zipFile);
 
-      // Get backend URL from environment
+      // Get backend URL from environment (default to local for development)
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
       // Call real backend API to process the ZIP file
