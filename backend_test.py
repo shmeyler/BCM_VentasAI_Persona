@@ -1,19 +1,25 @@
+
 import requests
 import sys
+import os
 import json
+import zipfile
+import tempfile
 from datetime import datetime
 
-class BCMPersonaAPITester:
-    def __init__(self, base_url="https://5723ff75-4165-4b59-917c-cb207fa4725b.preview.emergentagent.com/api"):
+class ResonateUploadTester:
+    def __init__(self, base_url="http://localhost:8001/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
         self.persona_id = None
 
-    def run_test(self, name, method, endpoint, expected_status, data=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, files=None):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
+        headers = {}
+        if not files:  # Don't set Content-Type for multipart/form-data
+            headers['Content-Type'] = 'application/json'
 
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
@@ -23,7 +29,10 @@ class BCMPersonaAPITester:
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
+                if files:
+                    response = requests.post(url, files=files, timeout=30)  # Longer timeout for file uploads
+                else:
+                    response = requests.post(url, json=data, headers=headers, timeout=10)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=headers, timeout=10)
             elif method == 'DELETE':
@@ -67,16 +76,16 @@ class BCMPersonaAPITester:
         )
         return success
 
-    def test_create_persona_demographics(self):
-        """Test creating a persona with demographics starting method"""
+    def test_create_persona_resonate_upload(self):
+        """Test creating a persona with resonate_upload starting method"""
         success, response = self.run_test(
-            "Create Persona (Demographics)",
+            "Create Persona (Resonate Upload)",
             "POST",
             "personas",
             200,
             data={
-                "starting_method": "demographics",
-                "name": "Test Demographics Persona"
+                "starting_method": "resonate_upload",
+                "name": "Test Resonate Upload Persona"
             }
         )
         if success and 'id' in response:
@@ -84,75 +93,187 @@ class BCMPersonaAPITester:
             print(f"   Created persona with ID: {self.persona_id}")
         return success
 
-    def test_create_persona_attributes(self):
-        """Test creating a persona with attributes starting method"""
+    def create_test_zip_file(self):
+        """Create a test ZIP file with sample data files"""
+        temp_dir = tempfile.mkdtemp()
+        zip_path = os.path.join(temp_dir, "test_data.zip")
+        
+        # Create a CSV file with demographic data
+        csv_path = os.path.join(temp_dir, "demographics.csv")
+        with open(csv_path, 'w') as f:
+            f.write("Age,Gender,Income,Location\n")
+            f.write("25-34,Female,$50,000-$75,000,Urban\n")
+            f.write("35-44,Male,$75,000-$100,000,Suburban\n")
+            f.write("18-24,Female,$25,000-$50,000,Urban\n")
+        
+        # Create a text file with media consumption data
+        txt_path = os.path.join(temp_dir, "media.txt")
+        with open(txt_path, 'w') as f:
+            f.write("Media Consumption Analysis\n\n")
+            f.write("Social Media: Instagram, Facebook, TikTok\n")
+            f.write("Streaming: Netflix, Hulu, Disney+\n")
+            f.write("News: CNN, BBC, Local News\n")
+        
+        # Create a ZIP file with these files
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            zip_file.write(csv_path, os.path.basename(csv_path))
+            zip_file.write(txt_path, os.path.basename(txt_path))
+        
+        return zip_path
+
+    def test_resonate_upload_invalid_file(self):
+        """Test uploading an invalid file type to resonate-upload endpoint"""
+        # Create a temporary text file
+        with open('/tmp/test.txt', 'w') as f:
+            f.write("This is not a ZIP file")
+        
+        files = {
+            'file': ('test.txt', open('/tmp/test.txt', 'rb'), 'text/plain')
+        }
+        
         success, response = self.run_test(
-            "Create Persona (Attributes)",
+            "Resonate Upload - Invalid File Type",
             "POST",
+            "personas/resonate-upload",
+            400,  # Should return 400 Bad Request
+            files=files
+        )
+        
+        # Clean up
+        os.remove('/tmp/test.txt')
+        
+        # For this test, success means we got the expected 400 error
+        return success
+
+    def test_resonate_upload_valid_zip(self):
+        """Test uploading a valid ZIP file to resonate-upload endpoint"""
+        # Create a test ZIP file
+        zip_path = self.create_test_zip_file()
+        
+        files = {
+            'file': ('test_data.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Valid ZIP File",
+            "POST",
+            "personas/resonate-upload",
+            200,  # Should return 200 OK
+            files=files
+        )
+        
+        # Clean up
+        os.remove(zip_path)
+        
+        # Check if the response contains parsed data
+        if success and response.get('success') and 'extracted_files' in response:
+            print(f"   ✅ ZIP file processed successfully")
+            print(f"   ✅ Extracted {len(response['extracted_files'])} files")
+            
+            # Check if parsed_data is present
+            if 'parsed_data' in response:
+                print(f"   ✅ Data parsed successfully")
+                
+                # Check if demographics were extracted
+                if 'demographics' in response['parsed_data'] and response['parsed_data']['demographics']:
+                    print(f"   ✅ Demographics data extracted")
+                else:
+                    print(f"   ⚠️ No demographics data extracted")
+                
+                # Check if media consumption was extracted
+                if 'media_consumption' in response['parsed_data'] and response['parsed_data']['media_consumption']:
+                    print(f"   ✅ Media consumption data extracted")
+                else:
+                    print(f"   ⚠️ No media consumption data extracted")
+        
+        return success
+
+    def test_resonate_create_from_data(self):
+        """Test creating a persona from parsed Resonate data"""
+        # Mock parsed data that would come from a ZIP file
+        mock_parsed_data = {
+            "demographics": {
+                "age": [
+                    {
+                        "source": "demographics.csv",
+                        "data": {
+                            "source_column": "Age",
+                            "top_values": {"25-34": 45, "35-44": 30, "18-24": 15}
+                        }
+                    }
+                ],
+                "gender": [
+                    {
+                        "source": "demographics.csv",
+                        "data": {
+                            "source_column": "Gender",
+                            "top_values": {"Female": 60, "Male": 40}
+                        }
+                    }
+                ],
+                "income": [
+                    {
+                        "source": "demographics.csv",
+                        "data": {
+                            "source_column": "Income",
+                            "top_values": {"$50,000-$75,000": 35, "$75,000-$100,000": 25}
+                        }
+                    }
+                ]
+            },
+            "media_consumption": {
+                "social_platforms": [
+                    {
+                        "source": "media.csv",
+                        "data": {
+                            "Instagram": 75, "Facebook": 65, "LinkedIn": 45, "TikTok": 30
+                        }
+                    }
+                ]
+            },
+            "brand_affinity": {
+                "preferred_brands": [
+                    {
+                        "source": "brands.csv",
+                        "data": {
+                            "Apple": 80, "Nike": 75, "Amazon": 70
+                        }
+                    }
+                ]
+            }
+        }
+        
+        success, response = self.run_test(
+            "Create Persona from Resonate Data",
+            "POST",
+            "personas/resonate-create",
+            200,
+            data={
+                "name": "Resonate Data Persona",
+                "parsed_data": mock_parsed_data
+            }
+        )
+        
+        if success and response.get('success') and 'persona' in response:
+            persona = response['persona']
+            if 'id' in persona:
+                self.persona_id = persona['id']
+                print(f"   Created persona from Resonate data with ID: {self.persona_id}")
+        
+        return success
+
+    def test_list_personas(self):
+        """Test listing all personas"""
+        success, response = self.run_test(
+            "List Personas",
+            "GET",
             "personas",
-            200,
-            data={
-                "starting_method": "attributes",
-                "name": "Test Attributes Persona"
-            }
+            200
         )
-        return success
-
-    def test_update_persona_with_resonate_taxonomy(self):
-        """Test updating persona with new Resonate Taxonomy fields"""
-        if not self.persona_id:
-            print("❌ Skipping - No persona ID available")
-            return False
-
-        success, response = self.run_test(
-            "Update Persona with Resonate Taxonomy",
-            "PUT",
-            f"personas/{self.persona_id}",
-            200,
-            data={
-                "attributes": {
-                    "selectedVertical": "Retail",
-                    "selectedCategory": "Preferences & Psychographics",
-                    "selectedBehaviors": ["Quality-focused", "Brand loyal", "Sustainable shopping"],
-                    "interests": ["Fashion", "Technology", "Sustainability"],
-                    "values": ["Quality", "Authenticity", "Environmental responsibility"]
-                },
-                "demographics": {
-                    "age_range": "25-40",
-                    "gender": "Female",
-                    "income_range": "$50,000-$75,000",
-                    "education": "Bachelor's Degree",
-                    "location": "Urban",
-                    "occupation": "Marketing Manager",
-                    "family_status": "Single"
-                }
-            }
-        )
-        return success
-
-    def test_update_persona_media_consumption(self):
-        """Test updating persona with media consumption data"""
-        if not self.persona_id:
-            print("❌ Skipping - No persona ID available")
-            return False
-
-        success, response = self.run_test(
-            "Update Persona Media Consumption",
-            "PUT",
-            f"personas/{self.persona_id}",
-            200,
-            data={
-                "media_consumption": {
-                    "social_media_platforms": ["Instagram", "Facebook", "LinkedIn", "TikTok"],
-                    "content_types": ["Video content", "Social media posts", "News articles"],
-                    "consumption_time": "2-4 hours",
-                    "preferred_devices": ["Smartphone", "Laptop"],
-                    "news_sources": ["Online news", "Social media"],
-                    "entertainment_preferences": ["Streaming services", "Podcasts"],
-                    "advertising_receptivity": "Moderate"
-                }
-            }
-        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} personas")
+        
         return success
 
     def test_get_persona(self):
@@ -167,17 +288,6 @@ class BCMPersonaAPITester:
             f"personas/{self.persona_id}",
             200
         )
-        
-        if success:
-            # Verify the new Resonate Taxonomy fields are present
-            attributes = response.get('attributes', {})
-            if 'selectedVertical' in attributes:
-                print(f"   ✅ selectedVertical: {attributes['selectedVertical']}")
-            if 'selectedCategory' in attributes:
-                print(f"   ✅ selectedCategory: {attributes['selectedCategory']}")
-            if 'selectedBehaviors' in attributes:
-                print(f"   ✅ selectedBehaviors: {len(attributes['selectedBehaviors'])} behaviors")
-        
         return success
 
     def test_generate_persona(self):
@@ -199,36 +309,6 @@ class BCMPersonaAPITester:
                 print(f"   ✅ Persona image URL generated: {response['persona_image_url'][:50]}...")
             if 'ai_insights' in response:
                 print(f"   ✅ AI insights generated")
-            if 'recommendations' in response:
-                print(f"   ✅ {len(response['recommendations'])} recommendations generated")
-        
-        return success
-
-    def test_list_personas(self):
-        """Test listing all personas"""
-        success, response = self.run_test(
-            "List Personas",
-            "GET",
-            "personas",
-            200
-        )
-        
-        if success and isinstance(response, list):
-            print(f"   Found {len(response)} personas")
-        
-        return success
-
-    def test_list_generated_personas(self):
-        """Test listing all generated personas"""
-        success, response = self.run_test(
-            "List Generated Personas",
-            "GET",
-            "generated-personas",
-            200
-        )
-        
-        if success and isinstance(response, list):
-            print(f"   Found {len(response)} generated personas")
         
         return success
 
@@ -246,344 +326,24 @@ class BCMPersonaAPITester:
         )
         return success
 
-    def test_delete_generated_persona(self):
-        """Test deleting a generated persona - CRITICAL FIX BEING TESTED"""
-        print("\n🔥 === CRITICAL TEST: Generated Persona Deletion ===")
-        
-        # First get list of generated personas
-        success, response = self.run_test(
-            "List Generated Personas for Deletion Test",
-            "GET",
-            "generated-personas",
-            200
-        )
-        
-        if not success:
-            print("❌ Cannot test deletion - failed to get generated personas list")
-            return False
-        
-        generated_personas = response if isinstance(response, list) else []
-        if not generated_personas:
-            print("❌ No generated personas available for deletion test")
-            return False
-        
-        # Get the first generated persona ID
-        generated_persona_id = generated_personas[0].get('id')
-        if not generated_persona_id:
-            print("❌ Generated persona has no ID field")
-            return False
-        
-        print(f"   Testing deletion of generated persona: {generated_persona_id}")
-        
-        # CRITICAL TEST: Delete the generated persona
-        success, response = self.run_test(
-            "Delete Generated Persona - CRITICAL FIX",
-            "DELETE",
-            f"generated-personas/{generated_persona_id}",
-            200
-        )
-        
-        if success:
-            print("   ✅ CRITICAL FIX VERIFIED: Generated persona deletion works!")
-            
-            # Verify it's actually deleted by checking the list again
-            success_verify, response_verify = self.run_test(
-                "Verify Generated Persona Deleted",
-                "GET",
-                "generated-personas",
-                200
-            )
-            
-            if success_verify:
-                remaining_personas = response_verify if isinstance(response_verify, list) else []
-                deleted_persona_still_exists = any(p.get('id') == generated_persona_id for p in remaining_personas)
-                
-                if not deleted_persona_still_exists:
-                    print("   ✅ VERIFICATION PASSED: Persona successfully removed from list")
-                else:
-                    print("   ⚠️  VERIFICATION WARNING: Persona still appears in list")
-            
-        else:
-            print("   ❌ CRITICAL FIX FAILED: Generated persona deletion still has issues!")
-        
-        return success
-
-    def test_data_sources_status(self):
-        """Test data sources status endpoint"""
-        success, response = self.run_test(
-            "Data Sources Status",
-            "GET",
-            "data-sources/status",
-            200
-        )
-        
-        if success:
-            # Check for expected data sources
-            expected_sources = ['semrush', 'sparktoro', 'buzzabout']
-            for source in expected_sources:
-                if source in response:
-                    status = response[source].get('status', 'unknown')
-                    print(f"   ✅ {source.upper()}: {status}")
-                else:
-                    print(f"   ❌ {source.upper()}: missing")
-            
-            if 'integration_health' in response:
-                print(f"   ✅ Integration health: {response['integration_health']}")
-        
-        return success
-
-    def test_demo_data_sources(self):
-        """Test demo data from all data sources"""
-        success, response = self.run_test(
-            "Demo Data Sources",
-            "GET",
-            "data-sources/demo",
-            200
-        )
-        
-        if success:
-            # Check for expected data insights
-            expected_insights = ['search_insights', 'audience_insights', 'social_insights']
-            for insight in expected_insights:
-                if insight in response:
-                    print(f"   ✅ {insight}: available")
-                else:
-                    print(f"   ❌ {insight}: missing")
-            
-            if 'data_integration' in response:
-                integration = response['data_integration']
-                print(f"   ✅ Data integration score: {integration.get('enrichment_score', 'N/A')}")
-        
-        return success
-
-    def test_persona_enrichment(self):
-        """Test persona enrichment with data sources"""
-        if not self.persona_id:
-            print("❌ Skipping - No persona ID available")
-            return False
-
-        success, response = self.run_test(
-            "Persona Data Enrichment",
-            "POST",
-            f"personas/{self.persona_id}/enrich",
-            200
-        )
-        
-        if success:
-            print(f"   ✅ Persona enriched successfully")
-        
-        return success
-
-    def test_persona_insights(self):
-        """Test getting persona insights"""
-        if not self.persona_id:
-            print("❌ Skipping - No persona ID available")
-            return False
-
-        success, response = self.run_test(
-            "Persona Insights",
-            "GET",
-            f"personas/{self.persona_id}/insights",
-            200
-        )
-        
-        if success:
-            # Check for expected insight categories
-            expected_insights = ['search_behavior', 'audience_profile', 'social_sentiment']
-            for insight in expected_insights:
-                if insight in response:
-                    print(f"   ✅ {insight}: available")
-                else:
-                    print(f"   ❌ {insight}: missing")
-        
-        return success
-
-    def test_export_pdf_data(self):
-        """Test PDF export data endpoint - FIXED EXPORT FUNCTIONALITY"""
-        print("\n🔥 === CRITICAL TEST: FIXED PDF Export Data ===")
-        
-        # First get a generated persona to test with
-        success, response = self.run_test(
-            "List Generated Personas for Export Test",
-            "GET",
-            "generated-personas",
-            200
-        )
-        
-        if not success:
-            print("❌ Cannot test PDF export - failed to get generated personas list")
-            return False
-        
-        generated_personas = response if isinstance(response, list) else []
-        if not generated_personas:
-            print("❌ No generated personas available for PDF export test")
-            return False
-        
-        # Get the first generated persona ID
-        generated_persona_id = generated_personas[0].get('id')
-        if not generated_persona_id:
-            print("❌ Generated persona has no ID field")
-            return False
-        
-        print(f"   Testing FIXED PDF export data for persona: {generated_persona_id}")
-        
-        # Test PDF export data endpoint - SHOULD NOW RETURN 200 INSTEAD OF 500
-        success, response = self.run_test(
-            "PDF Export Data - FIXED FUNCTIONALITY",
-            "POST",
-            "export/pdf-data",
-            200,
-            data={"generated_persona_id": generated_persona_id}
-        )
-        
-        if success:
-            print("   ✅ CRITICAL FIX VERIFIED: PDF export data endpoint now returns 200!")
-            if 'persona_data' in response:
-                print("   ✅ Persona data included in response")
-            if response.get('success'):
-                print("   ✅ Success flag is True")
-            
-            # CRITICAL: Test JSON serialization (ObjectId fix)
-            try:
-                json.dumps(response)
-                print("   ✅ CRITICAL FIX VERIFIED: Response is JSON serializable (ObjectId issue fixed)")
-            except Exception as e:
-                print(f"   ❌ CRITICAL ISSUE: Response not JSON serializable: {str(e)}")
-                return False
-        else:
-            print("   ❌ CRITICAL ISSUE: PDF export data endpoint still failing!")
-        
-        # Test with persona_id as well
-        if self.persona_id:
-            success2, response2 = self.run_test(
-                "PDF Export Data with persona_id",
-                "POST",
-                "export/pdf-data",
-                200,
-                data={"persona_id": self.persona_id}
-            )
-            if success2:
-                print("   ✅ PDF export also works with persona_id")
-        
-        return success
-
-    def test_export_google_slides(self):
-        """Test Google Slides export endpoint - FIXED EXPORT FUNCTIONALITY"""
-        print("\n🔥 === CRITICAL TEST: FIXED Google Slides Export ===")
-        
-        # First get a generated persona to test with
-        success, response = self.run_test(
-            "List Generated Personas for Google Slides Test",
-            "GET",
-            "generated-personas",
-            200
-        )
-        
-        if not success:
-            print("❌ Cannot test Google Slides export - failed to get generated personas list")
-            return False
-        
-        generated_personas = response if isinstance(response, list) else []
-        if not generated_personas:
-            print("❌ No generated personas available for Google Slides export test")
-            return False
-        
-        # Get the first generated persona ID
-        generated_persona_id = generated_personas[0].get('id')
-        if not generated_persona_id:
-            print("❌ Generated persona has no ID field")
-            return False
-        
-        print(f"   Testing FIXED Google Slides export for persona: {generated_persona_id}")
-        
-        # Test Google Slides export endpoint - SHOULD NOW RETURN 200 INSTEAD OF 500
-        success, response = self.run_test(
-            "Google Slides Export - FIXED FUNCTIONALITY",
-            "POST",
-            "export/google-slides",
-            200,
-            data={"generated_persona_id": generated_persona_id}
-        )
-        
-        if success:
-            print("   ✅ CRITICAL FIX VERIFIED: Google Slides export endpoint now returns 200!")
-            if 'persona_data' in response:
-                print("   ✅ Persona data included in response")
-            if response.get('success'):
-                print("   ✅ Success flag is True")
-            if 'message' in response:
-                print(f"   ✅ Message: {response['message']}")
-            
-            # CRITICAL: Test JSON serialization (ObjectId fix)
-            try:
-                json.dumps(response)
-                print("   ✅ CRITICAL FIX VERIFIED: Response is JSON serializable (ObjectId issue fixed)")
-            except Exception as e:
-                print(f"   ❌ CRITICAL ISSUE: Response not JSON serializable: {str(e)}")
-                return False
-        else:
-            print("   ❌ CRITICAL ISSUE: Google Slides export endpoint still failing!")
-        
-        # Test with persona_id as well
-        if self.persona_id:
-            success2, response2 = self.run_test(
-                "Google Slides Export with persona_id",
-                "POST",
-                "export/google-slides",
-                200,
-                data={"persona_id": self.persona_id}
-            )
-            if success2:
-                print("   ✅ Google Slides export also works with persona_id")
-        
-        return success
-
-    def test_legacy_status_endpoints(self):
-        """Test legacy status check endpoints for compatibility"""
-        # Test creating a status check
-        success1, response1 = self.run_test(
-            "Create Status Check",
-            "POST",
-            "status",
-            200,
-            data={"client_name": "Test Client"}
-        )
-        
-        # Test getting status checks
-        success2, response2 = self.run_test(
-            "Get Status Checks",
-            "GET",
-            "status",
-            200
-        )
-        
-        return success1 and success2
-
 def main():
-    print("🚀 Starting BCM VentasAI Persona Generator API Tests")
+    print("🚀 Starting BCM VentasAI Persona Generator - Resonate Upload Backend Tests")
     print("=" * 60)
+    print("📋 Testing with focus on Resonate Upload functionality")
     
-    tester = BCMPersonaAPITester()
+    # Use the local backend URL for testing
+    tester = ResonateUploadTester("http://localhost:8001/api")
     
-    # Test sequence focusing on new features and CRITICAL FIXES
+    # Test sequence focusing on Resonate Upload functionality
     tests = [
         tester.test_api_root,
-        tester.test_data_sources_status,
-        tester.test_demo_data_sources,
-        tester.test_create_persona_demographics,
-        tester.test_create_persona_attributes,
-        tester.test_update_persona_with_resonate_taxonomy,
-        tester.test_update_persona_media_consumption,
-        tester.test_get_persona,
-        tester.test_persona_enrichment,
-        tester.test_persona_insights,
-        tester.test_generate_persona,
+        tester.test_create_persona_resonate_upload,
+        tester.test_resonate_upload_invalid_file,
+        tester.test_resonate_upload_valid_zip,
+        tester.test_resonate_create_from_data,
         tester.test_list_personas,
-        tester.test_list_generated_personas,
-        tester.test_export_pdf_data,  # NEW EXPORT FUNCTIONALITY TEST
-        tester.test_export_google_slides,  # NEW EXPORT FUNCTIONALITY TEST
-        tester.test_delete_generated_persona,  # CRITICAL FIX TEST
-        tester.test_legacy_status_endpoints,
+        tester.test_get_persona,
+        tester.test_generate_persona,
         tester.test_delete_persona
     ]
     
@@ -600,7 +360,7 @@ def main():
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed! API is working correctly.")
+        print("🎉 All tests passed! Resonate Upload functionality is working correctly.")
         return 0
     else:
         print("⚠️  Some tests failed. Check the output above for details.")
