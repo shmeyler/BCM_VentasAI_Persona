@@ -178,15 +178,20 @@ const DemographicsStep = ({ persona, updatePersona, onNext, onPrev, saving, isFi
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Occupation
+            Employment Status
           </label>
-          <input
-            type="text"
+          <select
             value={demographics.occupation}
             onChange={(e) => handleInputChange("occupation", e.target.value)}
-            placeholder="e.g., Software Engineer, Teacher, Marketing Manager"
             className="form-field"
-          />
+          >
+            <option value="">Select employment status</option>
+            {employmentStatuses.map(status => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="md:col-span-2">
