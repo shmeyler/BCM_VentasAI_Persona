@@ -248,96 +248,104 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
         </p>
       </div>
 
-      {!showPreview ? (
+      {!showDataPreview ? (
         <>
-          {/* File Upload Section */}
-          <div className="space-y-6">
-            {Object.entries(fileRequirements).map(([fileType, requirements]) => (
-              <div key={fileType} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg font-montserrat">
-                      {requirements.name}
-                      {requirements.required && <span className="text-red-500 ml-1">*</span>}
-                    </h3>
-                    <p className="text-sm text-gray-600 font-montserrat">
-                      {requirements.description}
-                    </p>
-                    <p className="text-xs text-gray-500 font-montserrat mt-1">
-                      Accepted: {requirements.accept} | Max size: {requirements.maxSize}
-                    </p>
-                  </div>
-                </div>
-
-                {/* File Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    id={`upload-${fileType}`}
-                    className="hidden"
-                    accept={requirements.accept}
-                    multiple={requirements.multiple}
-                    onChange={(e) => handleFileUpload(fileType, e.target.files)}
-                  />
-                  <label
-                    htmlFor={`upload-${fileType}`}
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <span className="text-gray-600 font-montserrat">
-                      Click to upload {requirements.multiple ? 'files' : 'file'} or drag and drop
-                    </span>
-                  </label>
-                </div>
-
-                {/* Display uploaded files */}
-                {fileType === 'charts' ? (
-                  uploadedFiles.charts.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {uploadedFiles.charts.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between bg-green-50 p-3 rounded">
-                          <span className="text-sm font-montserrat">{file.name}</span>
-                          <button
-                            onClick={() => removeFile('charts', index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                ) : (
-                  uploadedFiles[fileType] && (
-                    <div className="mt-4 flex items-center justify-between bg-green-50 p-3 rounded">
-                      <span className="text-sm font-montserrat">{uploadedFiles[fileType].name}</span>
-                      <button
-                        onClick={() => removeFile(fileType)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )
-                )}
-
-                {/* Error messages */}
-                {uploadErrors[fileType] && (
-                  <div className="mt-2 text-red-600 text-sm font-montserrat">
-                    {uploadErrors[fileType]}
-                  </div>
-                )}
+          {/* ZIP File Upload Section */}
+          <div className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-lg font-montserrat">
+                  Resonate Data ZIP Package
+                  <span className="text-red-500 ml-1">*</span>
+                </h3>
+                <p className="text-sm text-gray-600 font-montserrat">
+                  Upload a ZIP file containing your Resonate reports and data files
+                </p>
+                <p className="text-xs text-gray-500 font-montserrat mt-1">
+                  Accepted: {zipRequirements.accept} | Max size: {zipRequirements.maxSize}
+                </p>
               </div>
-            ))}
+            </div>
+
+            {/* ZIP Upload Area */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                id="upload-zip"
+                className="hidden"
+                accept=".zip"
+                onChange={(e) => handleZipUpload(e.target.files)}
+              />
+              <label
+                htmlFor="upload-zip"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span className="text-gray-600 font-montserrat">
+                  Click to upload ZIP file or drag and drop
+                </span>
+              </label>
+            </div>
+
+            {/* Display uploaded ZIP */}
+            {uploadedZip && (
+              <div className="mt-4 flex items-center justify-between bg-green-50 p-3 rounded">
+                <span className="text-sm font-montserrat">{uploadedZip.name}</span>
+                <button
+                  onClick={removeZipFile}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Error message */}
+            {uploadError && (
+              <div className="mt-2 text-red-600 text-sm font-montserrat">
+                {uploadError}
+              </div>
+            )}
+
+            {/* Expected Files List */}
+            <div className="mt-6">
+              <h4 className="font-semibold text-sm mb-2 font-montserrat">Expected Files in ZIP:</h4>
+              <ul className="list-disc list-inside space-y-1">
+                {zipRequirements.expectedFiles.map((file, index) => (
+                  <li key={index} className="text-sm text-gray-600 font-montserrat">{file}</li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          {/* Extracted Files Preview */}
+          {showFilePreview && extractedFiles.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-lg mb-3 font-montserrat">Extracted Files</h3>
+              <div className="space-y-2">
+                {extractedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between bg-blue-50 p-3 rounded">
+                    <div>
+                      <span className="text-sm font-semibold font-montserrat">{file.name}</span>
+                      <div className="text-xs text-gray-600">
+                        <span className="mr-3">{file.type}</span>
+                        <span className="mr-3">{file.format}</span>
+                        <span>{file.size}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Parse Files Button */}
           <div className="mt-8 text-center">
             <button
-              onClick={parseUploadedFiles}
-              disabled={!canProceed() || isProcessing}
+              onClick={parseExtractedFiles}
+              disabled={!uploadedZip || isProcessing}
               className="bcm-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
@@ -346,13 +354,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                   Processing Files...
                 </div>
               ) : (
-                "Parse Uploaded Data"
+                "Parse ZIP Contents"
               )}
             </button>
             <p className="text-sm text-gray-600 font-montserrat mt-2">
-              {canProceed() 
-                ? "Ready to process your Resonate data files" 
-                : "Upload required files marked with * to continue"
+              {uploadedZip 
+                ? "Ready to process your Resonate data" 
+                : "Upload a ZIP file containing your Resonate reports to continue"
               }
             </p>
           </div>
