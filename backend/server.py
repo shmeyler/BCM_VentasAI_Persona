@@ -46,6 +46,7 @@ api_router = APIRouter(prefix="/api")
 class StartingMethod(str, Enum):
     demographics = "demographics"
     attributes = "attributes"
+    resonate_upload = "resonate_upload"
 
 class AgeRange(str, Enum):
     gen_z = "18-24"
