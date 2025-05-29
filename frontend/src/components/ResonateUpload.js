@@ -97,27 +97,6 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     processZipFile(zipFile);
   };
 
-  const simulateZipExtraction = (zipFile) => {
-    setIsProcessing(true);
-    
-    // Mock extracted files list (in real implementation, this would extract the ZIP)
-    setTimeout(() => {
-      const mockExtractedFiles = [
-        { name: 'Demographics_2025_05_08.png', type: 'Demographics', format: 'PNG', size: '2.1 MB' },
-        { name: 'Audience_Introduction_2025_05_08.pdf', type: 'Audience Insights', format: 'PDF', size: '1.8 MB' },
-        { name: 'Brand_Affinity_2025_05_08.csv', type: 'Category Affinity', format: 'CSV', size: '456 KB' },
-        { name: 'Media_Consumption_2025_05_08.pdf', type: 'Media Planning', format: 'PDF', size: '3.2 MB' },
-        { name: 'Personal_Values_2025_05_08.xlsx', type: 'Personal Values', format: 'Excel', size: '789 KB' },
-        { name: 'Research_Recommendations.pptx', type: 'Research Report', format: 'PowerPoint', size: '12.4 MB' },
-        { name: 'site_affinity_charts.png', type: 'Supporting Data', format: 'PNG', size: '1.6 MB' },
-        { name: 'category_metrics.csv', type: 'Supporting Data', format: 'CSV', size: '234 KB' }
-      ];
-
-      setExtractedFiles(mockExtractedFiles);
-      setShowFilePreview(true);
-      setIsProcessing(false);
-    }, 2000);
-  };
 
   const parseExtractedFiles = async () => {
     setIsProcessing(true);
