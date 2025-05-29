@@ -560,6 +560,193 @@ async def get_demo_data_sources():
 
 # END DATA SOURCES ENDPOINTS
 
+# Resonate File Upload Endpoints
+@api_router.post("/personas/resonate-upload")
+async def upload_resonate_file(file: UploadFile = File(...)):
+    """
+    Upload and parse Resonate ZIP file
+    Returns extracted files and parsed data for persona generation
+    """
+    try:
+        # Validate file type
+        if not file.filename.lower().endswith('.zip'):
+            raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+        
+        # Save uploaded file to temporary location
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
+            content = await file.read()
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Parse the ZIP file
+            parsing_result = parse_resonate_zip(temp_file_path)
+            
+            if parsing_result['success']:
+                return {
+                    "success": True,
+                    "message": "File processed successfully",
+                    "extracted_files": parsing_result['extracted_files'],
+                    "parsed_data": parsing_result['parsed_data']
+                }
+            else:
+                raise HTTPException(
+                    status_code=422, 
+                    detail=f"Failed to parse file: {parsing_result.get('error', 'Unknown error')}"
+                )
+                
+        finally:
+            # Clean up temporary file
+            import os
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error processing Resonate upload: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"File processing failed: {str(e)}")
+
+@api_router.post("/personas/resonate-create")
+async def create_persona_from_resonate_data(request: dict):
+    """
+    Create a new persona from parsed Resonate data
+    """
+    try:
+        parsed_data = request.get('parsed_data', {})
+        persona_name = request.get('name', 'Resonate Persona')
+        
+        # Create new persona with resonate_upload starting method
+        persona_data = PersonaData(
+            starting_method=StartingMethod.resonate_upload,
+            name=persona_name
+        )
+        
+        # Map parsed Resonate data to persona structure
+        if 'demographics' in parsed_data:
+            demo_data = parsed_data['demographics']
+            demographics = Demographics()
+            
+            # Map age data
+            if 'age' in demo_data:
+                age_info = demo_data['age']
+                if isinstance(age_info, list) and len(age_info) > 0:
+                    age_data = age_info[0].get('data', {})
+                    if 'top_values' in age_data:
+                        top_ages = list(age_data['top_values'].keys())
+                        if top_ages:
+                            # Map to age ranges
+                            age_value = top_ages[0]
+                            if '18-24' in str(age_value) or '18' in str(age_value) or '24' in str(age_value):
+                                demographics.age_range = AgeRange.gen_z
+                            elif '25-40' in str(age_value) or any(str(x) in str(age_value) for x in range(25, 41)):
+                                demographics.age_range = AgeRange.millennial
+                            elif '41-56' in str(age_value) or any(str(x) in str(age_value) for x in range(41, 57)):
+                                demographics.age_range = AgeRange.gen_x
+                            elif '57-75' in str(age_value) or any(str(x) in str(age_value) for x in range(57, 76)):
+                                demographics.age_range = AgeRange.boomer
+                            elif '76' in str(age_value) or any(str(x) in str(age_value) for x in range(76, 100)):
+                                demographics.age_range = AgeRange.silent
+            
+            # Map gender data
+            if 'gender' in demo_data:
+                gender_info = demo_data['gender']
+                if isinstance(gender_info, list) and len(gender_info) > 0:
+                    gender_data = gender_info[0].get('data', {})
+                    if 'top_values' in gender_data:
+                        top_genders = list(gender_data['top_values'].keys())
+                        if top_genders:
+                            demographics.gender = top_genders[0]
+            
+            # Map income data
+            if 'income' in demo_data:
+                income_info = demo_data['income']
+                if isinstance(income_info, list) and len(income_info) > 0:
+                    income_data = income_info[0].get('data', {})
+                    if 'top_values' in income_data:
+                        top_incomes = list(income_data['top_values'].keys())
+                        if top_incomes:
+                            demographics.income_range = top_incomes[0]
+            
+            # Map location data
+            if 'location' in demo_data:
+                location_info = demo_data['location']
+                if isinstance(location_info, list) and len(location_info) > 0:
+                    location_data = location_info[0].get('data', {})
+                    if 'top_values' in location_data:
+                        top_locations = list(location_data['top_values'].keys())
+                        if top_locations:
+                            demographics.location = top_locations[0]
+            
+            # Map occupation data
+            if 'occupation' in demo_data:
+                occupation_info = demo_data['occupation']
+                if isinstance(occupation_info, list) and len(occupation_info) > 0:
+                    occupation_data = occupation_info[0].get('data', {})
+                    if 'top_values' in occupation_data:
+                        top_occupations = list(occupation_data['top_values'].keys())
+                        if top_occupations:
+                            demographics.occupation = top_occupations[0]
+            
+            persona_data.demographics = demographics
+        
+        # Map media consumption data
+        if 'media_consumption' in parsed_data:
+            media_data = parsed_data['media_consumption']
+            media_consumption = MediaConsumption()
+            
+            # Extract social media platforms
+            social_platforms = []
+            for key, value in media_data.items():
+                if 'social' in key.lower() or 'platform' in key.lower():
+                    if isinstance(value, list) and len(value) > 0:
+                        platform_data = value[0].get('data', {})
+                        if isinstance(platform_data, dict):
+                            social_platforms.extend(list(platform_data.keys())[:5])
+            
+            if social_platforms:
+                media_consumption.social_media_platforms = social_platforms
+            
+            persona_data.media_consumption = media_consumption
+        
+        # Map brand affinity to attributes
+        if 'brand_affinity' in parsed_data:
+            brand_data = parsed_data['brand_affinity']
+            attributes = Attributes()
+            
+            preferred_brands = []
+            for key, value in brand_data.items():
+                if isinstance(value, list) and len(value) > 0:
+                    brand_info = value[0].get('data', {})
+                    if isinstance(brand_info, dict):
+                        preferred_brands.extend(list(brand_info.keys())[:5])
+            
+            if preferred_brands:
+                attributes.preferred_brands = preferred_brands
+            
+            persona_data.attributes = attributes
+        
+        # Mark relevant steps as completed
+        persona_data.completed_steps = [1, 2, 3, 4]  # Skip manual entry steps
+        persona_data.current_step = 5  # Go to review step
+        
+        # Insert into database
+        await db.personas.insert_one(persona_data.dict())
+        
+        return {
+            "success": True,
+            "persona": persona_data,
+            "message": "Persona created successfully from Resonate data"
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating persona from Resonate data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
+
+# END RESONATE ENDPOINTS
+
 # Include the router in the main app
 app.include_router(api_router)
 
