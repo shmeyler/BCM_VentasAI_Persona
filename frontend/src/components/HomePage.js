@@ -121,33 +121,35 @@ const HomePage = () => {
             }`} 
             onClick={() => handleCardClick("attributes")}
           >
-            <div 
-              className="flex items-center justify-center w-20 h-20 rounded-full mx-auto mb-6"
-              style={{backgroundColor: 'var(--bcm-cyan-light)'}}
-            >
-              <svg 
-                className="h-10 w-10 bcm-icon-cyan" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                />
-              </svg>
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 text-cyan-600 mb-4">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">Start with Attributes</h3>
+              <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
+                Begin with psychographic attributes and let our AI suggest corresponding demographics
+              </p>
             </div>
-            <h3 className="text-2xl font-semibold text-center mb-4 font-montserrat bcm-heading-cyan">
-              Start with Attributes
-            </h3>
-            <p className="text-gray-600 text-center text-lg mb-6">
-              Provide key attributes and behaviors. Our AI will identify the matching demographics.
-            </p>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                <strong>Best for:</strong> When you know what your audience does or wants and need AI to map the corresponding demographics.
+          </div>
+
+          {/* Upload Resonate Data */}
+          <div 
+            className={`bcm-card-green cursor-pointer transition-all duration-200 ${
+              selectedMethod === 'resonate_upload' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
+            }`} 
+            onClick={() => handleCardClick("resonate_upload")}
+          >
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 text-green-600 mb-4">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">Upload Resonate Data</h3>
+              <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
+                Upload your Resonate rAI reports (CSV, PDF, PPT) for data-driven persona generation
               </p>
             </div>
           </div>
