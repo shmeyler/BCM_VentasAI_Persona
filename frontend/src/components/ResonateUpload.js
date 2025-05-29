@@ -113,10 +113,10 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
   };
 
   const removeFile = (fileType, index = null) => {
-    if (fileType === 'charts' && index !== null) {
+    if (fileType === 'additionalData' && index !== null) {
       setUploadedFiles(prev => ({
         ...prev,
-        charts: prev.charts.filter((_, i) => i !== index)
+        additionalData: prev.additionalData.filter((_, i) => i !== index)
       }));
     } else {
       setUploadedFiles(prev => ({
