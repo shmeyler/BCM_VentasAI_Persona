@@ -94,8 +94,8 @@ class ResonateFileParser:
             file_name = os.path.basename(file_path)
             file_ext = Path(file_path).suffix.lower().lstrip('.')
             
-            # Detect MIME type
-            mime_type = magic.from_file(file_path, mime=True)
+            # Detect MIME type using mimetypes
+            mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
             
             return {
                 'name': file_name,
