@@ -11,6 +11,7 @@ import csv
 import json
 import magic
 import chardet
+import mimetypes
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 
