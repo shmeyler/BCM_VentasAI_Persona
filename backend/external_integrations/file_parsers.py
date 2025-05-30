@@ -9,9 +9,8 @@ import tempfile
 import io
 import csv
 import json
-import magic
-import chardet
 import mimetypes
+import chardet
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 
