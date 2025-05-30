@@ -331,8 +331,10 @@ def main():
     print("=" * 60)
     print("📋 Testing with focus on Resonate Upload functionality")
     
-    # Use the local backend URL for testing
-    tester = ResonateUploadTester("http://localhost:8001/api")
+    # Use the backend URL from the environment
+    backend_url = "https://032b64d6-3eb2-4bbb-be8c-8d6d217bff87.preview.emergentagent.com/api"
+    print(f"Using backend URL: {backend_url}")
+    tester = ResonateUploadTester(backend_url)
     
     # Test sequence focusing on Resonate Upload functionality
     tests = [
