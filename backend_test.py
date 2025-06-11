@@ -218,24 +218,74 @@ class VentasAIPersonaGeneratorTester:
             print("❌ Skipping - No persona ID available")
             return False
 
-        success, response = self.run_test(
-            "Generate Persona with AI Image",
-            "POST",
-            f"personas/{self.persona_id}/generate",
-            200
-        )
+        # Use a longer timeout for OpenAI image generation
+        url = f"{self.base_url}/personas/{self.persona_id}/generate"
+        headers = {'Content-Type': 'application/json'}
         
-        if success:
-            # Check if persona image URL is generated
-            if 'persona_image_url' in response:
-                print(f"   ✅ Persona image URL generated: {response['persona_image_url'][:50]}...")
-                # Store the generated persona ID for later tests
-                if 'id' in response:
-                    self.generated_persona_id = response['id']
-            if 'ai_insights' in response:
-                print(f"   ✅ AI insights generated")
+        self.tests_run += 1
+        print(f"\n🔍 Testing Generate Persona with AI Image...")
+        print(f"   URL: {url}")
         
-        return success
+        try:
+            # Use a longer timeout (60 seconds) for this specific request
+            response = requests.post(url, headers=headers, timeout=60)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                # Check if persona image URL is generated
+                if 'persona_image_url' in response_data:
+                    print(f"   ✅ Persona image URL generated: {response_data['persona_image_url'][:50]}...")
+                    # Store the generated persona ID for later tests
+                    if 'id' in response_data:
+                        self.generated_persona_id = response_data['id']
+                if 'ai_insights' in response_data:
+                    print(f"   ✅ AI insights generated")
+                
+                # Store test result
+                self.test_results["Generate Persona with AI Image"] = {
+                    "success": True,
+                    "status_code": response.status_code,
+                    "expected_status": 200,
+                    "endpoint": f"personas/{self.persona_id}/generate",
+                    "method": "POST"
+                }
+                
+                return True, response_data
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:200]}")
+                
+                # Store test result
+                self.test_results["Generate Persona with AI Image"] = {
+                    "success": False,
+                    "status_code": response.status_code,
+                    "expected_status": 200,
+                    "endpoint": f"personas/{self.persona_id}/generate",
+                    "method": "POST"
+                }
+                
+                return False, {}
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            
+            # Store test result
+            self.test_results["Generate Persona with AI Image"] = {
+                "success": False,
+                "error": str(e),
+                "endpoint": f"personas/{self.persona_id}/generate",
+                "method": "POST"
+            }
+            
+            return False, {}
 
     # 4. Data Sources Integration
     def test_data_sources_status(self):
