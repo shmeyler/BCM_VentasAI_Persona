@@ -185,53 +185,70 @@ class ResonateFileParser:
             'behavioral': {}
         }
         
-        columns_lower = [col.lower() for col in df.columns]
-        
-        # Demographics extraction
-        demo_fields = {
-            'age': ['age', 'age_group', 'age_range'],
-            'gender': ['gender', 'sex', 'gender identity'],
-            'income': ['income', 'household_income', 'hh_income', 'annual income'],
-            'education': ['education', 'edu_level', 'education_level', 'highest education'],
-            'location': ['location', 'city', 'state', 'region', 'zip'],
-            'occupation': ['occupation', 'job', 'profession', 'employment', 'job title']
-        }
-        
-        # Debug print for column names
+        # Print column names for debugging
         print(f"DEBUG: CSV Columns: {df.columns.tolist()}")
         
+        # Demographics extraction with improved column matching
+        demo_fields = {
+            'age': ['age', 'age group', 'age range', 'age_group', 'age_range'],
+            'gender': ['gender', 'sex', 'gender identity', 'gender_identity'],
+            'income': ['income', 'household income', 'household_income', 'hh income', 'hh_income', 'annual income', 'annual_income'],
+            'education': ['education', 'education level', 'education_level', 'edu level', 'edu_level', 'highest education'],
+            'location': ['location', 'city', 'state', 'region', 'zip', 'address'],
+            'occupation': ['occupation', 'job', 'profession', 'employment', 'job title', 'job_title']
+        }
+        
+        # Process each demographic field
         for demo_type, keywords in demo_fields.items():
-            for keyword in keywords:
-                matching_cols = [col for col in df.columns if keyword.lower() in col.lower()]
-                if matching_cols:
-                    col = matching_cols[0]
-                    if col in df.columns:
-                        # Debug print for column values
-                        print(f"DEBUG: Values for {col}: {df[col].value_counts().head(3).to_dict()}")
-                        
-                        value_counts = df[col].value_counts().head(5).to_dict()
-                        insights['demographics'][demo_type] = {
-                            'source_column': col,
-                            'top_values': value_counts
-                        }
-                        # Once we find a match, break to avoid overwriting with another column
-                        break
+            # Find matching columns
+            matching_cols = []
+            for col in df.columns:
+                col_lower = col.lower()
+                if any(keyword.lower() == col_lower or keyword.lower() in col_lower for keyword in keywords):
+                    matching_cols.append(col)
+            
+            if matching_cols:
+                col = matching_cols[0]  # Use the first matching column
+                
+                # Get value counts for this column
+                try:
+                    # Print sample values for debugging
+                    sample_values = df[col].head(3).tolist()
+                    print(f"DEBUG: Sample values for {col}: {sample_values}")
+                    
+                    value_counts = df[col].value_counts().head(5).to_dict()
+                    
+                    # Store the results
+                    insights['demographics'][demo_type] = {
+                        'source_column': col,
+                        'top_values': value_counts
+                    }
+                except Exception as e:
+                    print(f"Error processing column {col}: {e}")
         
-        # Media consumption patterns
-        media_keywords = ['media', 'tv', 'social', 'digital', 'platform', 'channel']
+        # Media consumption patterns - improved matching
+        media_keywords = ['media', 'tv', 'social', 'digital', 'platform', 'channel', 'social media']
         for col in df.columns:
-            if any(keyword in col.lower() for keyword in media_keywords):
-                if df[col].dtype in ['object', 'category']:
-                    value_counts = df[col].value_counts().head(10).to_dict()
-                    insights['media_consumption'][col] = value_counts
+            col_lower = col.lower()
+            if any(keyword.lower() in col_lower for keyword in media_keywords):
+                try:
+                    if df[col].dtype in ['object', 'category'] or str(df[col].dtype).startswith('str'):
+                        value_counts = df[col].value_counts().head(10).to_dict()
+                        insights['media_consumption'][col] = value_counts
+                except Exception as e:
+                    print(f"Error processing media column {col}: {e}")
         
-        # Brand affinity
-        brand_keywords = ['brand', 'product', 'company', 'preference']
+        # Brand affinity - improved matching
+        brand_keywords = ['brand', 'product', 'company', 'preference', 'loyalty', 'purchase']
         for col in df.columns:
-            if any(keyword in col.lower() for keyword in brand_keywords):
-                if df[col].dtype in ['object', 'category']:
-                    value_counts = df[col].value_counts().head(10).to_dict()
-                    insights['brand_affinity'][col] = value_counts
+            col_lower = col.lower()
+            if any(keyword.lower() in col_lower for keyword in brand_keywords):
+                try:
+                    if df[col].dtype in ['object', 'category'] or str(df[col].dtype).startswith('str'):
+                        value_counts = df[col].value_counts().head(10).to_dict()
+                        insights['brand_affinity'][col] = value_counts
+                except Exception as e:
+                    print(f"Error processing brand column {col}: {e}")
         
         return insights
     
