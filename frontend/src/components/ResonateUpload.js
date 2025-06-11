@@ -145,8 +145,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
       const result = await response.json();
       
       if (result.success && result.persona) {
-        // Update the persona with the created data
-        const success = await updatePersona(result.persona, 5); // Move to review step
+        // Update the current persona with the created data and move to next step
+        const success = await updatePersona({
+          ...result.persona,
+          current_step: 3,
+          completed_steps: [...(persona.completed_steps || []), 2]
+        }, 3);
+        
         if (success) {
           onNext();
         }
