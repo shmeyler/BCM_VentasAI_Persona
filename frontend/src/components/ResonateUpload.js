@@ -349,24 +349,34 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
             {/* Demographics Section */}
             {parsedData.demographics && Object.keys(parsedData.demographics).length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h4 className="font-semibold mb-3 font-montserrat">Demographics</h4>
-                <div className="space-y-2 text-sm">
+                <h4 className="font-semibold mb-3 font-montserrat">Demographics Data</h4>
+                <div className="space-y-3 text-sm">
                   {Object.entries(parsedData.demographics).map(([key, sources]) => (
-                    <div key={key}>
-                      <strong className="capitalize">{key.replace('_', ' ')}:</strong>
-                      <ul className="list-disc list-inside ml-4">
-                        {Array.isArray(sources) ? sources.map((source, i) => (
-                          <li key={i}>
-                            {source.source}: {
-                              source.data && source.data.top_values 
-                                ? Object.keys(source.data.top_values).slice(0, 3).join(', ')
-                                : 'Data available'
-                            }
-                          </li>
-                        )) : (
-                          <li>Data: {JSON.stringify(sources).substring(0, 100)}...</li>
-                        )}
-                      </ul>
+                    <div key={key} className="border-b border-gray-100 pb-2">
+                      <strong className="capitalize text-blue-600">{key.replace('_', ' ')}:</strong>
+                      {Array.isArray(sources) ? sources.map((source, i) => (
+                        <div key={i} className="ml-4 mt-1">
+                          <div className="text-xs text-gray-500">From: {source.source}</div>
+                          {source.data && source.data.top_values ? (
+                            <ul className="list-disc list-inside ml-2">
+                              {Object.entries(source.data.top_values).slice(0, 3).map(([value, count]) => (
+                                <li key={value} className="text-sm">
+                                  <span className="font-medium">{value}</span> 
+                                  <span className="text-gray-500"> ({count} entries)</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="ml-2 text-sm text-gray-600">
+                              Data available: {JSON.stringify(source.data).substring(0, 100)}...
+                            </div>
+                          )}
+                        </div>
+                      )) : (
+                        <div className="ml-4 text-sm text-gray-600">
+                          {JSON.stringify(sources).substring(0, 100)}...
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -377,16 +387,20 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
             {parsedData.media_consumption && Object.keys(parsedData.media_consumption).length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h4 className="font-semibold mb-3 font-montserrat">Media Consumption</h4>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {Object.entries(parsedData.media_consumption).map(([platform, data]) => (
-                    <div key={platform}>
-                      <strong>{platform}:</strong>
-                      <ul className="list-disc list-inside ml-4">
+                    <div key={platform} className="border-b border-gray-100 pb-2">
+                      <strong className="text-green-600">{platform}:</strong>
+                      <ul className="list-disc list-inside ml-4 mt-1">
                         {typeof data === 'object' && data !== null ? 
                           Object.entries(data).slice(0, 5).map(([key, value]) => (
-                            <li key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value).substring(0, 50) + '...' : value}</li>
+                            <li key={key} className="text-sm">
+                              <span className="font-medium">{key}</span>: {
+                                typeof value === 'object' ? JSON.stringify(value).substring(0, 30) + '...' : value
+                              }
+                            </li>
                           )) : (
-                            <li>{JSON.stringify(data).substring(0, 100)}...</li>
+                            <li className="text-sm">{JSON.stringify(data).substring(0, 100)}...</li>
                           )
                         }
                       </ul>
@@ -400,16 +414,20 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
             {parsedData.brand_affinity && Object.keys(parsedData.brand_affinity).length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h4 className="font-semibold mb-3 font-montserrat">Brand Affinity</h4>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {Object.entries(parsedData.brand_affinity).map(([brand, data]) => (
-                    <div key={brand}>
-                      <strong>{brand}:</strong>
-                      <ul className="list-disc list-inside ml-4">
+                    <div key={brand} className="border-b border-gray-100 pb-2">
+                      <strong className="text-purple-600">{brand}:</strong>
+                      <ul className="list-disc list-inside ml-4 mt-1">
                         {typeof data === 'object' && data !== null ? 
                           Object.entries(data).slice(0, 5).map(([key, value]) => (
-                            <li key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value).substring(0, 50) + '...' : value}</li>
+                            <li key={key} className="text-sm">
+                              <span className="font-medium">{key}</span>: {
+                                typeof value === 'object' ? JSON.stringify(value).substring(0, 30) + '...' : value
+                              }
+                            </li>
                           )) : (
-                            <li>{JSON.stringify(data).substring(0, 100)}...</li>
+                            <li className="text-sm">{JSON.stringify(data).substring(0, 100)}...</li>
                           )
                         }
                       </ul>
@@ -425,12 +443,15 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                 <h4 className="font-semibold mb-3 font-montserrat">Processed Files</h4>
                 <div className="space-y-2 text-sm">
                   {parsedData.source_files.map((file, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span>{file.name}</span>
+                    <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div>
+                        <span className="font-medium">{file.name}</span>
+                        <div className="text-xs text-gray-500">{file.type}</div>
+                      </div>
                       <span className={`px-2 py-1 rounded text-xs ${
-                        file.processed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                        file.processed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {file.processed ? 'Processed' : 'Skipped'}
+                        {file.processed ? 'Processed' : file.error ? 'Error' : 'Skipped'}
                       </span>
                     </div>
                   ))}
@@ -438,16 +459,31 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
               </div>
             )}
 
-            {/* Fallback: Show raw data if structure is unexpected */}
+            {/* Debugging: Show raw structure if no expected data */}
             {(!parsedData.demographics || Object.keys(parsedData.demographics).length === 0) &&
              (!parsedData.media_consumption || Object.keys(parsedData.media_consumption).length === 0) &&
              (!parsedData.brand_affinity || Object.keys(parsedData.brand_affinity).length === 0) && (
-              <div className="bg-white border border-gray-200 rounded-lg p-6 col-span-2">
-                <h4 className="font-semibold mb-3 font-montserrat">Parsed Data</h4>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 col-span-2">
+                <h4 className="font-semibold mb-3 font-montserrat text-yellow-800">⚠️ Debug Information</h4>
+                <p className="text-yellow-700 text-sm mb-3">
+                  No structured data was found. This might indicate that your CSV file doesn't have the expected column names. 
+                  Here's the raw parsed data:
+                </p>
                 <div className="text-sm">
-                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-96">
+                  <pre className="bg-white p-3 rounded text-xs overflow-auto max-h-96 border">
                     {JSON.stringify(parsedData, null, 2)}
                   </pre>
+                </div>
+                <div className="mt-3 text-sm text-yellow-700">
+                  <p><strong>Expected column names for demographics:</strong></p>
+                  <ul className="list-disc list-inside ml-4">
+                    <li>Age, Age Group, Age Range</li>
+                    <li>Gender, Sex</li>
+                    <li>Income, Household Income</li>
+                    <li>Education, Education Level</li>
+                    <li>Location, City, State</li>
+                    <li>Occupation, Job Title</li>
+                  </ul>
                 </div>
               </div>
             )}
