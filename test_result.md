@@ -181,7 +181,7 @@ backend:
         comment: "File parser integration exists but not yet verified"
       - working: true
         agent: "testing"
-        comment: "Resonate ZIP file upload and parsing is working correctly. Successfully uploaded test ZIP file with demographic and media consumption data, and the API correctly parsed and extracted the data."
+        comment: "Comprehensive testing shows file upload, parsing, and persona creation working correctly"
 
 frontend:
   - task: "React application setup and routing"
