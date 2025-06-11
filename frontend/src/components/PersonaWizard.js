@@ -6,6 +6,7 @@ import DemographicsStep from "./steps/DemographicsStep";
 import AttributesStep from "./steps/AttributesStep";
 import MediaConsumptionStep from "./steps/MediaConsumptionStep";
 import GeneratedPersonaStep from "./steps/GeneratedPersonaStep";
+import ReviewResonateStep from "./steps/ReviewResonateStep";
 import ResonateUpload from "./ResonateUpload";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
