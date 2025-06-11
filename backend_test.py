@@ -963,37 +963,61 @@ def main():
     
     tester = VentasAIPersonaGeneratorTester(backend_url)
     
-    # Define test sequence
-    tests = [
-        # 1. Basic API Health Check
-        tester.test_api_root,
-        
-        # 2. Persona Creation Workflow
-        tester.test_create_persona,
-        tester.test_get_persona,
-        tester.test_update_persona_demographics,
-        tester.test_update_persona_attributes,
-        tester.test_update_persona_media_consumption,
-        
-        # 3. OpenAI Integration Test
-        tester.test_generate_persona,
-        
-        # 4. Data Sources Integration
-        tester.test_data_sources_status,
-        tester.test_data_sources_demo,
-        tester.test_persona_insights,
-        
-        # 5. File Upload Functionality
-        tester.test_resonate_upload,
-        tester.test_resonate_create_from_data,
-        
-        # Additional Tests
-        tester.test_list_personas,
-        tester.test_list_generated_personas,
-        
-        # Cleanup
-        tester.test_delete_persona
-    ]
+    # Check if we should run specific tests
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "resonate":
+        print("\n🔍 Running focused Resonate data parsing and mapping tests...")
+        tests = [
+            # API Health Check
+            tester.test_api_root,
+            
+            # Resonate Upload Tests
+            tester.test_resonate_upload_realistic,
+            tester.test_resonate_upload_multiple_formats,
+            tester.test_resonate_upload_error_handling,
+            tester.test_resonate_upload_non_zip,
+            
+            # Resonate Create Tests
+            tester.test_resonate_create_from_data,
+            tester.test_end_to_end_resonate_workflow
+        ]
+    else:
+        # Define full test sequence
+        tests = [
+            # 1. Basic API Health Check
+            tester.test_api_root,
+            
+            # 2. Persona Creation Workflow
+            tester.test_create_persona,
+            tester.test_get_persona,
+            tester.test_update_persona_demographics,
+            tester.test_update_persona_attributes,
+            tester.test_update_persona_media_consumption,
+            
+            # 3. OpenAI Integration Test
+            tester.test_generate_persona,
+            
+            # 4. Data Sources Integration
+            tester.test_data_sources_status,
+            tester.test_data_sources_demo,
+            tester.test_persona_insights,
+            
+            # 5. File Upload Functionality
+            tester.test_resonate_upload,
+            tester.test_resonate_upload_realistic,
+            tester.test_resonate_upload_multiple_formats,
+            tester.test_resonate_upload_error_handling,
+            tester.test_resonate_upload_non_zip,
+            tester.test_resonate_create_from_data,
+            tester.test_end_to_end_resonate_workflow,
+            
+            # Additional Tests
+            tester.test_list_personas,
+            tester.test_list_generated_personas,
+            
+            # Cleanup
+            tester.test_delete_persona
+        ]
     
     print(f"\n📋 Running {len(tests)} API tests...")
     
