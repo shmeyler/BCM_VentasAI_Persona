@@ -4,9 +4,11 @@ from openai import OpenAI
 from typing import Optional, Dict, Any
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from backend root directory
+ROOT_DIR = Path(__file__).parent.parent
+load_dotenv(ROOT_DIR / '.env')
 
 class OpenAIImageGenerator:
     def __init__(self):
