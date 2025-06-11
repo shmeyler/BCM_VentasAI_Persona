@@ -27,6 +27,7 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
     setIsProcessing(true);
     setShowFilePreview(false);
     setShowDataPreview(false);
+    setUploadError(null);
     
     try {
       // Create FormData to send the file
@@ -43,16 +44,22 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to process ZIP file');
+        let errorMessage = 'Failed to process ZIP file';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
       if (result.success) {
         // Set extracted files and parsed data from real backend response
-        setExtractedFiles(result.extracted_files);
-        setParsedData(result.parsed_data);
+        setExtractedFiles(result.extracted_files || []);
+        setParsedData(result.parsed_data || {});
         setShowFilePreview(true);
         setShowDataPreview(true); // Show data preview directly since we have parsed data
       } else {
