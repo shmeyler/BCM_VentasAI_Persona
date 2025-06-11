@@ -232,3 +232,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Initial application analysis complete. Found comprehensive persona generator with AI image generation, data enrichment, and export features. Backend environment configured, dependencies installed. Ready for user guidance on next improvements."
+  - agent: "main"
+    message: "OpenAI API key configured and environment updated. Fixed dotenv loading issue in OpenAI integration module. Ready to test AI image generation functionality."
