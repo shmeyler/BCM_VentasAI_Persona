@@ -290,17 +290,66 @@ class VentasAIPersonaGeneratorTester:
     # 4. Data Sources Integration
     def test_data_sources_status(self):
         """Test data sources status endpoint"""
-        success, response = self.run_test(
-            "Data Sources Status",
-            "GET",
-            "data-sources/status",
-            200
-        )
+        # Use a longer timeout for data sources status
+        url = f"{self.base_url}/data-sources/status"
+        headers = {'Content-Type': 'application/json'}
         
-        if success:
-            print(f"   Data sources status: {response}")
+        self.tests_run += 1
+        print(f"\n🔍 Testing Data Sources Status...")
+        print(f"   URL: {url}")
         
-        return success
+        try:
+            # Use a longer timeout (30 seconds) for this specific request
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                print(f"   Data sources status: {response_data}")
+                
+                # Store test result
+                self.test_results["Data Sources Status"] = {
+                    "success": True,
+                    "status_code": response.status_code,
+                    "expected_status": 200,
+                    "endpoint": "data-sources/status",
+                    "method": "GET"
+                }
+                
+                return True, response_data
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:200]}")
+                
+                # Store test result
+                self.test_results["Data Sources Status"] = {
+                    "success": False,
+                    "status_code": response.status_code,
+                    "expected_status": 200,
+                    "endpoint": "data-sources/status",
+                    "method": "GET"
+                }
+                
+                return False, {}
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            
+            # Store test result
+            self.test_results["Data Sources Status"] = {
+                "success": False,
+                "error": str(e),
+                "endpoint": "data-sources/status",
+                "method": "GET"
+            }
+            
+            return False, {}
 
     def test_data_sources_demo(self):
         """Test data sources demo endpoint"""
