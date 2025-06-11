@@ -266,29 +266,34 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
             </div>
           )}
 
-          {/* Parse Files Button */}
-          <div className="mt-8 text-center">
-            <button
-              onClick={parseExtractedFiles}
-              disabled={!uploadedZip || isProcessing}
-              className="bcm-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isProcessing ? (
-                <div className="flex items-center">
-                  <div className="loading-spinner mr-2"></div>
-                  Processing Files...
-                </div>
-              ) : (
-                "Parse ZIP Contents"
-              )}
-            </button>
-            <p className="text-sm text-gray-600 font-montserrat mt-2">
-              {uploadedZip 
-                ? "Ready to process your Resonate data" 
-                : "Upload a ZIP file containing your Resonate reports to continue"
-              }
-            </p>
-          </div>
+          {/* Parse Files Button - Only show if upload succeeded but not yet processed */}
+          {uploadedZip && !isProcessing && !showDataPreview && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={parseExtractedFiles}
+                disabled={!uploadedZip || isProcessing}
+                className="bcm-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Parse ZIP Contents
+              </button>
+              <p className="text-sm text-gray-600 font-montserrat mt-2">
+                Ready to process your Resonate data
+              </p>
+            </div>
+          )}
+
+          {/* Processing State */}
+          {isProcessing && (
+            <div className="mt-8 text-center">
+              <div className="flex items-center justify-center">
+                <div className="loading-spinner mr-2"></div>
+                <span>Processing Files...</span>
+              </div>
+              <p className="text-sm text-gray-600 font-montserrat mt-2">
+                Analyzing your Resonate data...
+              </p>
+            </div>
+          )}
         </>
       ) : (
         /* Data Preview Section */
