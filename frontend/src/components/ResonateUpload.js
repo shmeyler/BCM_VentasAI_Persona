@@ -305,89 +305,83 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
 
           {/* Parsed Data Preview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-semibold mb-3 font-montserrat">Demographics</h4>
-              <div className="space-y-2 text-sm">
-                <div><strong>Age Distribution:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.demographics.ageDistribution.map((age, i) => (
-                    <li key={i}>{age.range}: {age.percentage}%</li>
+            {/* Demographics Section */}
+            {parsedData.demographics && Object.keys(parsedData.demographics).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="font-semibold mb-3 font-montserrat">Demographics</h4>
+                <div className="space-y-2 text-sm">
+                  {Object.entries(parsedData.demographics).map(([key, sources]) => (
+                    <div key={key}>
+                      <strong className="capitalize">{key.replace('_', ' ')}:</strong>
+                      <ul className="list-disc list-inside ml-4">
+                        {sources.map((source, i) => (
+                          <li key={i}>
+                            {source.source}: {Object.keys(source.data.top_values || {}).slice(0, 3).join(', ')}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
-                <div><strong>Gender Split:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.demographics.genderSplit.map((gender, i) => (
-                    <li key={i}>{gender.gender}: {gender.percentage}%</li>
-                  ))}
-                </ul>
-                <div><strong>Income Distribution:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.demographics.incomeDistribution.map((income, i) => (
-                    <li key={i}>{income.range}: {income.percentage}%</li>
-                  ))}
-                </ul>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-semibold mb-3 font-montserrat">Psychographics</h4>
-              <div className="space-y-2 text-sm">
-                <div><strong>Values:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.psychographics.values.map((value, i) => (
-                    <li key={i}>{value.value}: {value.strength} ({value.percentage}%)</li>
+            {/* Media Consumption Section */}
+            {parsedData.media_consumption && Object.keys(parsedData.media_consumption).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="font-semibold mb-3 font-montserrat">Media Consumption</h4>
+                <div className="space-y-2 text-sm">
+                  {Object.entries(parsedData.media_consumption).map(([platform, data]) => (
+                    <div key={platform}>
+                      <strong>{platform}:</strong>
+                      <ul className="list-disc list-inside ml-4">
+                        {Object.entries(data).slice(0, 5).map(([key, value]) => (
+                          <li key={key}>{key}: {value}</li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
-                <div><strong>Interests:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.psychographics.interests.map((interest, i) => (
-                    <li key={i}>{interest.interest}: {interest.affinity}% affinity</li>
-                  ))}
-                </ul>
-                <div><strong>Behaviors:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.psychographics.behaviors.map((behavior, i) => (
-                    <li key={i}>{behavior.behavior}: {behavior.likelihood}</li>
-                  ))}
-                </ul>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-semibold mb-3 font-montserrat">Media Consumption</h4>
-              <div className="space-y-2 text-sm">
-                <div><strong>Platforms:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.mediaConsumption.platforms.map((platform, i) => (
-                    <li key={i}>{platform.platform}: {platform.usage}% ({platform.timeSpent})</li>
+            {/* Brand Affinity Section */}
+            {parsedData.brand_affinity && Object.keys(parsedData.brand_affinity).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="font-semibold mb-3 font-montserrat">Brand Affinity</h4>
+                <div className="space-y-2 text-sm">
+                  {Object.entries(parsedData.brand_affinity).map(([brand, data]) => (
+                    <div key={brand}>
+                      <strong>{brand}:</strong>
+                      <ul className="list-disc list-inside ml-4">
+                        {Object.entries(data).slice(0, 5).map(([key, value]) => (
+                          <li key={key}>{key}: {value}</li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
-                <div><strong>Devices:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.mediaConsumption.devices.map((device, i) => (
-                    <li key={i}>{device.device}: {device.usage}% ({device.primaryTime})</li>
-                  ))}
-                </ul>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h4 className="font-semibold mb-3 font-montserrat">Brand Affinity</h4>
-              <div className="space-y-2 text-sm">
-                <div><strong>Top Brands:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.brandAffinity.topBrands.map((brand, i) => (
-                    <li key={i}>{brand.brand}: {brand.affinity}% ({brand.category})</li>
+            {/* Source Files Information */}
+            {parsedData.source_files && parsedData.source_files.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="font-semibold mb-3 font-montserrat">Processed Files</h4>
+                <div className="space-y-2 text-sm">
+                  {parsedData.source_files.map((file, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span>{file.name}</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        file.processed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {file.processed ? 'Processed' : 'Skipped'}
+                      </span>
+                    </div>
                   ))}
-                </ul>
-                <div><strong>Category Affinities:</strong></div>
-                <ul className="list-disc list-inside">
-                  {parsedData.brandAffinity.categoryAffinities.map((category, i) => (
-                    <li key={i}>{category.category}: {category.affinity}</li>
-                  ))}
-                </ul>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="flex justify-center">
