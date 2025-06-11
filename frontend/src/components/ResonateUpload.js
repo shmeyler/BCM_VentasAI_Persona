@@ -320,11 +320,17 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                     <div key={key}>
                       <strong className="capitalize">{key.replace('_', ' ')}:</strong>
                       <ul className="list-disc list-inside ml-4">
-                        {sources.map((source, i) => (
+                        {Array.isArray(sources) ? sources.map((source, i) => (
                           <li key={i}>
-                            {source.source}: {Object.keys(source.data.top_values || {}).slice(0, 3).join(', ')}
+                            {source.source}: {
+                              source.data && source.data.top_values 
+                                ? Object.keys(source.data.top_values).slice(0, 3).join(', ')
+                                : 'Data available'
+                            }
                           </li>
-                        ))}
+                        )) : (
+                          <li>Data: {JSON.stringify(sources).substring(0, 100)}...</li>
+                        )}
                       </ul>
                     </div>
                   ))}
@@ -341,9 +347,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                     <div key={platform}>
                       <strong>{platform}:</strong>
                       <ul className="list-disc list-inside ml-4">
-                        {Object.entries(data).slice(0, 5).map(([key, value]) => (
-                          <li key={key}>{key}: {value}</li>
-                        ))}
+                        {typeof data === 'object' && data !== null ? 
+                          Object.entries(data).slice(0, 5).map(([key, value]) => (
+                            <li key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value).substring(0, 50) + '...' : value}</li>
+                          )) : (
+                            <li>{JSON.stringify(data).substring(0, 100)}...</li>
+                          )
+                        }
                       </ul>
                     </div>
                   ))}
@@ -360,9 +370,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                     <div key={brand}>
                       <strong>{brand}:</strong>
                       <ul className="list-disc list-inside ml-4">
-                        {Object.entries(data).slice(0, 5).map(([key, value]) => (
-                          <li key={key}>{key}: {value}</li>
-                        ))}
+                        {typeof data === 'object' && data !== null ? 
+                          Object.entries(data).slice(0, 5).map(([key, value]) => (
+                            <li key={key}>{key}: {typeof value === 'object' ? JSON.stringify(value).substring(0, 50) + '...' : value}</li>
+                          )) : (
+                            <li>{JSON.stringify(data).substring(0, 100)}...</li>
+                          )
+                        }
                       </ul>
                     </div>
                   ))}
@@ -385,6 +399,20 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback: Show raw data if structure is unexpected */}
+            {(!parsedData.demographics || Object.keys(parsedData.demographics).length === 0) &&
+             (!parsedData.media_consumption || Object.keys(parsedData.media_consumption).length === 0) &&
+             (!parsedData.brand_affinity || Object.keys(parsedData.brand_affinity).length === 0) && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6 col-span-2">
+                <h4 className="font-semibold mb-3 font-montserrat">Parsed Data</h4>
+                <div className="text-sm">
+                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-96">
+                    {JSON.stringify(parsedData, null, 2)}
+                  </pre>
                 </div>
               </div>
             )}
