@@ -145,12 +145,35 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
       const result = await response.json();
       
       if (result.success && result.persona) {
+        // Extract the created persona data from the backend
+        const createdPersona = result.persona;
+        
         // Update the current persona with the created data and move to next step
-        const success = await updatePersona({
-          ...result.persona,
+        const personaUpdate = {
+          // Preserve the existing persona ID and basic info
+          name: createdPersona.name || persona.name,
+          starting_method: createdPersona.starting_method,
+          
+          // Map the demographics from Resonate data
+          demographics: createdPersona.demographics || {},
+          
+          // Map attributes if available
+          attributes: createdPersona.attributes || {},
+          
+          // Map media consumption if available  
+          media_consumption: createdPersona.media_consumption || {},
+          
+          // Update step progression
           current_step: 3,
-          completed_steps: [...(persona.completed_steps || []), 2]
-        }, 3);
+          completed_steps: [...(persona.completed_steps || []), 2],
+          
+          // Store the raw parsed data for reference
+          resonate_data: parsedData
+        };
+        
+        console.log('Updating persona with Resonate data:', personaUpdate);
+        
+        const success = await updatePersona(personaUpdate, 3);
         
         if (success) {
           onNext();
