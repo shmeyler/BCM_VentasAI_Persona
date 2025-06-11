@@ -142,7 +142,7 @@ backend:
         comment: "Integration exists but requires OPENAI_API_KEY to be functional"
       - working: true
         agent: "testing"
-        comment: "OpenAI DALL-E image generation is working correctly. Successfully generated persona image with realistic demographics data. The API key is properly configured and functional."
+        comment: "OpenAI API key configured correctly, AI image generation working successfully"
 
   - task: "Unsplash fallback image integration"
     implemented: true
