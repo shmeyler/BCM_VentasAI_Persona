@@ -721,58 +721,31 @@ class VentasAIPersonaGeneratorTester:
 
     def test_resonate_create_from_data(self):
         """Test creating a persona from parsed Resonate data"""
-        # Mock parsed data that would come from a ZIP file
-        mock_parsed_data = {
-            "demographics": {
-                "age": [
-                    {
-                        "source": "demographics.csv",
-                        "data": {
-                            "source_column": "Age",
-                            "top_values": {"25-34": 45, "35-44": 30, "18-24": 15}
-                        }
-                    }
-                ],
-                "gender": [
-                    {
-                        "source": "demographics.csv",
-                        "data": {
-                            "source_column": "Gender",
-                            "top_values": {"Female": 60, "Male": 40}
-                        }
-                    }
-                ],
-                "income": [
-                    {
-                        "source": "demographics.csv",
-                        "data": {
-                            "source_column": "Income",
-                            "top_values": {"$50,000-$75,000": 35, "$75,000-$100,000": 25}
-                        }
-                    }
-                ]
-            },
-            "media_consumption": {
-                "social_platforms": [
-                    {
-                        "source": "media.csv",
-                        "data": {
-                            "Instagram": 75, "Facebook": 65, "LinkedIn": 45, "TikTok": 30
-                        }
-                    }
-                ]
-            },
-            "brand_affinity": {
-                "preferred_brands": [
-                    {
-                        "source": "brands.csv",
-                        "data": {
-                            "Apple": 80, "Nike": 75, "Amazon": 70
-                        }
-                    }
-                ]
-            }
+        # First upload a realistic file to get actual parsed data
+        zip_path = self.create_test_zip_file("realistic")
+        
+        files = {
+            'file': ('realistic_data.zip', open(zip_path, 'rb'), 'application/zip')
         }
+        
+        # Get the parsed data from upload
+        upload_success, upload_response = self.run_test(
+            "Upload for Persona Creation",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(zip_path)
+        
+        if not upload_success or 'parsed_data' not in upload_response:
+            print("❌ Failed to get parsed data for persona creation test")
+            return False
+        
+        # Now use the actual parsed data to create a persona
+        parsed_data = upload_response['parsed_data']
         
         success, response = self.run_test(
             "Create Persona from Resonate Data",
@@ -781,14 +754,106 @@ class VentasAIPersonaGeneratorTester:
             200,
             data={
                 "name": "Resonate Data Persona",
-                "parsed_data": mock_parsed_data
+                "parsed_data": parsed_data
             }
         )
         
         if success and response.get('success') and 'persona' in response:
             persona = response['persona']
+            print(f"\n🧑 CREATED PERSONA ANALYSIS:")
+            
+            # Check starting method
+            if persona.get('starting_method') == 'resonate_upload':
+                print(f"   ✅ Correct starting method: {persona.get('starting_method')}")
+            else:
+                print(f"   ❌ Incorrect starting method: {persona.get('starting_method')}")
+            
+            # Check completed steps
+            if set([1, 2, 3, 4]).issubset(set(persona.get('completed_steps', []))):
+                print(f"   ✅ Correct completed steps: {persona.get('completed_steps')}")
+            else:
+                print(f"   ❌ Incomplete steps: {persona.get('completed_steps')}")
+            
+            # Check demographics mapping
+            demographics = persona.get('demographics', {})
+            print(f"\n   Demographics mapping:")
+            
+            # Check age mapping
+            if demographics.get('age_range'):
+                print(f"   ✅ Age mapped correctly: {demographics.get('age_range')}")
+            else:
+                print(f"   ❌ Age not mapped")
+            
+            # Check gender mapping
+            if demographics.get('gender'):
+                print(f"   ✅ Gender mapped correctly: {demographics.get('gender')}")
+            else:
+                print(f"   ❌ Gender not mapped")
+            
+            # Check income mapping
+            if demographics.get('income_range'):
+                print(f"   ✅ Income mapped correctly: {demographics.get('income_range')}")
+            else:
+                print(f"   ❌ Income not mapped")
+            
+            # Check location mapping
+            if demographics.get('location'):
+                print(f"   ✅ Location mapped correctly: {demographics.get('location')}")
+            else:
+                print(f"   ❌ Location not mapped")
+            
+            # Check occupation mapping
+            if demographics.get('occupation'):
+                print(f"   ✅ Occupation mapped correctly: {demographics.get('occupation')}")
+            else:
+                print(f"   ❌ Occupation not mapped")
+            
+            # Check media consumption mapping
+            media = persona.get('media_consumption', {})
+            if media.get('social_media_platforms') and len(media.get('social_media_platforms', [])) > 0:
+                print(f"   ✅ Social media platforms mapped correctly: {media.get('social_media_platforms')}")
+            else:
+                print(f"   ❌ Social media platforms not mapped")
+            
+            # Check brand preferences mapping
+            attributes = persona.get('attributes', {})
+            if attributes.get('preferred_brands') and len(attributes.get('preferred_brands', [])) > 0:
+                print(f"   ✅ Brand preferences mapped correctly: {attributes.get('preferred_brands')}")
+            else:
+                print(f"   ❌ Brand preferences not mapped")
+            
+            # Store the persona ID for further testing
             if 'id' in persona:
+                self.resonate_persona_id = persona['id']
                 print(f"   Created persona from Resonate data with ID: {persona['id']}")
+        
+        return success
+    
+    def test_end_to_end_resonate_workflow(self):
+        """Test the complete end-to-end workflow from upload to persona generation"""
+        if not hasattr(self, 'resonate_persona_id'):
+            print("❌ Skipping - No Resonate persona ID available from previous test")
+            return False
+        
+        # Generate the final persona with AI image
+        success, response = self.run_test(
+            "Generate Persona from Resonate Data",
+            "POST",
+            f"personas/{self.resonate_persona_id}/generate",
+            200
+        )
+        
+        if success and 'persona_image_url' in response:
+            print(f"   ✅ Successfully generated persona with Resonate data")
+            print(f"   ✅ Persona image URL: {response['persona_image_url'][:50]}...")
+            
+            # Check if demographics were preserved
+            if 'persona_data' in response and 'demographics' in response['persona_data']:
+                demographics = response['persona_data']['demographics']
+                print(f"   ✅ Demographics preserved in generated persona:")
+                for key, value in demographics.items():
+                    if value:
+                        print(f"      - {key}: {value}")
         
         return success
 
