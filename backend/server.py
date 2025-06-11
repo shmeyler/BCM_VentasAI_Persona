@@ -639,11 +639,12 @@ async def create_persona_from_resonate_data(request: dict):
                         if top_ages:
                             # Map to age ranges
                             age_value = top_ages[0]
+                            print(f"DEBUG: Mapping age value: {age_value}")
                             if '18-24' in str(age_value) or '18' in str(age_value) or '24' in str(age_value):
                                 demographics.age_range = AgeRange.gen_z
-                            elif '25-40' in str(age_value) or any(str(x) in str(age_value) for x in range(25, 41)):
+                            elif '25-40' in str(age_value) or '25-34' in str(age_value) or any(str(x) in str(age_value) for x in range(25, 41)):
                                 demographics.age_range = AgeRange.millennial
-                            elif '41-56' in str(age_value) or any(str(x) in str(age_value) for x in range(41, 57)):
+                            elif '41-56' in str(age_value) or '35-44' in str(age_value) or any(str(x) in str(age_value) for x in range(41, 57)):
                                 demographics.age_range = AgeRange.gen_x
                             elif '57-75' in str(age_value) or any(str(x) in str(age_value) for x in range(57, 76)):
                                 demographics.age_range = AgeRange.boomer
@@ -658,7 +659,15 @@ async def create_persona_from_resonate_data(request: dict):
                     if 'top_values' in gender_data:
                         top_genders = list(gender_data['top_values'].keys())
                         if top_genders:
-                            demographics.gender = top_genders[0]
+                            gender_value = top_genders[0]
+                            print(f"DEBUG: Mapping gender value: {gender_value}")
+                            # Clean up gender value - ensure it's just "Male" or "Female"
+                            if 'female' in gender_value.lower():
+                                demographics.gender = "Female"
+                            elif 'male' in gender_value.lower():
+                                demographics.gender = "Male"
+                            else:
+                                demographics.gender = gender_value
             
             # Map income data
             if 'income' in demo_data:
@@ -668,7 +677,17 @@ async def create_persona_from_resonate_data(request: dict):
                     if 'top_values' in income_data:
                         top_incomes = list(income_data['top_values'].keys())
                         if top_incomes:
-                            demographics.income_range = top_incomes[0]
+                            income_value = top_incomes[0]
+                            print(f"DEBUG: Mapping income value: {income_value}")
+                            # Clean up income value - ensure it's a proper income range
+                            if '$' in income_value:
+                                demographics.income_range = income_value
+                            else:
+                                # Try to find a value with $ sign
+                                for inc in top_incomes:
+                                    if '$' in inc:
+                                        demographics.income_range = inc
+                                        break
             
             # Map location data
             if 'location' in demo_data:
@@ -689,6 +708,16 @@ async def create_persona_from_resonate_data(request: dict):
                         top_occupations = list(occupation_data['top_values'].keys())
                         if top_occupations:
                             demographics.occupation = top_occupations[0]
+            
+            # Map education data
+            if 'education' in demo_data:
+                education_info = demo_data['education']
+                if isinstance(education_info, list) and len(education_info) > 0:
+                    education_data = education_info[0].get('data', {})
+                    if 'top_values' in education_data:
+                        top_education = list(education_data['top_values'].keys())
+                        if top_education:
+                            demographics.education = top_education[0]
             
             persona_data.demographics = demographics
         
