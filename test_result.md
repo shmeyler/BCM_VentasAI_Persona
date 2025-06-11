@@ -182,6 +182,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Comprehensive testing shows file upload, parsing, and persona creation working correctly"
+      - working: true
+        agent: "testing"
+        comment: "Focused retest of Resonate upload functionality completed. The system correctly handles valid ZIP files containing CSV data, extracts demographics (age, gender, income, location, occupation), media consumption (social platforms), and brand preferences. Persona creation from Resonate data works correctly with proper starting method and completed steps. Error handling for invalid files (non-ZIP, empty ZIP) works as expected. End-to-end workflow from upload to persona generation with AI image works successfully. Only minor issue: malformed ZIP files return 422 instead of 500 status code, but with appropriate error message."
 
 frontend:
   - task: "React application setup and routing"
