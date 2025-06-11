@@ -390,31 +390,123 @@ class VentasAIPersonaGeneratorTester:
         return success
 
     # 5. File Upload Functionality
-    def create_test_zip_file(self):
-        """Create a test ZIP file with sample data files"""
+    def create_test_zip_file(self, file_type="standard"):
+        """Create a test ZIP file with sample data files
+        
+        Args:
+            file_type (str): Type of test file to create:
+                - "standard": Basic test file
+                - "realistic": Realistic CSV with proper column names
+                - "multiple_formats": Different column name formats
+                - "malformed": Malformed data for error testing
+        """
         temp_dir = tempfile.mkdtemp()
         zip_path = os.path.join(temp_dir, "test_data.zip")
         
-        # Create a CSV file with demographic data
-        csv_path = os.path.join(temp_dir, "demographics.csv")
-        with open(csv_path, 'w') as f:
-            f.write("Age,Gender,Income,Location\n")
-            f.write("25-34,Female,$50,000-$75,000,Urban\n")
-            f.write("35-44,Male,$75,000-$100,000,Suburban\n")
-            f.write("18-24,Female,$25,000-$50,000,Urban\n")
+        if file_type == "standard":
+            # Create a basic CSV file with demographic data
+            csv_path = os.path.join(temp_dir, "demographics.csv")
+            with open(csv_path, 'w') as f:
+                f.write("Age,Gender,Income,Location\n")
+                f.write("25-34,Female,$50,000-$75,000,Urban\n")
+                f.write("35-44,Male,$75,000-$100,000,Suburban\n")
+                f.write("18-24,Female,$25,000-$50,000,Urban\n")
+            
+            # Create a text file with media consumption data
+            txt_path = os.path.join(temp_dir, "media.txt")
+            with open(txt_path, 'w') as f:
+                f.write("Media Consumption Analysis\n\n")
+                f.write("Social Media: Instagram, Facebook, TikTok\n")
+                f.write("Streaming: Netflix, Hulu, Disney+\n")
+                f.write("News: CNN, BBC, Local News\n")
+            
+            # Create a ZIP file with these files
+            with zipfile.ZipFile(zip_path, 'w') as zip_file:
+                zip_file.write(csv_path, os.path.basename(csv_path))
+                zip_file.write(txt_path, os.path.basename(txt_path))
         
-        # Create a text file with media consumption data
-        txt_path = os.path.join(temp_dir, "media.txt")
-        with open(txt_path, 'w') as f:
-            f.write("Media Consumption Analysis\n\n")
-            f.write("Social Media: Instagram, Facebook, TikTok\n")
-            f.write("Streaming: Netflix, Hulu, Disney+\n")
-            f.write("News: CNN, BBC, Local News\n")
+        elif file_type == "realistic":
+            # Create a realistic CSV file with proper column names for demographics
+            demo_csv_path = os.path.join(temp_dir, "audience_demographics.csv")
+            with open(demo_csv_path, 'w') as f:
+                f.write("Age Group,Gender,Household Income,Education Level,Location,Occupation\n")
+                f.write("25-34,Female,$50,000-$75,000,Bachelor's Degree,New York,Marketing Manager\n")
+                f.write("35-44,Male,$75,000-$100,000,Master's Degree,California,Software Engineer\n")
+                f.write("18-24,Female,$25,000-$50,000,Some College,Texas,Student\n")
+                f.write("41-56,Male,$100,000-$150,000,PhD,Illinois,Executive\n")
+                f.write("57-75,Female,$150,000+,Master's Degree,Florida,Retired\n")
+            
+            # Create a CSV file with media consumption data
+            media_csv_path = os.path.join(temp_dir, "media_consumption.csv")
+            with open(media_csv_path, 'w') as f:
+                f.write("Social Media Platform,Usage Frequency,Content Type,Preferred Device\n")
+                f.write("Instagram,Daily,Photos/Videos,Mobile\n")
+                f.write("Facebook,Weekly,News/Updates,Desktop\n")
+                f.write("LinkedIn,Daily,Professional Content,Both\n")
+                f.write("TikTok,Daily,Short Videos,Mobile\n")
+                f.write("Twitter,Daily,News/Updates,Mobile\n")
+            
+            # Create a CSV file with brand affinity data
+            brand_csv_path = os.path.join(temp_dir, "brand_preferences.csv")
+            with open(brand_csv_path, 'w') as f:
+                f.write("Brand Name,Preference Level,Purchase Frequency,Brand Loyalty\n")
+                f.write("Apple,High,Yearly,Strong\n")
+                f.write("Nike,Medium,Quarterly,Medium\n")
+                f.write("Amazon,High,Weekly,Strong\n")
+                f.write("Starbucks,High,Daily,Strong\n")
+                f.write("Target,Medium,Monthly,Medium\n")
+            
+            # Create a ZIP file with these files
+            with zipfile.ZipFile(zip_path, 'w') as zip_file:
+                zip_file.write(demo_csv_path, os.path.basename(demo_csv_path))
+                zip_file.write(media_csv_path, os.path.basename(media_csv_path))
+                zip_file.write(brand_csv_path, os.path.basename(brand_csv_path))
         
-        # Create a ZIP file with these files
-        with zipfile.ZipFile(zip_path, 'w') as zip_file:
-            zip_file.write(csv_path, os.path.basename(csv_path))
-            zip_file.write(txt_path, os.path.basename(txt_path))
+        elif file_type == "multiple_formats":
+            # Create multiple CSV files with different column name formats
+            # File 1: Standard format
+            csv1_path = os.path.join(temp_dir, "standard_format.csv")
+            with open(csv1_path, 'w') as f:
+                f.write("Age,Gender,Income,Education,Location,Occupation\n")
+                f.write("25-34,Female,$50,000-$75,000,Bachelor's,New York,Marketing\n")
+                f.write("35-44,Male,$75,000-$100,000,Master's,California,Engineering\n")
+            
+            # File 2: Alternative format
+            csv2_path = os.path.join(temp_dir, "alternative_format.csv")
+            with open(csv2_path, 'w') as f:
+                f.write("Age Range,Sex,Household Income,Education Level,State,Job Title\n")
+                f.write("25-40,Female,$50K-$75K,Bachelor's,NY,Marketing Manager\n")
+                f.write("41-56,Male,$75K-$100K,Master's,CA,Software Engineer\n")
+            
+            # File 3: Different order and naming
+            csv3_path = os.path.join(temp_dir, "different_naming.csv")
+            with open(csv3_path, 'w') as f:
+                f.write("Gender Identity,Age Group,Annual Income,Highest Education,City,Employment\n")
+                f.write("Female,18-24,$25K-$50K,Some College,Austin,Student\n")
+                f.write("Male,57-75,$100K+,PhD,Chicago,Executive\n")
+            
+            # Create a ZIP file with these files
+            with zipfile.ZipFile(zip_path, 'w') as zip_file:
+                zip_file.write(csv1_path, os.path.basename(csv1_path))
+                zip_file.write(csv2_path, os.path.basename(csv2_path))
+                zip_file.write(csv3_path, os.path.basename(csv3_path))
+        
+        elif file_type == "malformed":
+            # Create a malformed CSV file to test error handling
+            csv_path = os.path.join(temp_dir, "malformed.csv")
+            with open(csv_path, 'w') as f:
+                f.write("This is not a proper CSV file\n")
+                f.write("No commas or proper structure\n")
+            
+            # Create an empty file
+            empty_path = os.path.join(temp_dir, "empty.csv")
+            with open(empty_path, 'w') as f:
+                f.write("")
+            
+            # Create a ZIP file with these files
+            with zipfile.ZipFile(zip_path, 'w') as zip_file:
+                zip_file.write(csv_path, os.path.basename(csv_path))
+                zip_file.write(empty_path, os.path.basename(empty_path))
         
         return zip_path
 
