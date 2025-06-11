@@ -114,41 +114,42 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
       return;
     }
 
-    // Create persona data from comprehensive parsed Resonate data
-    const resonatePersonaData = {
-      starting_method: 'resonate_upload',
-      resonate_data: parsedData,
-      demographics: {
-        age_range: '25-34', // Primary demographic from parsed data
-        gender: 'Female',   // Primary demographic from parsed data
-        income_range: '$75,000-$100,000',
-        education: 'Bachelor degree',
-        location: 'Urban',
-        occupation: 'Full Time Employed',
-        family_status: 'Single'
-      },
-      attributes: {
-        selectedVertical: 'Technology & Telecom',
-        selectedCategory: 'Technology Adoption',
-        selectedAttributes: ['Early Adopter', 'Innovation Focused', 'Quality Driven']
-      },
-      media_consumption: {
-        social_media_platforms: ['Instagram', 'Facebook', 'LinkedIn', 'YouTube'],
-        preferred_devices: ['Mobile', 'Desktop'],
-        consumption_time: '2-4 hours',
-        news_sources: ['Social Media', 'Industry Publications'],
-        entertainment_preferences: ['Educational Content', 'Product Reviews']
-      }
-    };
-
     try {
-      const success = await updatePersona(resonatePersonaData, 2);
-      if (success) {
-        onNext();
+      // Get backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Create persona using the resonate-create endpoint
+      const response = await fetch(`${backendUrl}/api/personas/resonate-create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parsed_data: parsedData,
+          name: persona.name || 'Resonate Persona'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create persona from Resonate data');
       }
+
+      const result = await response.json();
+      
+      if (result.success && result.persona) {
+        // Update the persona with the created data
+        const success = await updatePersona(result.persona, 5); // Move to review step
+        if (success) {
+          onNext();
+        }
+      } else {
+        throw new Error(result.message || 'Failed to create persona');
+      }
+      
     } catch (error) {
-      console.error('Error saving Resonate data:', error);
-      alert('Error saving Resonate data. Please try again.');
+      console.error('Error creating persona from Resonate data:', error);
+      alert(`Error creating persona: ${error.message}`);
     }
   };
 
