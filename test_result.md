@@ -269,6 +269,8 @@ agent_communication:
     message: "OpenAI API key configured and environment updated. Fixed dotenv loading issue in OpenAI integration module. Ready to test AI image generation functionality."
   - agent: "main"
     message: "Fixed frontend Resonate upload UI issue - component was trying to access hardcoded data structure that didn't match backend response. Updated data preview rendering and processing flow. UI should no longer freeze on 'Processing Files'."
+  - agent: "main"
+    message: "Fixed Resonate data parsing and mapping issues. Backend parsing improved with better CSV handling, enhanced column matching for demographics, and proper data extraction. Frontend updated to show parsed data clearly and map it properly to persona fields. Created missing ReviewResonateStep component to fix continue button crash."
   - agent: "testing"
     message: "Completed comprehensive testing of the BCM VentasAI Persona Generator backend API. All tests passed successfully. The API is fully functional with working endpoints for persona creation, retrieval, updating, and generation. OpenAI DALL-E image generation is working correctly with the configured API key. Data sources integration is functional, providing realistic mock data. Resonate ZIP file upload and parsing is working correctly. The backend API is robust and ready for use."
   - agent: "testing"
