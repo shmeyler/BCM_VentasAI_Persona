@@ -152,8 +152,16 @@ class ResonateFileParser:
                 raw_data = f.read()
                 encoding = chardet.detect(raw_data)['encoding'] or 'utf-8'
             
-            # Read CSV
-            df = pd.read_csv(file_path, encoding=encoding)
+            # Read CSV with proper quoting to handle commas in values
+            df = pd.read_csv(
+                file_path, 
+                encoding=encoding,
+                quotechar='"',  # Use double quotes as quote character
+                quoting=csv.QUOTE_MINIMAL  # Quote fields with special characters
+            )
+            
+            # Print sample data for debugging
+            print(f"DEBUG: CSV Sample Data:\n{df.head(2)}")
             
             # Extract insights based on common Resonate column patterns
             insights = self.extract_csv_insights(df)
@@ -169,6 +177,7 @@ class ResonateFileParser:
             }
             
         except Exception as e:
+            print(f"Error parsing CSV file {file_path}: {str(e)}")
             return {
                 'type': 'csv_data',
                 'source': os.path.basename(file_path),
