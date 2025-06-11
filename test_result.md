@@ -131,15 +131,18 @@ backend:
 
   - task: "OpenAI DALL-E image generation integration"
     implemented: true
-    working: false
+    working: true
     file: "external_integrations/openai_images.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Integration exists but requires OPENAI_API_KEY to be functional"
+      - working: true
+        agent: "testing"
+        comment: "OpenAI DALL-E image generation is working correctly. Successfully generated persona image with realistic demographics data. The API key is properly configured and functional."
 
   - task: "Unsplash fallback image integration"
     implemented: true
