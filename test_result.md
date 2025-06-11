@@ -249,7 +249,10 @@ test_plan:
     - "FastAPI server startup and basic endpoints"
     - "Frontend application loading and routing"
     - "Basic persona creation workflow"
-  stuck_tasks: []
+    - "Resonate upload functionality"
+  stuck_tasks: 
+    - "Persona creation wizard component"
+    - "Resonate upload functionality"
   test_all: false
   test_priority: "high_first"
 
