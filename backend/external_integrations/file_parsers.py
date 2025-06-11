@@ -190,24 +190,32 @@ class ResonateFileParser:
         # Demographics extraction
         demo_fields = {
             'age': ['age', 'age_group', 'age_range'],
-            'gender': ['gender', 'sex'],
-            'income': ['income', 'household_income', 'hh_income'],
-            'education': ['education', 'edu_level', 'education_level'],
+            'gender': ['gender', 'sex', 'gender identity'],
+            'income': ['income', 'household_income', 'hh_income', 'annual income'],
+            'education': ['education', 'edu_level', 'education_level', 'highest education'],
             'location': ['location', 'city', 'state', 'region', 'zip'],
-            'occupation': ['occupation', 'job', 'profession', 'employment']
+            'occupation': ['occupation', 'job', 'profession', 'employment', 'job title']
         }
+        
+        # Debug print for column names
+        print(f"DEBUG: CSV Columns: {df.columns.tolist()}")
         
         for demo_type, keywords in demo_fields.items():
             for keyword in keywords:
-                matching_cols = [col for col in df.columns if keyword in col.lower()]
+                matching_cols = [col for col in df.columns if keyword.lower() in col.lower()]
                 if matching_cols:
                     col = matching_cols[0]
                     if col in df.columns:
+                        # Debug print for column values
+                        print(f"DEBUG: Values for {col}: {df[col].value_counts().head(3).to_dict()}")
+                        
                         value_counts = df[col].value_counts().head(5).to_dict()
                         insights['demographics'][demo_type] = {
                             'source_column': col,
                             'top_values': value_counts
                         }
+                        # Once we find a match, break to avoid overwriting with another column
+                        break
         
         # Media consumption patterns
         media_keywords = ['media', 'tv', 'social', 'digital', 'platform', 'channel']
