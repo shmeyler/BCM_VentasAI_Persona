@@ -540,6 +540,184 @@ class VentasAIPersonaGeneratorTester:
                 print(f"   ✅ Data parsed successfully")
         
         return success
+        
+    def test_resonate_upload_realistic(self):
+        """Test uploading a realistic ZIP file with proper column names"""
+        # Create a realistic test ZIP file
+        zip_path = self.create_test_zip_file("realistic")
+        
+        files = {
+            'file': ('realistic_data.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Realistic Data",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(zip_path)
+        
+        # Detailed analysis of the parsed data
+        if success and response.get('success') and 'parsed_data' in response:
+            parsed_data = response['parsed_data']
+            print(f"\n📊 PARSED DATA ANALYSIS:")
+            
+            # Check demographics
+            if 'demographics' in parsed_data:
+                demo_data = parsed_data['demographics']
+                print(f"   Demographics fields found: {', '.join(demo_data.keys())}")
+                
+                # Check specific demographic fields
+                for field in ['age', 'gender', 'income', 'education', 'location', 'occupation']:
+                    if field in demo_data:
+                        print(f"   ✅ {field.capitalize()} data extracted successfully")
+                        # Print sample of the data
+                        sample = demo_data[field][0]['data']['top_values']
+                        print(f"      Sample values: {list(sample.keys())[:3]}")
+                    else:
+                        print(f"   ❌ {field.capitalize()} data not found")
+            else:
+                print(f"   ❌ No demographics data found in parsed results")
+            
+            # Check media consumption
+            if 'media_consumption' in parsed_data:
+                media_data = parsed_data['media_consumption']
+                print(f"   Media consumption fields found: {', '.join(media_data.keys())}")
+                
+                # Check for social media platforms
+                social_platforms = []
+                for key, value in media_data.items():
+                    if 'social' in key.lower() or 'platform' in key.lower():
+                        social_platforms.append(key)
+                
+                if social_platforms:
+                    print(f"   ✅ Social media platform data extracted successfully")
+                    for platform in social_platforms:
+                        sample = media_data[platform][0]['data']
+                        print(f"      Platform: {platform}, Values: {list(sample.keys())[:3]}")
+                else:
+                    print(f"   ❌ No social media platform data found")
+            else:
+                print(f"   ❌ No media consumption data found in parsed results")
+            
+            # Check brand affinity
+            if 'brand_affinity' in parsed_data:
+                brand_data = parsed_data['brand_affinity']
+                print(f"   Brand affinity fields found: {', '.join(brand_data.keys())}")
+                
+                if brand_data:
+                    for key, value in brand_data.items():
+                        sample = brand_data[key][0]['data']
+                        print(f"      Brand field: {key}, Values: {list(sample.keys())[:3]}")
+                else:
+                    print(f"   ❌ No brand preference data found")
+            else:
+                print(f"   ❌ No brand affinity data found in parsed results")
+        
+        return success, response.get('parsed_data', {}) if success else {}
+    
+    def test_resonate_upload_multiple_formats(self):
+        """Test uploading a ZIP file with multiple column name formats"""
+        # Create a test ZIP file with multiple column name formats
+        zip_path = self.create_test_zip_file("multiple_formats")
+        
+        files = {
+            'file': ('multiple_formats.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Multiple Column Formats",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(zip_path)
+        
+        # Check if the parser recognizes different column name formats
+        if success and response.get('success') and 'parsed_data' in response:
+            parsed_data = response['parsed_data']
+            print(f"\n📊 COLUMN FORMAT RECOGNITION ANALYSIS:")
+            
+            # Check demographics
+            if 'demographics' in parsed_data:
+                demo_data = parsed_data['demographics']
+                print(f"   Demographics fields found: {', '.join(demo_data.keys())}")
+                
+                # Check if the parser recognized different column name formats
+                for field in ['age', 'gender', 'income', 'education', 'location', 'occupation']:
+                    if field in demo_data:
+                        sources = [item['source'] for item in demo_data[field]]
+                        print(f"   ✅ {field.capitalize()} recognized from files: {', '.join(sources)}")
+                    else:
+                        print(f"   ❌ {field.capitalize()} not recognized from any file")
+            else:
+                print(f"   ❌ No demographics data found in parsed results")
+        
+        return success
+    
+    def test_resonate_upload_error_handling(self):
+        """Test error handling for malformed ZIP files"""
+        # Create a malformed test ZIP file
+        zip_path = self.create_test_zip_file("malformed")
+        
+        files = {
+            'file': ('malformed.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Malformed Data",
+            "POST",
+            "personas/resonate-upload",
+            422,  # Expecting a validation error
+            files=files
+        )
+        
+        # Clean up
+        os.remove(zip_path)
+        
+        # Check error handling
+        if not success and response.get('detail'):
+            print(f"   ✅ Error handling works correctly")
+            print(f"   Error message: {response.get('detail')}")
+        
+        return not success  # We expect this test to fail with a 422 error
+    
+    def test_resonate_upload_non_zip(self):
+        """Test uploading a non-ZIP file"""
+        # Create a temporary text file
+        temp_dir = tempfile.mkdtemp()
+        txt_path = os.path.join(temp_dir, "not_a_zip.txt")
+        with open(txt_path, 'w') as f:
+            f.write("This is not a ZIP file")
+        
+        files = {
+            'file': ('not_a_zip.txt', open(txt_path, 'rb'), 'text/plain')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Non-ZIP File",
+            "POST",
+            "personas/resonate-upload",
+            400,  # Expecting a bad request error
+            files=files
+        )
+        
+        # Clean up
+        os.remove(txt_path)
+        
+        # Check error handling
+        if not success and response.get('detail'):
+            print(f"   ✅ Non-ZIP file rejected correctly")
+            print(f"   Error message: {response.get('detail')}")
+        
+        return not success  # We expect this test to fail with a 400 error
 
     def test_resonate_create_from_data(self):
         """Test creating a persona from parsed Resonate data"""
