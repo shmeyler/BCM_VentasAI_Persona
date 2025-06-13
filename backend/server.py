@@ -715,8 +715,29 @@ async def create_persona_from_resonate_data(request: dict):
                                     demographics.location = 'Urban'
                                 else:
                                     demographics.location = 'Suburban'
-                        if top_locations:
-                            demographics.location = top_locations[0]
+            
+            # Map occupation data with normalization for image generation
+            if 'occupation' in demo_data:
+                occupation_info = demo_data['occupation']
+                if isinstance(occupation_info, list) and len(occupation_info) > 0:
+                    occupation_data = occupation_info[0].get('data', {})
+                    if 'top_values' in occupation_data:
+                        top_occupations = list(occupation_data['top_values'].keys())
+                        if top_occupations:
+                            raw_occupation = top_occupations[0].lower()
+                            # Normalize occupation for better image generation
+                            if 'manager' in raw_occupation or 'director' in raw_occupation or 'executive' in raw_occupation:
+                                demographics.occupation = 'Executive'
+                            elif 'engineer' in raw_occupation or 'developer' in raw_occupation or 'tech' in raw_occupation:
+                                demographics.occupation = 'Technology Professional'
+                            elif 'marketing' in raw_occupation or 'sales' in raw_occupation:
+                                demographics.occupation = 'Marketing Professional'
+                            elif 'analyst' in raw_occupation or 'finance' in raw_occupation:
+                                demographics.occupation = 'Financial Analyst'
+                            elif 'consultant' in raw_occupation:
+                                demographics.occupation = 'Business Consultant'
+                            else:
+                                demographics.occupation = 'Professional'
             
             # Map occupation data
             if 'occupation' in demo_data:
