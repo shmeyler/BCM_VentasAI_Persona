@@ -51,8 +51,7 @@ class OpenAIImageGenerator:
     
     def _build_headshot_prompt(self, demographics: Dict[str, Any]) -> str:
         """
-        Build a detailed prompt for DALL-E based on demographic characteristics
-        with ultra-realistic photography specifications
+        Build an optimized ultra-realistic prompt for DALL-E based on demographic characteristics
         """
         # Extract demographic information
         age_range = demographics.get('age_range', '25-40')
@@ -73,9 +72,9 @@ class OpenAIImageGenerator:
         age = age_mapping.get(age_range, '32')
         
         # Build gender-specific terms
-        if gender.lower() == 'female':
+        if gender and gender.lower() == 'female':
             gender_term = 'woman'
-        elif gender.lower() == 'male':
+        elif gender and gender.lower() == 'male':
             gender_term = 'man'
         else:
             gender_term = 'person'
@@ -83,77 +82,45 @@ class OpenAIImageGenerator:
         # Determine attire based on occupation and income
         attire = self._get_appropriate_attire(occupation, income)
         
-        # Determine setting/background
-        setting = self._get_appropriate_setting(occupation, location)
+        # Determine setting/background based on location
+        if location and 'suburban' in location.lower():
+            setting = "modern suburban office environment with natural window lighting"
+        elif location and 'rural' in location.lower():
+            setting = "professional rural business office with warm natural lighting"
+        else:  # Urban or default
+            setting = "contemporary urban office background with soft professional lighting"
         
-        # Ultra-realistic photography specifications
-        camera_specs = """Create a highly photorealistic image captured with a professional full-frame DSLR camera, 
-        using a prime lens 85mm f/1.4 with wide aperture, shot in natural lighting conditions. Professional portrait 
-        photography with authentic depth of field, natural bokeh, realistic lens characteristics."""
+        # Core photorealistic specifications (optimized for DALL-E)
+        base_prompt = f"""Ultra-realistic professional headshot photograph of a {age}-year-old {gender_term}, {attire}, 
+        shot with 85mm f/1.4 lens, natural depth of field, authentic skin texture with subtle pores and natural imperfections, 
+        genuine facial expression with natural eye contact, {setting}."""
         
-        # Photorealism requirements
-        realism_requirements = """The image must contain authentic, real-world imperfections such as subtle lens distortions, 
-        natural grain/noise, bokeh depth of field effects, realistic lighting shadows and highlights, skin pore textures, 
-        environmental reflections, micro-hair strands, and accurate ambient occlusion. Natural skin tones with 
-        sub-surface scattering, slightly asymmetrical features as seen in real human faces, organic expression."""
+        # Technical realism details (condensed)
+        realism_details = """Professional DSLR quality with natural grain, realistic lighting and shadows, 
+        authentic human features with slight asymmetry, natural hair texture, real fabric wrinkles, 
+        subtle environmental reflections, genuine photographic appearance."""
         
-        # Environmental details
-        environmental_details = f"""Background: {setting} with photorealistic details such as dust particles in the air, 
-        realistic lighting gradients, natural environmental lighting with proper shadows and highlights, 
-        background blur following true optical depth simulation."""
-        
-        # Technical photography details
-        technical_specs = """Colors balanced realistically, respecting white balance and real-world color grading, 
-        mild chromatic aberration near image edges. Accurate anatomy, fabric folds, natural reflections, 
-        light bounce effects, focus transitions. Camera perspective simulating real lens behavior with 
-        correct parallax, natural framing composition."""
-        
-        # Natural imperfections
-        natural_imperfections = """Include natural imperfections like subtle flyaway hairs, slight skin texture variations, 
-        natural fabric draping, small wrinkles, real light scattering effects. Avoid excessive smoothness or symmetry. 
-        Realistic human features with authentic skin tone variations, natural eye moisture, authentic hair texture."""
-        
-        # Core subject description
-        subject_description = f"""Professional portrait of a real {age}-year-old {gender_term}, {attire}, 
-        confident and approachable genuine facial expression, natural eye contact with camera, 
-        authentic human appearance."""
-        
-        # Build comprehensive ultra-realistic prompt
-        prompt = f"""{camera_specs} {subject_description} {environmental_details} {realism_requirements} 
-        {technical_specs} {natural_imperfections} Professional corporate headshot quality, 
-        indistinguishable from a photograph taken by a skilled photographer, complying with all 
-        real-world physics and visual logic, natural lighting with realistic shadows and highlights."""
-        
-        # Add occupation-specific details
+        # Occupation-specific refinements
+        occupation_details = ""
         if occupation:
             occupation_lower = occupation.lower()
-            if 'executive' in occupation_lower or 'director' in occupation_lower or 'ceo' in occupation_lower:
-                prompt += " Executive leadership presence, polished professional appearance, confident natural posture, premium business attire."
-            elif 'engineer' in occupation_lower or 'tech' in occupation_lower or 'developer' in occupation_lower:
-                prompt += " Intelligent and approachable expression, tech industry professional appearance, modern casual business attire."
-            elif 'marketing' in occupation_lower or 'sales' in occupation_lower:
-                prompt += " Engaging and personable natural expression, client-facing professional warmth, contemporary business style."
-            elif 'healthcare' in occupation_lower or 'doctor' in occupation_lower or 'nurse' in occupation_lower:
-                prompt += " Trustworthy and caring natural expression, healthcare professional competence, clean professional appearance."
-            elif 'finance' in occupation_lower or 'accounting' in occupation_lower:
-                prompt += " Analytical and detail-oriented natural appearance, financial professional trustworthiness, classic business attire."
+            if 'executive' in occupation_lower:
+                occupation_details = "Executive presence, confident posture, premium business attire, leadership aura."
+            elif 'technology' in occupation_lower or 'tech' in occupation_lower:
+                occupation_details = "Tech professional appearance, modern smart-casual business style, approachable confidence."
+            elif 'marketing' in occupation_lower:
+                occupation_details = "Marketing professional warmth, engaging expression, contemporary business style."
+            elif 'financial' in occupation_lower or 'analyst' in occupation_lower:
+                occupation_details = "Professional analytical demeanor, classic business attire, trustworthy appearance."
         
-        # Add location-based context
-        if location:
-            if location.lower() == 'urban':
-                prompt += " Metropolitan business professional environment, modern office backdrop with natural lighting."
-            elif location.lower() == 'suburban':
-                prompt += " Professional suburban business context, contemporary office environment with soft natural light."
-            elif location.lower() == 'rural':
-                prompt += " Professional rural business setting, authentic local business professional environment."
+        # Final ultra-realism instructions (streamlined)
+        final_specs = """Indistinguishable from real photography, natural color grading, authentic human skin tones, 
+        realistic light bounce and shadows, professional headshot quality, actual person appearance."""
         
-        # Final ultra-realism instructions
-        prompt += """ Authentic professional photograph with natural human skin texture including subtle imperfections, 
-        realistic fabric texture on clothing, natural lighting reflections in eyes, genuine human expression, 
-        real person photograph quality. Professional business headshot standards with natural color saturation, 
-        realistic photo grain, actual human appearance. Must be indistinguishable from real photography."""
+        # Combine all elements (keeping under DALL-E's optimal length)
+        full_prompt = f"{base_prompt} {realism_details} {occupation_details} {final_specs}"
         
-        return prompt
+        return full_prompt
     
     def _get_appropriate_attire(self, occupation: str, income: str) -> str:
         """Determine appropriate business attire based on occupation and income"""
