@@ -693,13 +693,28 @@ async def create_persona_from_resonate_data(request: dict):
                         if top_education:
                             demographics.education = top_education[0]
             
-            # Map location data
+            # Map location data with normalization for image generation
             if 'location' in demo_data:
                 location_info = demo_data['location']
                 if isinstance(location_info, list) and len(location_info) > 0:
                     location_data = location_info[0].get('data', {})
                     if 'top_values' in location_data:
                         top_locations = list(location_data['top_values'].keys())
+                        if top_locations:
+                            raw_location = top_locations[0].lower()
+                            # Normalize location for image generation
+                            if 'urban' in raw_location or 'city' in raw_location or 'metropolitan' in raw_location:
+                                demographics.location = 'Urban'
+                            elif 'suburban' in raw_location or 'suburb' in raw_location:
+                                demographics.location = 'Suburban'
+                            elif 'rural' in raw_location or 'country' in raw_location:
+                                demographics.location = 'Rural'
+                            else:
+                                # Default based on common location patterns
+                                if any(city in raw_location for city in ['new york', 'chicago', 'los angeles', 'san francisco', 'boston', 'seattle']):
+                                    demographics.location = 'Urban'
+                                else:
+                                    demographics.location = 'Suburban'
                         if top_locations:
                             demographics.location = top_locations[0]
             
