@@ -202,11 +202,12 @@ async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
             return None
         
         # Convert PersonaData demographics to dictionary for OpenAI generator
+        # Apply data normalization for better image generation
         demographics_dict = {
             'age_range': demographics.age_range,
-            'gender': demographics.gender,
-            'occupation': demographics.occupation,
-            'location': demographics.location,
+            'gender': _normalize_gender(demographics.gender),
+            'occupation': _normalize_occupation(demographics.occupation),
+            'location': _normalize_location(demographics.location),
             'income_range': demographics.income_range,
             'education': demographics.education
         }
