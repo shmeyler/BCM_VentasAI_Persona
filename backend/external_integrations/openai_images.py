@@ -52,7 +52,7 @@ class OpenAIImageGenerator:
     def _build_headshot_prompt(self, demographics: Dict[str, Any]) -> str:
         """
         Build a detailed prompt for DALL-E based on demographic characteristics
-        with enhanced realism and professional photography specifications
+        with ultra-realistic photography specifications
         """
         # Extract demographic information
         age_range = demographics.get('age_range', '25-40')
@@ -75,13 +75,10 @@ class OpenAIImageGenerator:
         # Build gender-specific terms
         if gender.lower() == 'female':
             gender_term = 'woman'
-            pronouns = 'her'
         elif gender.lower() == 'male':
             gender_term = 'man'
-            pronouns = 'his'
         else:
             gender_term = 'person'
-            pronouns = 'their'
         
         # Determine attire based on occupation and income
         attire = self._get_appropriate_attire(occupation, income)
@@ -89,63 +86,72 @@ class OpenAIImageGenerator:
         # Determine setting/background
         setting = self._get_appropriate_setting(occupation, location)
         
-        # Professional photography specifications for maximum realism
-        photography_specs = """shot with Canon EOS R5 with 85mm f/1.4 lens, professional studio lighting setup with key light and fill light, 
-        shallow depth of field, natural skin texture, authentic facial features, real photography, not illustration or digital art, 
-        professional headshot photography style, high-resolution DSLR quality, natural color grading, soft professional lighting, 
-        three-point lighting setup, professional photographer composition"""
+        # Ultra-realistic photography specifications
+        camera_specs = """Create a highly photorealistic image captured with a professional full-frame DSLR camera, 
+        using a prime lens 85mm f/1.4 with wide aperture, shot in natural lighting conditions. Professional portrait 
+        photography with authentic depth of field, natural bokeh, realistic lens characteristics."""
         
-        # Lighting and technical specifications
-        lighting_specs = """professional studio lighting with softbox key light at 45-degree angle, 
-        natural fill light, subtle rim lighting, even skin tone illumination, 
-        professional photography lighting setup, natural shadows, authentic photo lighting, 
-        professional corporate headshot lighting standards"""
+        # Photorealism requirements
+        realism_requirements = """The image must contain authentic, real-world imperfections such as subtle lens distortions, 
+        natural grain/noise, bokeh depth of field effects, realistic lighting shadows and highlights, skin pore textures, 
+        environmental reflections, micro-hair strands, and accurate ambient occlusion. Natural skin tones with 
+        sub-surface scattering, slightly asymmetrical features as seen in real human faces, organic expression."""
         
-        # Realism enhancement instructions
-        realism_specs = """photorealistic human photograph, actual person not AI-generated appearance, 
-        natural human facial features, realistic skin texture with natural pores and details, 
-        authentic human expression, genuine smile, natural eye contact with camera, 
-        real professional photograph style, LinkedIn professional headshot quality, 
-        natural human proportions, realistic hair texture, authentic clothing wrinkles and fabric texture"""
+        # Environmental details
+        environmental_details = f"""Background: {setting} with photorealistic details such as dust particles in the air, 
+        realistic lighting gradients, natural environmental lighting with proper shadows and highlights, 
+        background blur following true optical depth simulation."""
         
-        # Build comprehensive prompt with enhanced realism
-        prompt = f"""Professional corporate headshot photograph of a real {age}-year-old {gender_term}, {attire}, 
-        confident and approachable genuine facial expression, direct natural eye contact with camera, {setting}, 
-        {photography_specs}, {lighting_specs}, {realism_specs}, 
-        corporate executive business portrait, professional LinkedIn profile photo quality, 
-        clean neutral professional background, authentic human appearance, natural photograph style"""
+        # Technical photography details
+        technical_specs = """Colors balanced realistically, respecting white balance and real-world color grading, 
+        mild chromatic aberration near image edges. Accurate anatomy, fabric folds, natural reflections, 
+        light bounce effects, focus transitions. Camera perspective simulating real lens behavior with 
+        correct parallax, natural framing composition."""
+        
+        # Natural imperfections
+        natural_imperfections = """Include natural imperfections like subtle flyaway hairs, slight skin texture variations, 
+        natural fabric draping, small wrinkles, real light scattering effects. Avoid excessive smoothness or symmetry. 
+        Realistic human features with authentic skin tone variations, natural eye moisture, authentic hair texture."""
+        
+        # Core subject description
+        subject_description = f"""Professional portrait of a real {age}-year-old {gender_term}, {attire}, 
+        confident and approachable genuine facial expression, natural eye contact with camera, 
+        authentic human appearance."""
+        
+        # Build comprehensive ultra-realistic prompt
+        prompt = f"""{camera_specs} {subject_description} {environmental_details} {realism_requirements} 
+        {technical_specs} {natural_imperfections} Professional corporate headshot quality, 
+        indistinguishable from a photograph taken by a skilled photographer, complying with all 
+        real-world physics and visual logic, natural lighting with realistic shadows and highlights."""
         
         # Add occupation-specific details
         if occupation:
             occupation_lower = occupation.lower()
             if 'executive' in occupation_lower or 'director' in occupation_lower or 'ceo' in occupation_lower:
-                prompt += ", executive leadership presence, polished professional appearance, confident natural posture"
+                prompt += " Executive leadership presence, polished professional appearance, confident natural posture, premium business attire."
             elif 'engineer' in occupation_lower or 'tech' in occupation_lower or 'developer' in occupation_lower:
-                prompt += ", intelligent and approachable expression, tech industry professional appearance, natural relaxed confidence"
+                prompt += " Intelligent and approachable expression, tech industry professional appearance, modern casual business attire."
             elif 'marketing' in occupation_lower or 'sales' in occupation_lower:
-                prompt += ", engaging and personable natural expression, client-facing professional warmth, authentic friendly demeanor"
+                prompt += " Engaging and personable natural expression, client-facing professional warmth, contemporary business style."
             elif 'healthcare' in occupation_lower or 'doctor' in occupation_lower or 'nurse' in occupation_lower:
-                prompt += ", trustworthy and caring natural expression, healthcare professional competence, genuine compassionate appearance"
+                prompt += " Trustworthy and caring natural expression, healthcare professional competence, clean professional appearance."
             elif 'finance' in occupation_lower or 'accounting' in occupation_lower:
-                prompt += ", analytical and detail-oriented natural appearance, financial professional trustworthiness, authentic serious demeanor"
+                prompt += " Analytical and detail-oriented natural appearance, financial professional trustworthiness, classic business attire."
         
         # Add location-based context
         if location:
             if location.lower() == 'urban':
-                prompt += ", metropolitan business professional environment, modern office setting"
+                prompt += " Metropolitan business professional environment, modern office backdrop with natural lighting."
             elif location.lower() == 'suburban':
-                prompt += ", professional suburban business office setting, approachable business environment"
+                prompt += " Professional suburban business context, contemporary office environment with soft natural light."
             elif location.lower() == 'rural':
-                prompt += ", professional rural business context, authentic local business professional"
-            elif location.lower() == 'coastal':
-                prompt += ", modern coastal business professional environment, contemporary office setting"
+                prompt += " Professional rural business setting, authentic local business professional environment."
         
-        # Enhanced realism final instructions
-        prompt += """, authentic professional photograph taken by experienced corporate photographer, 
-        natural human skin texture with subtle imperfections, realistic fabric texture on clothing, 
-        natural lighting reflections in eyes, genuine human expression, real person photograph, 
-        professional business headshot standards, natural color saturation, realistic photo quality, 
-        actual human being not artificial appearance, authentic professional portrait photography"""
+        # Final ultra-realism instructions
+        prompt += """ Authentic professional photograph with natural human skin texture including subtle imperfections, 
+        realistic fabric texture on clothing, natural lighting reflections in eyes, genuine human expression, 
+        real person photograph quality. Professional business headshot standards with natural color saturation, 
+        realistic photo grain, actual human appearance. Must be indistinguishable from real photography."""
         
         return prompt
     
