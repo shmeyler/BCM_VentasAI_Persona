@@ -51,15 +51,13 @@ class OpenAIImageGenerator:
     
     def _build_headshot_prompt(self, demographics: Dict[str, Any]) -> str:
         """
-        Build an optimized ultra-realistic prompt for DALL-E based on demographic characteristics
+        Build a simple, effective prompt for DALL-E that prioritizes photorealism
         """
         # Extract demographic information
         age_range = demographics.get('age_range', '25-40')
         gender = demographics.get('gender', 'Person')
         occupation = demographics.get('occupation', 'Professional')
         location = demographics.get('location', 'Urban')
-        income = demographics.get('income_range', '')
-        education = demographics.get('education', '')
         
         # Determine age for prompt
         age_mapping = {
@@ -71,7 +69,7 @@ class OpenAIImageGenerator:
         }
         age = age_mapping.get(age_range, '32')
         
-        # Build gender-specific terms
+        # Simple gender mapping
         if gender and gender.lower() == 'female':
             gender_term = 'woman'
         elif gender and gender.lower() == 'male':
@@ -79,48 +77,31 @@ class OpenAIImageGenerator:
         else:
             gender_term = 'person'
         
-        # Determine attire based on occupation and income
-        attire = self._get_appropriate_attire(occupation, income)
+        # Simple attire based on occupation
+        if 'executive' in str(occupation).lower():
+            attire = "wearing a professional business suit"
+        elif 'technology' in str(occupation).lower():
+            attire = "wearing smart casual business attire"
+        elif 'marketing' in str(occupation).lower():
+            attire = "wearing modern professional clothing"
+        else:
+            attire = "wearing professional business attire"
         
-        # Determine setting/background based on location
-        if location and 'suburban' in location.lower():
-            setting = "modern suburban office environment with natural window lighting"
-        elif location and 'rural' in location.lower():
-            setting = "professional rural business office with warm natural lighting"
-        else:  # Urban or default
-            setting = "contemporary urban office background with soft professional lighting"
+        # Simple background based on location
+        if location and 'suburban' in str(location).lower():
+            background = "modern suburban office with natural lighting"
+        elif location and 'rural' in str(location).lower():
+            background = "professional office with warm lighting"
+        else:
+            background = "contemporary office environment"
         
-        # Core photorealistic specifications (optimized for DALL-E)
-        base_prompt = f"""Ultra-realistic professional headshot photograph of a {age}-year-old {gender_term}, {attire}, 
-        shot with 85mm f/1.4 lens, natural depth of field, authentic skin texture with subtle pores and natural imperfections, 
-        genuine facial expression with natural eye contact, {setting}."""
+        # Build a concise, effective prompt
+        prompt = f"""Professional headshot photograph of a {age}-year-old {gender_term}, {attire}, 
+        confident expression, direct eye contact, {background}, shot with 85mm lens, 
+        shallow depth of field, natural skin texture, realistic lighting, 
+        high-resolution professional photography, photorealistic quality"""
         
-        # Technical realism details (condensed)
-        realism_details = """Professional DSLR quality with natural grain, realistic lighting and shadows, 
-        authentic human features with slight asymmetry, natural hair texture, real fabric wrinkles, 
-        subtle environmental reflections, genuine photographic appearance."""
-        
-        # Occupation-specific refinements
-        occupation_details = ""
-        if occupation:
-            occupation_lower = occupation.lower()
-            if 'executive' in occupation_lower:
-                occupation_details = "Executive presence, confident posture, premium business attire, leadership aura."
-            elif 'technology' in occupation_lower or 'tech' in occupation_lower:
-                occupation_details = "Tech professional appearance, modern smart-casual business style, approachable confidence."
-            elif 'marketing' in occupation_lower:
-                occupation_details = "Marketing professional warmth, engaging expression, contemporary business style."
-            elif 'financial' in occupation_lower or 'analyst' in occupation_lower:
-                occupation_details = "Professional analytical demeanor, classic business attire, trustworthy appearance."
-        
-        # Final ultra-realism instructions (streamlined)
-        final_specs = """Indistinguishable from real photography, natural color grading, authentic human skin tones, 
-        realistic light bounce and shadows, professional headshot quality, actual person appearance."""
-        
-        # Combine all elements (keeping under DALL-E's optimal length)
-        full_prompt = f"{base_prompt} {realism_details} {occupation_details} {final_specs}"
-        
-        return full_prompt
+        return prompt
     
     def _get_appropriate_attire(self, occupation: str, income: str) -> str:
         """Determine appropriate business attire based on occupation and income"""
