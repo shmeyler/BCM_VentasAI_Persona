@@ -651,7 +651,7 @@ async def create_persona_from_resonate_data(request: dict):
                             elif '76' in str(age_value) or '+' in str(age_value):
                                 demographics.age_range = AgeRange.silent
             
-            # Map gender data
+            # Map gender data with normalization for image generation
             if 'gender' in demo_data:
                 gender_info = demo_data['gender']
                 if isinstance(gender_info, list) and len(gender_info) > 0:
@@ -659,7 +659,19 @@ async def create_persona_from_resonate_data(request: dict):
                     if 'top_values' in gender_data:
                         top_genders = list(gender_data['top_values'].keys())
                         if top_genders:
-                            demographics.gender = top_genders[0]
+                            raw_gender = top_genders[0].lower()
+                            # Normalize gender for image generation
+                            if 'female' in raw_gender or 'woman' in raw_gender:
+                                demographics.gender = 'Female'
+                            elif 'male' in raw_gender or 'man' in raw_gender:
+                                demographics.gender = 'Male'
+                            else:
+                                # For mixed or unclear gender, pick one for image generation
+                                # Use the highest count or default to Female for "slight female skew"
+                                if 'female' in raw_gender or 'slight female skew' in raw_gender:
+                                    demographics.gender = 'Female'
+                                else:
+                                    demographics.gender = 'Male'
             
             # Map income data
             if 'income' in demo_data:
