@@ -142,6 +142,55 @@ class GeneratePersonaRequest(BaseModel):
     persona_id: str
 
 
+# Helper functions for data normalization
+def _normalize_gender(gender):
+    """Normalize gender data for image generation"""
+    if not gender:
+        return 'Female'  # Default
+    
+    gender_str = str(gender).lower()
+    if 'female' in gender_str or 'woman' in gender_str or 'slight female skew' in gender_str:
+        return 'Female'
+    elif 'male' in gender_str or 'man' in gender_str:
+        return 'Male'
+    else:
+        return 'Female'  # Default for mixed/unclear cases
+
+def _normalize_occupation(occupation):
+    """Normalize occupation data for image generation"""
+    if not occupation:
+        return 'Professional'
+    
+    occupation_str = str(occupation).lower()
+    if 'manager' in occupation_str or 'director' in occupation_str or 'executive' in occupation_str:
+        return 'Executive'
+    elif 'engineer' in occupation_str or 'developer' in occupation_str or 'tech' in occupation_str:
+        return 'Technology Professional'
+    elif 'marketing' in occupation_str or 'sales' in occupation_str:
+        return 'Marketing Professional'
+    elif 'analyst' in occupation_str or 'finance' in occupation_str:
+        return 'Financial Analyst'
+    elif 'consultant' in occupation_str:
+        return 'Business Consultant'
+    else:
+        return 'Professional'
+
+def _normalize_location(location):
+    """Normalize location data for image generation"""
+    if not location:
+        return 'Urban'  # Default
+    
+    location_str = str(location).lower()
+    if 'suburban' in location_str or 'suburb' in location_str:
+        return 'Suburban'
+    elif 'rural' in location_str or 'country' in location_str:
+        return 'Rural'
+    elif 'urban' in location_str or 'city' in location_str or 'metropolitan' in location_str:
+        return 'Urban'
+    else:
+        return 'Urban'  # Default
+
+
 # Helper function to generate persona image using OpenAI DALL-E
 async def generate_persona_image(persona_data: PersonaData) -> Optional[str]:
     """Generate a professional headshot using OpenAI DALL-E based on demographic data"""
