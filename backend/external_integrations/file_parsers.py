@@ -185,7 +185,7 @@ class ResonateFileParser:
             }
     
     def extract_csv_insights(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Extract insights from CSV data based on column names and content"""
+        """Extract insights from Resonate CSV data based on actual Resonate export format"""
         insights = {
             'demographics': {},
             'psychographics': {},
@@ -195,9 +195,162 @@ class ResonateFileParser:
         }
         
         # Print column names for debugging
-        print(f"DEBUG: CSV Columns: {df.columns.tolist()}")
+        print(f"DEBUG: Processing Resonate CSV with columns: {df.columns.tolist()}")
         
-        # Demographics extraction with improved column matching
+        # Handle Resonate-style data with Insight/Category structure
+        if 'Insight' in df.columns and 'Insight Value' in df.columns:
+            print("DEBUG: Found Resonate Insight format")
+            self._process_resonate_insights(df, insights)
+        
+        # Handle Category-based data (like web behavior)
+        elif 'Category' in df.columns:
+            print("DEBUG: Found Category-based data")
+            self._process_category_data(df, insights)
+        
+        # Handle Domain/Site data (web behavior)
+        elif 'Domain Name' in df.columns:
+            print("DEBUG: Found Domain/Site data")
+            self._process_domain_data(df, insights)
+        
+        # Fallback to original demographic parsing for simple CSV files
+        else:
+            print("DEBUG: Using fallback demographic parsing")
+            self._process_simple_demographics(df, insights)
+        
+        return insights
+    
+    def _process_resonate_insights(self, df: pd.DataFrame, insights: Dict[str, Any]):
+        """Process Resonate data with Insight/Insight Value columns"""
+        try:
+            # Group by categories and subcategories
+            for _, row in df.iterrows():
+                insight = str(row.get('Insight', '')).lower()
+                insight_value = row.get('Insight Value', '')
+                category = row.get('Category', '')
+                subcategory1 = row.get('Subcategory1', '')
+                composition = row.get('Composition (%)', 0)
+                
+                # Demographics mapping
+                if any(demo_term in insight for demo_term in ['age', 'gender', 'income', 'education', 'location', 'occupation']):
+                    demo_type = self._categorize_demographic(insight)
+                    if demo_type:
+                        if demo_type not in insights['demographics']:
+                            insights['demographics'][demo_type] = []
+                        insights['demographics'][demo_type].append({
+                            'source': 'Resonate Insights',
+                            'data': {
+                                'insight': insight,
+                                'value': insight_value,
+                                'composition': composition,
+                                'category': category,
+                                'subcategory': subcategory1
+                            }
+                        })
+                
+                # Media consumption mapping
+                elif any(media_term in insight for media_term in ['social media', 'platform', 'streaming', 'tv', 'digital', 'mobile', 'device']):
+                    if 'media_platforms' not in insights['media_consumption']:
+                        insights['media_consumption']['media_platforms'] = []
+                    insights['media_consumption']['media_platforms'].append({
+                        'source': 'Resonate Insights',
+                        'data': {
+                            'insight': insight,
+                            'value': insight_value,
+                            'composition': composition
+                        }
+                    })
+                
+                # Brand/Shopping behavior
+                elif any(brand_term in insight for brand_term in ['brand', 'shopping', 'purchase', 'retail', 'store']):
+                    if 'shopping_behavior' not in insights['brand_affinity']:
+                        insights['brand_affinity']['shopping_behavior'] = []
+                    insights['brand_affinity']['shopping_behavior'].append({
+                        'source': 'Resonate Insights',
+                        'data': {
+                            'insight': insight,
+                            'value': insight_value,
+                            'composition': composition
+                        }
+                    })
+                
+                # Psychographics/Values
+                elif any(psycho_term in insight for psycho_term in ['value', 'lifestyle', 'interest', 'personality', 'attitude']):
+                    if 'values_interests' not in insights['psychographics']:
+                        insights['psychographics']['values_interests'] = []
+                    insights['psychographics']['values_interests'].append({
+                        'source': 'Resonate Insights',
+                        'data': {
+                            'insight': insight,
+                            'value': insight_value,
+                            'composition': composition
+                        }
+                    })
+                
+        except Exception as e:
+            print(f"Error processing Resonate insights: {e}")
+    
+    def _process_category_data(self, df: pd.DataFrame, insights: Dict[str, Any]):
+        """Process category-based data (web behavior, interests)"""
+        try:
+            for _, row in df.iterrows():
+                category = row.get('Category', '')
+                if 'Category Index' in df.columns:
+                    index = row.get('Category Index', 0)
+                    share = row.get('Category Share of Total Visits (if available)', 0)
+                    
+                    if 'web_behavior' not in insights['media_consumption']:
+                        insights['media_consumption']['web_behavior'] = []
+                    insights['media_consumption']['web_behavior'].append({
+                        'source': 'Web Behavior Data',
+                        'data': {
+                            'category': category,
+                            'index': index,
+                            'share': share
+                        }
+                    })
+        except Exception as e:
+            print(f"Error processing category data: {e}")
+    
+    def _process_domain_data(self, df: pd.DataFrame, insights: Dict[str, Any]):
+        """Process domain/site data"""
+        try:
+            for _, row in df.iterrows():
+                domain = row.get('Domain Name', '')
+                rating = row.get('Site Rating', 0)
+                category = row.get('Category', '')
+                
+                if 'website_preferences' not in insights['media_consumption']:
+                    insights['media_consumption']['website_preferences'] = []
+                insights['media_consumption']['website_preferences'].append({
+                    'source': 'Website Data',
+                    'data': {
+                        'domain': domain,
+                        'rating': rating,
+                        'category': category
+                    }
+                })
+        except Exception as e:
+            print(f"Error processing domain data: {e}")
+    
+    def _categorize_demographic(self, insight: str) -> str:
+        """Categorize a Resonate insight into demographic type"""
+        if any(term in insight for term in ['age', 'year', 'old']):
+            return 'age'
+        elif any(term in insight for term in ['gender', 'male', 'female', 'woman', 'man']):
+            return 'gender'
+        elif any(term in insight for term in ['income', 'salary', 'earn', 'household']):
+            return 'income'
+        elif any(term in insight for term in ['education', 'degree', 'college', 'university', 'school']):
+            return 'education'
+        elif any(term in insight for term in ['location', 'live', 'city', 'state', 'zip', 'area']):
+            return 'location'
+        elif any(term in insight for term in ['job', 'work', 'occupation', 'career', 'employed']):
+            return 'occupation'
+        return None
+    
+    def _process_simple_demographics(self, df: pd.DataFrame, insights: Dict[str, Any]):
+        """Fallback processing for simple demographic CSV files"""
+        # This is the original logic for simple CSV files
         demo_fields = {
             'age': ['age', 'age group', 'age range', 'age_group', 'age_range'],
             'gender': ['gender', 'sex', 'gender identity', 'gender_identity'],
@@ -228,38 +381,14 @@ class ResonateFileParser:
                     value_counts = df[col].value_counts().head(5).to_dict()
                     
                     # Store the results
-                    insights['demographics'][demo_type] = {
-                        'source_column': col,
-                        'top_values': value_counts
-                    }
+                    insights['demographics'][demo_type] = [{
+                        'source': col,
+                        'data': {
+                            'top_values': value_counts
+                        }
+                    }]
                 except Exception as e:
                     print(f"Error processing column {col}: {e}")
-        
-        # Media consumption patterns - improved matching
-        media_keywords = ['media', 'tv', 'social', 'digital', 'platform', 'channel', 'social media']
-        for col in df.columns:
-            col_lower = col.lower()
-            if any(keyword.lower() in col_lower for keyword in media_keywords):
-                try:
-                    if df[col].dtype in ['object', 'category'] or str(df[col].dtype).startswith('str'):
-                        value_counts = df[col].value_counts().head(10).to_dict()
-                        insights['media_consumption'][col] = value_counts
-                except Exception as e:
-                    print(f"Error processing media column {col}: {e}")
-        
-        # Brand affinity - improved matching
-        brand_keywords = ['brand', 'product', 'company', 'preference', 'loyalty', 'purchase']
-        for col in df.columns:
-            col_lower = col.lower()
-            if any(keyword.lower() in col_lower for keyword in brand_keywords):
-                try:
-                    if df[col].dtype in ['object', 'category'] or str(df[col].dtype).startswith('str'):
-                        value_counts = df[col].value_counts().head(10).to_dict()
-                        insights['brand_affinity'][col] = value_counts
-                except Exception as e:
-                    print(f"Error processing brand column {col}: {e}")
-        
-        return insights
     
     def parse_excel(self, file_path: str) -> Dict[str, Any]:
         """Parse Excel file (both .xlsx and .xls)"""
