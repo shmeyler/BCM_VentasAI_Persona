@@ -903,13 +903,27 @@ async def create_persona_from_resonate_data(request: dict):
             social_platforms = []
             for key, value in media_data.items():
                 if 'social' in key.lower() or 'platform' in key.lower():
-                    if isinstance(value, list) and len(value) > 0:
+                    if isinstance(value, dict) and 'top_values' in value:
+                        # Handle the new format where data is directly in top_values
+                        platforms = list(value['top_values'].keys())
+                        social_platforms.extend(platforms[:5])
+                    elif isinstance(value, list) and len(value) > 0:
+                        # Handle the old format for backward compatibility
                         platform_data = value[0].get('data', {})
                         if isinstance(platform_data, dict):
                             social_platforms.extend(list(platform_data.keys())[:5])
             
             if social_platforms:
                 media_consumption.social_media_platforms = social_platforms
+            else:
+                # Default platforms if none found
+                media_consumption.social_media_platforms = ['Facebook', 'Instagram', 'LinkedIn', 'Twitter', 'YouTube']
+            
+            # Set default values for other media consumption fields
+            media_consumption.preferred_devices = ['Mobile', 'Desktop']
+            media_consumption.consumption_time = '2-4 hours daily'
+            media_consumption.news_sources = ['Social Media', 'Digital News']
+            media_consumption.entertainment_preferences = ['Streaming Services', 'Social Media Content']
             
             persona_data.media_consumption = media_consumption
         
