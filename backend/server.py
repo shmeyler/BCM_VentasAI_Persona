@@ -693,41 +693,68 @@ async def create_persona_from_resonate_data(request: dict):
             
             print(f"DEBUG: Processing demographics data keys: {list(demo_data.keys())}")
             
-            # Extract actual gender data from Resonate insights
-            for field_name, field_data in demo_data.items():
-                if isinstance(field_data, list):
-                    for source_entry in field_data:
-                        if isinstance(source_entry, dict) and 'data' in source_entry:
-                            # Check if data is a list of insights (the actual structure)
-                            if isinstance(source_entry['data'], list):
-                                for insight in source_entry['data']:
-                                    if isinstance(insight, dict) and 'data' in insight:
-                                        insight_data = insight['data']
-                                        insight_text = insight_data.get('insight', '').lower()
-                                        insight_value = str(insight_data.get('value', '')).lower()
-                                        composition = insight_data.get('composition', '')
-                                        
-                                        print(f"DEBUG: Found insight: {insight_text} = {insight_value} ({composition})")
-                                        
-                                        # Look for gender-related insights
-                                        if any(gender_term in insight_text for gender_term in ['gender', 'male', 'female', 'man', 'woman']):
-                                            if any(male_term in insight_value for male_term in ['male', 'man', 'men']):
-                                                demographics.gender = 'Male'
-                                                print(f"DEBUG: Set gender to Male based on: {insight_value}")
-                                            elif any(female_term in insight_value for female_term in ['female', 'woman', 'women']):
-                                                demographics.gender = 'Female'
-                                                print(f"DEBUG: Set gender to Female based on: {insight_value}")
-                                        
-                                        # Look for age-related insights
-                                        if any(age_term in insight_text for age_term in ['age', 'year']):
-                                            if any(term in insight_value for term in ['18-24', '18 to 24']):
-                                                demographics.age_range = AgeRange.gen_z
-                                            elif any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
-                                                demographics.age_range = AgeRange.millennial
-                                            elif any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
-                                                demographics.age_range = AgeRange.gen_x
-                                            elif any(term in insight_value for term in ['45-54', '55-64', '57-75']):
-                                                demographics.age_range = AgeRange.boomer
+            # Extract actual demographic data from parsed data
+            if 'age' in demo_data:
+                age_data = demo_data['age']
+                if isinstance(age_data, dict) and 'top_values' in age_data:
+                    top_ages = list(age_data['top_values'].keys())
+                    if top_ages:
+                        # Map to closest AgeRange enum
+                        age_value = top_ages[0]
+                        if '18-24' in age_value:
+                            demographics.age_range = AgeRange.gen_z
+                        elif '25-40' in age_value or '25-34' in age_value:
+                            demographics.age_range = AgeRange.millennial
+                        elif '41-56' in age_value or '35-44' in age_value:
+                            demographics.age_range = AgeRange.gen_x
+                        elif '57-75' in age_value or '45-54' in age_value or '55-64' in age_value:
+                            demographics.age_range = AgeRange.boomer
+                        elif '76' in age_value or '65' in age_value:
+                            demographics.age_range = AgeRange.silent
+            
+            # Extract gender data
+            if 'gender' in demo_data:
+                gender_data = demo_data['gender']
+                if isinstance(gender_data, dict) and 'top_values' in gender_data:
+                    top_genders = list(gender_data['top_values'].keys())
+                    if top_genders:
+                        gender_value = top_genders[0].lower()
+                        if 'female' in gender_value or 'woman' in gender_value:
+                            demographics.gender = 'Female'
+                        elif 'male' in gender_value or 'man' in gender_value:
+                            demographics.gender = 'Male'
+            
+            # Extract income data
+            if 'income' in demo_data:
+                income_data = demo_data['income']
+                if isinstance(income_data, dict) and 'top_values' in income_data:
+                    top_incomes = list(income_data['top_values'].keys())
+                    if top_incomes:
+                        demographics.income_range = top_incomes[0]
+            
+            # Extract education data
+            if 'education' in demo_data:
+                education_data = demo_data['education']
+                if isinstance(education_data, dict) and 'top_values' in education_data:
+                    top_education = list(education_data['top_values'].keys())
+                    if top_education:
+                        demographics.education = top_education[0]
+            
+            # Extract location data
+            if 'location' in demo_data:
+                location_data = demo_data['location']
+                if isinstance(location_data, dict) and 'top_values' in location_data:
+                    top_locations = list(location_data['top_values'].keys())
+                    if top_locations:
+                        demographics.location = top_locations[0]
+            
+            # Extract occupation data
+            if 'occupation' in demo_data:
+                occupation_data = demo_data['occupation']
+                if isinstance(occupation_data, dict) and 'top_values' in occupation_data:
+                    top_occupations = list(occupation_data['top_values'].keys())
+                    if top_occupations:
+                        demographics.occupation = top_occupations[0]
             
             persona_data.demographics = demographics
         
