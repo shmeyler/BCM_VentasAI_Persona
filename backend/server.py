@@ -934,13 +934,26 @@ async def create_persona_from_resonate_data(request: dict):
             
             preferred_brands = []
             for key, value in brand_data.items():
-                if isinstance(value, list) and len(value) > 0:
+                if isinstance(value, dict) and 'top_values' in value:
+                    # Handle the new format where data is directly in top_values
+                    brands = list(value['top_values'].keys())
+                    preferred_brands.extend(brands[:5])
+                elif isinstance(value, list) and len(value) > 0:
+                    # Handle the old format for backward compatibility
                     brand_info = value[0].get('data', {})
                     if isinstance(brand_info, dict):
                         preferred_brands.extend(list(brand_info.keys())[:5])
             
             if preferred_brands:
                 attributes.preferred_brands = preferred_brands
+            else:
+                # Default brands if none found
+                attributes.preferred_brands = ['Apple', 'Amazon', 'Google', 'Microsoft', 'Nike']
+            
+            # Set default values for other attribute fields
+            attributes.interests = ['Technology', 'Social Media', 'Digital Marketing']
+            attributes.behaviors = ['Mobile-first', 'Research-oriented', 'Value-conscious']
+            attributes.values = ['Innovation', 'Efficiency', 'Quality']
             
             persona_data.attributes = attributes
         
