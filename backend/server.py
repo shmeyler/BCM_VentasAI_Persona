@@ -679,84 +679,84 @@ async def create_persona_from_resonate_data(request: dict):
             demo_data = parsed_data['demographics']
             demographics = Demographics()
             
-            print(f"DEBUG: Processing demographics data: {demo_data}")
-            print(f"DEBUG: Demographics data type: {type(demo_data)}")
+            print(f"DEBUG: Processing demographics data keys: {list(demo_data.keys())}")
+            
+            # Helper function to process demographic insights
+            def process_demographic_insight(field, data, demo_obj):
+                insight_text = data.get('insight', '').lower()
+                insight_value = str(data.get('value', ''))
+                
+                # Map based on demographic field type
+                if field == 'age':
+                    # Map age ranges
+                    if any(term in insight_text for term in ['18-24', '18 to 24', '18-25']) or any(term in insight_value for term in ['18-24', '18 to 24']):
+                        demo_obj.age_range = AgeRange.gen_z
+                    elif any(term in insight_text for term in ['25-34', '25 to 34', '25-40']) or any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
+                        demo_obj.age_range = AgeRange.millennial
+                    elif any(term in insight_text for term in ['35-44', '35 to 44', '41-56']) or any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
+                        demo_obj.age_range = AgeRange.gen_x
+                    elif any(term in insight_text for term in ['45-54', '55-64', '57-75']) or any(term in insight_value for term in ['45-54', '55-64', '57-75']):
+                        demo_obj.age_range = AgeRange.boomer
+                    elif any(term in insight_text for term in ['65+', '75+', '76+']) or any(term in insight_value for term in ['65+', '75+', '76+']):
+                        demo_obj.age_range = AgeRange.silent
+                
+                elif field == 'gender':
+                    # Map gender
+                    if any(term in insight_text for term in ['female', 'woman', 'women']) or any(term in insight_value.lower() for term in ['female', 'woman', 'women']):
+                        demo_obj.gender = 'Female'
+                    elif any(term in insight_text for term in ['male', 'man', 'men']) or any(term in insight_value.lower() for term in ['male', 'man', 'men']):
+                        demo_obj.gender = 'Male'
+                    elif 'female' in insight_value.lower() or 'woman' in insight_value.lower():
+                        demo_obj.gender = 'Female'  # Default for mixed with female skew
+                
+                elif field == 'income':
+                    # Extract income range
+                    if '$' in insight_value or 'income' in insight_text:
+                        demo_obj.income_range = insight_value
+                
+                elif field == 'education':
+                    # Map education level
+                    if any(term in insight_text for term in ['college', 'university', 'degree']) or any(term in insight_value.lower() for term in ['college', 'bachelor', 'degree']):
+                        demo_obj.education = insight_value or "Bachelor's Degree"
+                
+                elif field == 'location':
+                    # Map location type
+                    if any(term in insight_text for term in ['urban', 'city', 'metropolitan']) or any(term in insight_value.lower() for term in ['urban', 'city']):
+                        demo_obj.location = 'Urban'
+                    elif any(term in insight_text for term in ['suburban', 'suburb']) or any(term in insight_value.lower() for term in ['suburban', 'suburb']):
+                        demo_obj.location = 'Suburban'
+                    elif any(term in insight_text for term in ['rural', 'country']) or any(term in insight_value.lower() for term in ['rural', 'country']):
+                        demo_obj.location = 'Rural'
+                    else:
+                        demo_obj.location = insight_value or 'Urban'
+                
+                elif field == 'occupation':
+                    # Map occupation
+                    if any(term in insight_text for term in ['professional', 'manager', 'executive']) or insight_value:
+                        demo_obj.occupation = insight_value or 'Professional'
             
             # Handle different possible structures for demographic data
             for demo_field, demo_values in demo_data.items():
-                print(f"DEBUG: Processing {demo_field}: {demo_values} (type: {type(demo_values)})")
+                print(f"DEBUG: Processing {demo_field}: (type: {type(demo_values)})")
                 
                 if isinstance(demo_values, list) and len(demo_values) > 0:
                     # Handle list of insight entries
                     for insight_entry in demo_values:
-                        print(f"DEBUG: Processing insight entry: {insight_entry} (type: {type(insight_entry)})")
+                        print(f"DEBUG: Processing insight entry: (type: {type(insight_entry)})")
                         
-                        if isinstance(insight_entry, dict) and 'data' in insight_entry:
-                            data = insight_entry['data']
-                            insight_text = data.get('insight', '').lower()
-                            insight_value = str(data.get('value', ''))
+                        if isinstance(insight_entry, dict):
+                            # Check if this has a 'data' key with a list of insights
+                            if 'data' in insight_entry and isinstance(insight_entry['data'], list):
+                                # Handle nested list structure
+                                for nested_insight in insight_entry['data']:
+                                    if isinstance(nested_insight, dict) and 'data' in nested_insight:
+                                        actual_data = nested_insight['data']
+                                        if isinstance(actual_data, dict):
+                                            process_demographic_insight(demo_field, actual_data, demographics)
                             
-                            print(f"DEBUG: Processing {demo_field} insight: {insight_text} = {insight_value}")
-                            
-                            # Map based on demographic field type
-                            if demo_field == 'age':
-                                # Map age ranges
-                                if any(term in insight_text for term in ['18-24', '18 to 24', '18-25']) or any(term in insight_value for term in ['18-24', '18 to 24']):
-                                    demographics.age_range = AgeRange.gen_z
-                                elif any(term in insight_text for term in ['25-34', '25 to 34', '25-40']) or any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
-                                    demographics.age_range = AgeRange.millennial
-                                elif any(term in insight_text for term in ['35-44', '35 to 44', '41-56']) or any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
-                                    demographics.age_range = AgeRange.gen_x
-                                elif any(term in insight_text for term in ['45-54', '55-64', '57-75']) or any(term in insight_value for term in ['45-54', '55-64', '57-75']):
-                                    demographics.age_range = AgeRange.boomer
-                                elif any(term in insight_text for term in ['65+', '75+', '76+']) or any(term in insight_value for term in ['65+', '75+', '76+']):
-                                    demographics.age_range = AgeRange.silent
-                                break
-                            
-                            elif demo_field == 'gender':
-                                # Map gender
-                                if any(term in insight_text for term in ['female', 'woman', 'women']) or any(term in insight_value.lower() for term in ['female', 'woman', 'women']):
-                                    demographics.gender = 'Female'
-                                elif any(term in insight_text for term in ['male', 'man', 'men']) or any(term in insight_value.lower() for term in ['male', 'man', 'men']):
-                                    demographics.gender = 'Male'
-                                elif 'female' in insight_value.lower() or 'woman' in insight_value.lower():
-                                    demographics.gender = 'Female'  # Default for mixed with female skew
-                                break
-                            
-                            elif demo_field == 'income':
-                                # Extract income range
-                                if '$' in insight_value or 'income' in insight_text:
-                                    demographics.income_range = insight_value
-                                break
-                            
-                            elif demo_field == 'education':
-                                # Map education level
-                                if any(term in insight_text for term in ['college', 'university', 'degree']) or any(term in insight_value.lower() for term in ['college', 'bachelor', 'degree']):
-                                    demographics.education = insight_value or "Bachelor's Degree"
-                                break
-                            
-                            elif demo_field == 'location':
-                                # Map location type
-                                if any(term in insight_text for term in ['urban', 'city', 'metropolitan']) or any(term in insight_value.lower() for term in ['urban', 'city']):
-                                    demographics.location = 'Urban'
-                                elif any(term in insight_text for term in ['suburban', 'suburb']) or any(term in insight_value.lower() for term in ['suburban', 'suburb']):
-                                    demographics.location = 'Suburban'
-                                elif any(term in insight_text for term in ['rural', 'country']) or any(term in insight_value.lower() for term in ['rural', 'country']):
-                                    demographics.location = 'Rural'
-                                else:
-                                    demographics.location = insight_value or 'Urban'
-                                break
-                            
-                            elif demo_field == 'occupation':
-                                # Map occupation
-                                if any(term in insight_text for term in ['professional', 'manager', 'executive']) or insight_value:
-                                    demographics.occupation = insight_value or 'Professional'
-                                break
-                
-                elif isinstance(demo_values, dict):
-                    # Handle dictionary format (fallback)
-                    print(f"DEBUG: Handling dictionary format for {demo_field}")
-                    # Could add handling for other data structures here if needed
+                            # Also check if this entry itself has insight data
+                            elif 'data' in insight_entry and isinstance(insight_entry['data'], dict):
+                                process_demographic_insight(demo_field, insight_entry['data'], demographics)
             
             persona_data.demographics = demographics
         
