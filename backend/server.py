@@ -680,120 +680,83 @@ async def create_persona_from_resonate_data(request: dict):
             demographics = Demographics()
             
             print(f"DEBUG: Processing demographics data: {demo_data}")
+            print(f"DEBUG: Demographics data type: {type(demo_data)}")
             
-            # Extract age information from Resonate insights
-            if 'age' in demo_data:
-                age_insights = demo_data['age']
-                for insight_entry in age_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
+            # Handle different possible structures for demographic data
+            for demo_field, demo_values in demo_data.items():
+                print(f"DEBUG: Processing {demo_field}: {demo_values} (type: {type(demo_values)})")
+                
+                if isinstance(demo_values, list) and len(demo_values) > 0:
+                    # Handle list of insight entries
+                    for insight_entry in demo_values:
+                        print(f"DEBUG: Processing insight entry: {insight_entry} (type: {type(insight_entry)})")
                         
-                        print(f"DEBUG: Processing age insight: {insight_text} = {insight_value}")
-                        
-                        # Map age ranges based on insight content
-                        if any(term in insight_text for term in ['18-24', '18 to 24', '18-25']) or any(term in insight_value for term in ['18-24', '18 to 24']):
-                            demographics.age_range = AgeRange.gen_z
-                        elif any(term in insight_text for term in ['25-34', '25 to 34', '25-40']) or any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
-                            demographics.age_range = AgeRange.millennial
-                        elif any(term in insight_text for term in ['35-44', '35 to 44', '41-56']) or any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
-                            demographics.age_range = AgeRange.gen_x
-                        elif any(term in insight_text for term in ['45-54', '55-64', '57-75']) or any(term in insight_value for term in ['45-54', '55-64', '57-75']):
-                            demographics.age_range = AgeRange.boomer
-                        elif any(term in insight_text for term in ['65+', '75+', '76+']) or any(term in insight_value for term in ['65+', '75+', '76+']):
-                            demographics.age_range = AgeRange.silent
-                        break  # Use the first valid age insight
-            
-            # Extract gender information from Resonate insights
-            if 'gender' in demo_data:
-                gender_insights = demo_data['gender']
-                for insight_entry in gender_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', '')).lower()
-                        
-                        print(f"DEBUG: Processing gender insight: {insight_text} = {insight_value}")
-                        
-                        # Map gender based on insight content
-                        if any(term in insight_text for term in ['female', 'woman', 'women']) or any(term in insight_value for term in ['female', 'woman', 'women']):
-                            demographics.gender = 'Female'
-                        elif any(term in insight_text for term in ['male', 'man', 'men']) or any(term in insight_value for term in ['male', 'man', 'men']):
-                            demographics.gender = 'Male'
-                        elif 'female' in insight_value or 'woman' in insight_value:
-                            demographics.gender = 'Female'  # Default for mixed with female skew
-                        break  # Use the first valid gender insight
-            
-            # Extract income information from Resonate insights
-            if 'income' in demo_data:
-                income_insights = demo_data['income']
-                for insight_entry in income_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
-                        
-                        print(f"DEBUG: Processing income insight: {insight_text} = {insight_value}")
-                        
-                        # Extract income range from insight
-                        if '$' in insight_value or 'income' in insight_text:
-                            demographics.income_range = insight_value
-                        break
-            
-            # Extract education information from Resonate insights
-            if 'education' in demo_data:
-                education_insights = demo_data['education']
-                for insight_entry in education_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
-                        
-                        print(f"DEBUG: Processing education insight: {insight_text} = {insight_value}")
-                        
-                        # Map education level
-                        if any(term in insight_text for term in ['college', 'university', 'degree']) or any(term in insight_value for term in ['college', 'bachelor', 'degree']):
-                            demographics.education = insight_value or "Bachelor's Degree"
-                        break
-            
-            # Extract location information from Resonate insights
-            if 'location' in demo_data:
-                location_insights = demo_data['location']
-                for insight_entry in location_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
-                        
-                        print(f"DEBUG: Processing location insight: {insight_text} = {insight_value}")
-                        
-                        # Map location type
-                        if any(term in insight_text for term in ['urban', 'city', 'metropolitan']) or any(term in insight_value.lower() for term in ['urban', 'city']):
-                            demographics.location = 'Urban'
-                        elif any(term in insight_text for term in ['suburban', 'suburb']) or any(term in insight_value.lower() for term in ['suburban', 'suburb']):
-                            demographics.location = 'Suburban'
-                        elif any(term in insight_text for term in ['rural', 'country']) or any(term in insight_value.lower() for term in ['rural', 'country']):
-                            demographics.location = 'Rural'
-                        else:
-                            demographics.location = insight_value or 'Urban'
-                        break
-            
-            # Extract occupation information from Resonate insights
-            if 'occupation' in demo_data:
-                occupation_insights = demo_data['occupation']
-                for insight_entry in occupation_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
-                        
-                        print(f"DEBUG: Processing occupation insight: {insight_text} = {insight_value}")
-                        
-                        # Map occupation
-                        if any(term in insight_text for term in ['professional', 'manager', 'executive']) or insight_value:
-                            demographics.occupation = insight_value or 'Professional'
-                        break
+                        if isinstance(insight_entry, dict) and 'data' in insight_entry:
+                            data = insight_entry['data']
+                            insight_text = data.get('insight', '').lower()
+                            insight_value = str(data.get('value', ''))
+                            
+                            print(f"DEBUG: Processing {demo_field} insight: {insight_text} = {insight_value}")
+                            
+                            # Map based on demographic field type
+                            if demo_field == 'age':
+                                # Map age ranges
+                                if any(term in insight_text for term in ['18-24', '18 to 24', '18-25']) or any(term in insight_value for term in ['18-24', '18 to 24']):
+                                    demographics.age_range = AgeRange.gen_z
+                                elif any(term in insight_text for term in ['25-34', '25 to 34', '25-40']) or any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
+                                    demographics.age_range = AgeRange.millennial
+                                elif any(term in insight_text for term in ['35-44', '35 to 44', '41-56']) or any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
+                                    demographics.age_range = AgeRange.gen_x
+                                elif any(term in insight_text for term in ['45-54', '55-64', '57-75']) or any(term in insight_value for term in ['45-54', '55-64', '57-75']):
+                                    demographics.age_range = AgeRange.boomer
+                                elif any(term in insight_text for term in ['65+', '75+', '76+']) or any(term in insight_value for term in ['65+', '75+', '76+']):
+                                    demographics.age_range = AgeRange.silent
+                                break
+                            
+                            elif demo_field == 'gender':
+                                # Map gender
+                                if any(term in insight_text for term in ['female', 'woman', 'women']) or any(term in insight_value.lower() for term in ['female', 'woman', 'women']):
+                                    demographics.gender = 'Female'
+                                elif any(term in insight_text for term in ['male', 'man', 'men']) or any(term in insight_value.lower() for term in ['male', 'man', 'men']):
+                                    demographics.gender = 'Male'
+                                elif 'female' in insight_value.lower() or 'woman' in insight_value.lower():
+                                    demographics.gender = 'Female'  # Default for mixed with female skew
+                                break
+                            
+                            elif demo_field == 'income':
+                                # Extract income range
+                                if '$' in insight_value or 'income' in insight_text:
+                                    demographics.income_range = insight_value
+                                break
+                            
+                            elif demo_field == 'education':
+                                # Map education level
+                                if any(term in insight_text for term in ['college', 'university', 'degree']) or any(term in insight_value.lower() for term in ['college', 'bachelor', 'degree']):
+                                    demographics.education = insight_value or "Bachelor's Degree"
+                                break
+                            
+                            elif demo_field == 'location':
+                                # Map location type
+                                if any(term in insight_text for term in ['urban', 'city', 'metropolitan']) or any(term in insight_value.lower() for term in ['urban', 'city']):
+                                    demographics.location = 'Urban'
+                                elif any(term in insight_text for term in ['suburban', 'suburb']) or any(term in insight_value.lower() for term in ['suburban', 'suburb']):
+                                    demographics.location = 'Suburban'
+                                elif any(term in insight_text for term in ['rural', 'country']) or any(term in insight_value.lower() for term in ['rural', 'country']):
+                                    demographics.location = 'Rural'
+                                else:
+                                    demographics.location = insight_value or 'Urban'
+                                break
+                            
+                            elif demo_field == 'occupation':
+                                # Map occupation
+                                if any(term in insight_text for term in ['professional', 'manager', 'executive']) or insight_value:
+                                    demographics.occupation = insight_value or 'Professional'
+                                break
+                
+                elif isinstance(demo_values, dict):
+                    # Handle dictionary format (fallback)
+                    print(f"DEBUG: Handling dictionary format for {demo_field}")
+                    # Could add handling for other data structures here if needed
             
             persona_data.demographics = demographics
         
