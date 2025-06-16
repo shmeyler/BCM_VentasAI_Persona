@@ -1,0 +1,14 @@
+Insight,Insight Value,Category,Subcategory1,Composition (%)
+Age,25-40,Demographics,Age,65
+Gender,Female,Demographics,Gender,58
+Income,"$50,000-$75,000",Demographics,Income,42
+Location,Urban,Demographics,Location,75
+Occupation,Marketing Professional,Demographics,Occupation,38
+Social Media Membership,Instagram,Media,Social Platforms,85
+Social Media Membership,Facebook,Media,Social Platforms,72
+Social Media Membership,LinkedIn,Media,Social Platforms,68
+Social Media Membership,Twitter/X,Media,Social Platforms,45
+Social Media Membership,TikTok,Media,Social Platforms,38
+Brand Preference,Apple,Shopping,Brand Affinity,65
+Brand Preference,Nike,Shopping,Brand Affinity,58
+Brand Preference,Amazon,Shopping,Brand Affinity,82
