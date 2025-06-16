@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 from pathlib import Path
 import logging
 import requests
