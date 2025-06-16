@@ -75,7 +75,37 @@ const HomePage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Multi-Source Data Collection - NEW FEATURED OPTION */}
+          <div 
+            className={`bcm-card relative overflow-hidden cursor-pointer transition-all duration-200 ${
+              selectedMethod === 'multi_source_data' ? 'ring-4 ring-purple-500 ring-opacity-50 bg-purple-50' : ''
+            }`} 
+            onClick={() => handleCardClick("multi_source_data")}
+          >
+            {/* Featured Badge */}
+            <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+              ✨ NEW
+            </div>
+            
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 text-purple-600 mb-4">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4,6H2V2H6V4H4V6M2,22V18H4V20H6V22H2M22,2V6H20V4H18V2H22M22,22H18V20H20V18H22V22M8,2H16V4H8V2M2,8H4V16H2V8M20,8H22V16H20V8M8,20H16V22H8V20M10,6H14V8H10V6M6,10H8V14H6V10M16,10H18V14H16V10M10,16H14V18H10V16Z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">Multi-Source Data</h3>
+              <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
+                Upload data from Resonate, SparkToro, SEMRush, and Buzzabout.ai for the most comprehensive AI-powered persona
+              </p>
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-xs text-purple-600 font-semibold">
+                  🎯 Most Accurate • 🤖 AI-Powered • 📊 Data-Driven
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Start with Demographics */}
           <div 
             className={`bcm-card cursor-pointer transition-all duration-200 ${
@@ -101,17 +131,12 @@ const HomePage = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-2xl font-semibold text-center mb-4 font-montserrat bcm-heading">
+            <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">
               Start with Demographics
             </h3>
-            <p className="text-gray-600 text-center text-lg mb-6">
+            <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
               Provide basic demographics and one key attribute. Our AI will map the rest.
             </p>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                <strong>Best for:</strong> When you know your target demographics and want AI to suggest matching behaviors and preferences.
-              </p>
-            </div>
           </div>
 
           {/* Start with Attributes */}
