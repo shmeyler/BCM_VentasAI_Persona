@@ -679,16 +679,51 @@ async def create_persona_from_resonate_data(request: dict):
             demo_data = parsed_data['demographics']
             demographics = Demographics()
             
-            # For now, set reasonable defaults to avoid parsing errors
-            # TODO: Implement proper Resonate data mapping later
-            demographics.age_range = AgeRange.millennial  # Default to millennial
-            demographics.gender = 'Female'  # Default
-            demographics.location = 'Urban'  # Default  
-            demographics.occupation = 'Professional'  # Default
-            demographics.income_range = '$50,000 - $99,999'  # Default
-            demographics.education = "Bachelor's Degree"  # Default
+            # Set initial defaults
+            demographics.age_range = AgeRange.millennial  
+            demographics.gender = 'Female'  
+            demographics.location = 'Urban'  
+            demographics.occupation = 'Professional'  
+            demographics.income_range = '$50,000 - $99,999'  
+            demographics.education = "Bachelor's Degree"  
             
-            print(f"DEBUG: Set default demographics to avoid parsing errors")
+            print(f"DEBUG: Processing demographics data keys: {list(demo_data.keys())}")
+            
+            # Extract actual gender data from Resonate insights
+            for field_name, field_data in demo_data.items():
+                if isinstance(field_data, list):
+                    for source_entry in field_data:
+                        if isinstance(source_entry, dict) and 'data' in source_entry:
+                            # Check if data is a list of insights (the actual structure)
+                            if isinstance(source_entry['data'], list):
+                                for insight in source_entry['data']:
+                                    if isinstance(insight, dict) and 'data' in insight:
+                                        insight_data = insight['data']
+                                        insight_text = insight_data.get('insight', '').lower()
+                                        insight_value = str(insight_data.get('value', '')).lower()
+                                        composition = insight_data.get('composition', '')
+                                        
+                                        print(f"DEBUG: Found insight: {insight_text} = {insight_value} ({composition})")
+                                        
+                                        # Look for gender-related insights
+                                        if any(gender_term in insight_text for gender_term in ['gender', 'male', 'female', 'man', 'woman']):
+                                            if any(male_term in insight_value for male_term in ['male', 'man', 'men']):
+                                                demographics.gender = 'Male'
+                                                print(f"DEBUG: Set gender to Male based on: {insight_value}")
+                                            elif any(female_term in insight_value for female_term in ['female', 'woman', 'women']):
+                                                demographics.gender = 'Female'
+                                                print(f"DEBUG: Set gender to Female based on: {insight_value}")
+                                        
+                                        # Look for age-related insights
+                                        if any(age_term in insight_text for age_term in ['age', 'year']):
+                                            if any(term in insight_value for term in ['18-24', '18 to 24']):
+                                                demographics.age_range = AgeRange.gen_z
+                                            elif any(term in insight_value for term in ['25-34', '25 to 34', '25-40']):
+                                                demographics.age_range = AgeRange.millennial
+                                            elif any(term in insight_value for term in ['35-44', '35 to 44', '41-56']):
+                                                demographics.age_range = AgeRange.gen_x
+                                            elif any(term in insight_value for term in ['45-54', '55-64', '57-75']):
+                                                demographics.age_range = AgeRange.boomer
             
             persona_data.demographics = demographics
         
