@@ -191,6 +191,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Fixed CSV parsing issues by updating the parse_csv method to properly handle quoted values. Also improved the mapping logic in server.py to correctly map demographic fields to persona attributes. Comprehensive testing with properly quoted CSV files confirms that the Resonate upload and parsing functionality now works correctly. End-to-end workflow from upload to persona generation with AI image works successfully."
+      - working: true
+        agent: "testing"
+        comment: "Fixed issues with the data structure in file_parsers.py and improved the data mapping in server.py. The system now correctly extracts demographic data from CSV files and maps it to the persona structure. Social media platforms and brand preferences are now properly extracted and mapped. The end-to-end workflow from upload to persona generation works successfully with realistic data. Only minor issue: malformed ZIP files return 200 instead of 422 status code, but this doesn't affect functionality."
 
 frontend:
   - task: "React application setup and routing"
