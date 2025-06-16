@@ -32,7 +32,11 @@ class ResonateFileParser:
             'png': self.parse_image,
             'jpg': self.parse_image,
             'jpeg': self.parse_image,
-            'txt': self.parse_text
+            'txt': self.parse_text,
+            'ppt': self.parse_powerpoint,
+            'pptx': self.parse_powerpoint,
+            'doc': self.parse_word,
+            'docx': self.parse_word
         }
     
     def extract_and_parse_zip(self, zip_file_path: str) -> Dict[str, Any]:
