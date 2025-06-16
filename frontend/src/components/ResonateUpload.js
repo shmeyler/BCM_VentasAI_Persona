@@ -62,6 +62,18 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
         setParsedData(result.parsed_data || {});
         setShowFilePreview(true);
         setShowDataPreview(true); // Show data preview directly since we have parsed data
+        
+        // Update dataSources state to mark Resonate as uploaded
+        if (setDataSources) {
+          setDataSources(prevSources => ({
+            ...prevSources,
+            resonate: {
+              uploaded: true,
+              data: result.parsed_data || {},
+              required: true
+            }
+          }));
+        }
       } else {
         throw new Error(result.message || 'Failed to process ZIP file');
       }
