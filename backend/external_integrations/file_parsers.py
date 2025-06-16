@@ -385,12 +385,10 @@ class ResonateFileParser:
                     value_counts = df[col].value_counts().head(5).to_dict()
                     
                     # Store the results
-                    insights['demographics'][demo_type] = [{
-                        'source': col,
-                        'data': {
-                            'top_values': value_counts
-                        }
-                    }]
+                    insights['demographics'][demo_type] = {
+                        'source_column': col,
+                        'top_values': value_counts
+                    }
                 except Exception as e:
                     print(f"Error processing column {col}: {e}")
     
