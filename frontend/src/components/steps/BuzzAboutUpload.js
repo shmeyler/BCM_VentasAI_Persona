@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
 
 const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSources, setDataSources }) => {
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [reportUrl, setReportUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [uploadError, setUploadError] = useState(null);
 
-  const handleFileUpload = async (file) => {
-    if (!file) return;
+  const handleUrlSubmit = async () => {
+    if (!reportUrl.trim()) {
+      setUploadError('Please enter a valid Buzzabout.ai report URL');
+      return;
+    }
 
     setIsProcessing(true);
     setUploadError(null);
     
     try {
-      // Create FormData to send the file
-      const formData = new FormData();
-      formData.append('file', file);
-
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
-      const response = await fetch(`${backendUrl}/api/personas/buzzabout-upload`, {
+      const response = await fetch(`${backendUrl}/api/personas/buzzabout-crawl`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report_url: reportUrl.trim()
+        }),
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to process Buzzabout.ai file';
+        let errorMessage = 'Failed to process Buzzabout.ai URL';
         try {
           const errorData = await response.json();
           errorMessage = errorData.detail || errorMessage;
@@ -40,7 +44,6 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
       
       if (result.success) {
         setParsedData(result.parsed_data);
-        setUploadedFile(file);
         
         // Update data sources state
         setDataSources(prev => ({
@@ -48,16 +51,17 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
           buzzabout: {
             uploaded: true,
             data: result.parsed_data,
-            required: false
+            required: false,
+            source_url: reportUrl.trim()
           }
         }));
       } else {
-        throw new Error(result.message || 'Failed to process Buzzabout.ai file');
+        throw new Error(result.message || 'Failed to process Buzzabout.ai URL');
       }
       
     } catch (error) {
-      console.error('Error processing Buzzabout.ai file:', error);
-      setUploadError(`Error processing file: ${error.message}`);
+      console.error('Error processing Buzzabout.ai URL:', error);
+      setUploadError(`Error processing URL: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
@@ -92,12 +96,12 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
           💬 Buzzabout.ai Social Sentiment Data
         </h2>
         <p className="text-gray-600 font-montserrat mb-4">
-          Upload your Buzzabout.ai social sentiment and trend analysis exports to understand 
-          your audience's social conversations, brand perceptions, and emerging topics.
+          Enter your Buzzabout.ai report URL and we'll crawl the social sentiment and trend analysis data 
+          to understand your audience's social conversations, brand perceptions, and emerging topics.
         </p>
         
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-800 mb-2">📋 What to Upload:</h3>
+          <h3 className="font-semibold text-blue-800 mb-2">📋 What We'll Extract:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
             <li>• <strong>Social Sentiment Reports</strong> - Brand and topic sentiment analysis</li>
             <li>• <strong>Trend Analysis</strong> - Emerging topics and conversation patterns</li>
@@ -107,42 +111,44 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
         </div>
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-yellow-800 mb-2">📁 Accepted Formats:</h3>
-          <div className="text-sm text-yellow-700">
-            CSV, Excel (.xlsx, .xls), JSON - Export from Buzzabout.ai dashboard
+          <h3 className="font-semibold text-yellow-800 mb-2">🔗 How to Get Your Report URL:</h3>
+          <div className="text-sm text-yellow-700 space-y-1">
+            <div>1. Go to your Buzzabout.ai dashboard</div>
+            <div>2. Generate or open your audience sentiment report</div>
+            <div>3. Copy the report URL from your browser address bar</div>
+            <div>4. Paste the URL below</div>
           </div>
         </div>
       </div>
 
-      {/* File Upload Area */}
+      {/* URL Input Area */}
       <div className="mb-6">
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Buzzabout.ai Report URL
+        </label>
+        <div className="flex gap-3">
           <input
-            type="file"
-            id="buzzabout-file-upload"
-            className="hidden"
-            accept=".csv,.xlsx,.xls,.json"
-            onChange={(e) => handleFileUpload(e.target.files[0])}
+            type="url"
+            value={reportUrl}
+            onChange={(e) => setReportUrl(e.target.value)}
+            placeholder="https://buzzabout.ai/reports/your-report-id"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             disabled={isProcessing}
           />
-          <label 
-            htmlFor="buzzabout-file-upload" 
-            className={`cursor-pointer ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          <button
+            onClick={handleUrlSubmit}
+            disabled={isProcessing || !reportUrl.trim()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            <div className="text-gray-500 mb-2">
-              💬 <span className="font-semibold">Upload Buzzabout.ai Data</span>
-            </div>
-            <div className="text-sm text-gray-400">
-              Click to browse or drag and drop your Buzzabout.ai export files
-            </div>
-          </label>
+            {isProcessing ? 'Crawling...' : 'Process URL'}
+          </button>
         </div>
       </div>
 
       {/* Error Display */}
       {uploadError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="text-red-800 font-semibold mb-2">Upload Error</div>
+          <div className="text-red-800 font-semibold mb-2">Processing Error</div>
           <div className="text-red-700 text-sm">{uploadError}</div>
         </div>
       )}
@@ -153,7 +159,7 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
           <div className="flex items-center">
             <div className="loading-spinner mr-3"></div>
             <div>
-              <div className="text-blue-800 font-semibold">Processing Buzzabout.ai Data...</div>
+              <div className="text-blue-800 font-semibold">Crawling Buzzabout.ai Report...</div>
               <div className="text-blue-700 text-sm">Analyzing social sentiment and conversation trends</div>
             </div>
           </div>
@@ -164,8 +170,11 @@ const BuzzAboutUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
       {parsedData && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <h3 className="text-green-800 font-semibold mb-2">✅ Buzzabout.ai Data Processed Successfully</h3>
-          <div className="text-green-700 text-sm">
-            Extracted social sentiment, conversation themes, and trend insights from your Buzzabout.ai data.
+          <div className="text-green-700 text-sm mb-3">
+            Extracted social sentiment, conversation themes, and trend insights from your Buzzabout.ai report.
+          </div>
+          <div className="text-xs text-green-600 break-all">
+            <strong>Source:</strong> {reportUrl}
           </div>
         </div>
       )}
