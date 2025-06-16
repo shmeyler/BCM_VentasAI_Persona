@@ -116,14 +116,20 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
   };
 
   const handleNext = async () => {
+    console.log('handleNext called');
+    console.log('parsedData:', parsedData);
+    
     if (!parsedData) {
       alert('Please upload and parse your Resonate data ZIP file first.');
       return;
     }
 
     try {
+      console.log('Starting persona creation from Resonate data...');
+      
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      console.log('Backend URL:', backendUrl);
       
       // Create persona using the resonate-create endpoint
       const response = await fetch(`${backendUrl}/api/personas/resonate-create`, {
@@ -137,12 +143,16 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
         }),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Backend error:', errorData);
         throw new Error(errorData.detail || 'Failed to create persona from Resonate data');
       }
 
       const result = await response.json();
+      console.log('Backend result:', result);
       
       if (result.success && result.persona) {
         // Extract the created persona data from the backend
@@ -171,11 +181,13 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
           resonate_data: parsedData
         };
         
-        console.log('Updating persona with Resonate data:', personaUpdate);
+        console.log('Updating persona with:', personaUpdate);
         
         const success = await updatePersona(personaUpdate, 3);
+        console.log('Update success:', success);
         
         if (success) {
+          console.log('Calling onNext...');
           onNext();
         }
       } else {
