@@ -568,34 +568,11 @@ async def generate_persona(persona_id: str):
     # Generate persona image using the comprehensive function
     persona_image_url = await generate_persona_image(persona_data)
     
-    # Mock AI generation for now (replace with actual AI service)
-    ai_insights = {
-        "personality_traits": ["Tech-savvy", "Value-conscious", "Social"],
-        "shopping_behavior": "Researches extensively before purchase",
-        "decision_factors": ["Price", "Quality", "Brand reputation"],
-        "digital_behavior": "Active on social media, uses mobile-first approach"
-    }
-    
-    recommendations = [
-        "Use social media advertising on preferred platforms",
-        "Highlight value proposition and cost savings",
-        "Provide detailed product information and reviews",
-        "Optimize for mobile experience"
-    ]
-    
-    pain_points = [
-        "Limited time for research",
-        "Information overload",
-        "Budget constraints",
-        "Trust in online purchases"
-    ]
-    
-    goals = [
-        "Make informed purchasing decisions",
-        "Get the best value for money",
-        "Save time in the buying process",
-        "Stay updated with latest trends"
-    ]
+    # Generate AI-enhanced insights based on uploaded data
+    ai_insights = generate_intelligent_insights(persona_data)
+    recommendations = generate_data_driven_recommendations(persona_data)
+    pain_points = generate_contextual_pain_points(persona_data)
+    goals = generate_targeted_goals(persona_data)
     
     generated_persona = GeneratedPersona(
         name=persona_data.name or f"Persona {persona_data.id[:8]}",
