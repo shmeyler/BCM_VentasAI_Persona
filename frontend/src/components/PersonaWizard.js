@@ -197,7 +197,17 @@ const PersonaWizard = () => {
       case "key_demographics":
         return <KeyDemographicsStep {...commonProps} />;
       case "resonate_upload":
-        return <ResonateUpload {...commonProps} />;
+        return <ResonateUpload {...commonProps} dataSources={dataSources} setDataSources={setDataSources} />;
+      case "sparktoro_upload":
+        return <SparkToroUpload {...commonProps} dataSources={dataSources} setDataSources={setDataSources} />;
+      case "semrush_upload":
+        return <SEMRushUpload {...commonProps} dataSources={dataSources} setDataSources={setDataSources} />;
+      case "buzzabout_upload":
+        return <BuzzAboutUpload {...commonProps} dataSources={dataSources} setDataSources={setDataSources} />;
+      case "data_integration":
+        return <DataIntegrationStep {...commonProps} dataSources={dataSources} dataIntegration={dataIntegration} setDataIntegration={setDataIntegration} />;
+      case "ai_generation":
+        return <AIPersonaGenerationStep {...commonProps} dataSources={dataSources} dataIntegration={dataIntegration} />;
       case "review_resonate":
         return <ReviewResonateStep {...commonProps} />;
       case "ai_mapping":
