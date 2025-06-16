@@ -227,45 +227,6 @@ const HomePage = () => {
           </div>
         </div>
 
-          {/* Start with Attributes */}
-          <div 
-            className={`bcm-card-cyan cursor-pointer transition-all duration-200 ${
-              selectedMethod === 'attributes' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
-            }`} 
-            onClick={() => handleCardClick("attributes")}
-          >
-            <div className="text-center">
-              <div className="mx-auto h-16 w-16 text-cyan-600 mb-4">
-                <svg fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">Start with Attributes</h3>
-              <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
-                Begin with psychographic attributes and let our AI suggest corresponding demographics
-              </p>
-            </div>
-          </div>
-
-          {/* Upload Resonate Data */}
-          <div 
-            className={`bcm-card-green cursor-pointer transition-all duration-200 ${
-              selectedMethod === 'resonate_upload' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
-            }`} 
-            onClick={() => handleCardClick("resonate_upload")}
-          >
-            <div className="text-center">
-              <div className="mx-auto h-16 w-16 text-green-600 mb-4">
-                <svg fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold font-montserrat mb-2 text-gray-800">Upload Resonate Data</h3>
-              <p className="text-gray-600 font-montserrat text-sm leading-relaxed">
-                Upload your Resonate rAI reports (CSV, PDF, PPT) for data-driven persona generation
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
