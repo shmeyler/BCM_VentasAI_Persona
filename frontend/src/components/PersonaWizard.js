@@ -8,6 +8,11 @@ import MediaConsumptionStep from "./steps/MediaConsumptionStep";
 import GeneratedPersonaStep from "./steps/GeneratedPersonaStep";
 import ReviewResonateStep from "./steps/ReviewResonateStep";
 import ResonateUpload from "./ResonateUpload";
+import SparkToroUpload from "./steps/SparkToroUpload";
+import SEMRushUpload from "./steps/SEMRushUpload";
+import BuzzAboutUpload from "./steps/BuzzAboutUpload";
+import DataIntegrationStep from "./steps/DataIntegrationStep";
+import AIPersonaGenerationStep from "./steps/AIPersonaGenerationStep";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
