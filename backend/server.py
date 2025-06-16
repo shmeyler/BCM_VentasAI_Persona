@@ -597,7 +597,7 @@ async def generate_persona(persona_id: str):
         recommendations=recommendations,
         pain_points=pain_points,
         goals=goals,
-        communication_style="Direct, informative, and value-focused",
+        communication_style=_generate_communication_style(persona_data),
         persona_image_url=persona_image_url
     )
     
