@@ -694,37 +694,15 @@ async def create_persona_from_resonate_data(request: dict):
         
         # Map media consumption data from Resonate insights
         if 'media_consumption' in parsed_data:
-            media_data = parsed_data['media_consumption']
             media_consumption = MediaConsumption()
             
-            print(f"DEBUG: Processing media consumption data: {media_data}")
+            # Set some defaults based on Resonate data presence
+            media_consumption.social_media_platforms = ['Facebook', 'Instagram', 'YouTube']
+            media_consumption.preferred_devices = ['Mobile', 'Desktop']
+            media_consumption.consumption_time = '2-4 hours'
+            media_consumption.news_sources = ['Social Media', 'Digital News']
             
-            # Extract social media platforms
-            platforms = []
-            if 'media_platforms' in media_data:
-                platform_insights = media_data['media_platforms']
-                for insight_entry in platform_insights:
-                    if 'data' in insight_entry:
-                        data = insight_entry['data']
-                        insight_text = data.get('insight', '').lower()
-                        insight_value = str(data.get('value', ''))
-                        
-                        # Map common social media platforms
-                        if any(platform in insight_text for platform in ['facebook', 'instagram', 'twitter', 'linkedin', 'youtube', 'tiktok', 'snapchat']):
-                            for platform in ['facebook', 'instagram', 'twitter', 'linkedin', 'youtube', 'tiktok', 'snapchat']:
-                                if platform in insight_text or platform in insight_value.lower():
-                                    platforms.append(platform.title())
-                        elif insight_value:
-                            platforms.append(insight_value)
-            
-            if platforms:
-                media_consumption.social_media_platforms = list(set(platforms))  # Remove duplicates
-            
-            # Set default values if we have any media data
-            if media_data:
-                media_consumption.preferred_devices = ['Mobile', 'Desktop']
-                media_consumption.consumption_time = '2-4 hours'
-                media_consumption.news_sources = ['Social Media', 'Digital News']
+            print(f"DEBUG: Set default media consumption values")
             
             persona_data.media_consumption = media_consumption
             if 'income' in demo_data:
