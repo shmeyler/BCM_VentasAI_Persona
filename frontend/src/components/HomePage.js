@@ -231,33 +231,31 @@ const HomePage = () => {
           </div>
         </div>
 
-      {/* Navigation Buttons */}
-      <div className="mt-8 pt-4 border-t border-gray-200 flex justify-between">
-        <button 
-          type="button" 
-          disabled 
-          className="px-4 py-2 rounded-md font-medium text-sm bg-gray-200 text-gray-400 cursor-not-allowed"
-        >
-          Back
-        </button>
-        <button 
-          type="button" 
-          onClick={handleNext}
-          className="bcm-btn-primary"
-          style={{backgroundColor: selectedMethod ? '#007bff' : '#ccc'}}
-        >
-          {isCreating ? (
-            <div className="flex items-center">
-              <div className="loading-spinner mr-2"></div>
-              Creating...
-            </div>
-          ) : (
-            selectedMethod ? "Start Creating Persona" : "Select an Option Above"
-          )}
-        </button>
+        {/* Navigation Buttons */}
+        <div className="mt-8 pt-4 border-t border-gray-200 flex justify-between">
+          <button 
+            type="button" 
+            disabled 
+            className="px-4 py-2 rounded-md font-medium text-sm bg-gray-200 text-gray-400 cursor-not-allowed"
+          >
+            Back
+          </button>
+          <button 
+            type="button" 
+            onClick={handleNext}
+            className="bcm-btn-primary"
+            style={{backgroundColor: selectedMethod ? '#007bff' : '#ccc'}}
+            disabled={!selectedMethod || isCreating}
+          >
+            {isCreating ? 'Creating...' : 'Next'}
+          </button>
+        </div>
       </div>
+    </div>
+  );
+};
 
-      {/* Data Sources Footer */}
+export default HomePage;
       <div className="mt-16 text-center">
         <h2 className="text-2xl font-bold font-montserrat mb-4 bcm-heading">
           Powered by Leading Data Sources
