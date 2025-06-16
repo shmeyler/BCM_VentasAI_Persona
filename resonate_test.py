@@ -511,7 +511,7 @@ def main():
     print("=" * 60)
     
     # Get backend URL from frontend/.env
-    backend_url = "https://15f53198-94d2-4b58-bc74-9e5313a8760b.preview.emergentagent.com/api"
+    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
     print(f"Using backend URL: {backend_url}")
     
     tester = ResonateUploadTester(backend_url)

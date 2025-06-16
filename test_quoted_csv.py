@@ -35,7 +35,7 @@ def create_zip_with_csv(csv_path):
 def test_upload_zip(zip_path):
     import requests
     
-    backend_url = "https://15f53198-94d2-4b58-bc74-9e5313a8760b.preview.emergentagent.com/api"
+    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
     url = f"{backend_url}/personas/resonate-upload"
     
     files = {

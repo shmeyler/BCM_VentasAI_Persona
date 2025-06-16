@@ -59,7 +59,7 @@ def create_zip_with_csvs(csv_paths):
 
 # Test the end-to-end Resonate workflow
 def test_resonate_workflow():
-    backend_url = "https://15f53198-94d2-4b58-bc74-9e5313a8760b.preview.emergentagent.com/api"
+    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
     
     # Step 1: Create CSV files and ZIP
     print("Step 1: Creating test data files...")

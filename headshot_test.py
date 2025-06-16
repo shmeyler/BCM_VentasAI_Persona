@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class HeadshotTester:
-    def __init__(self, base_url="https://15f53198-94d2-4b58-bc74-9e5313a8760b.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
