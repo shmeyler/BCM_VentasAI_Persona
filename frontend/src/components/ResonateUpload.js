@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving }) => {
+const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSources, setDataSources }) => {
   const [uploadedZip, setUploadedZip] = useState(null);
   const [extractedFiles, setExtractedFiles] = useState([]);
   const [parsedData, setParsedData] = useState(null);
