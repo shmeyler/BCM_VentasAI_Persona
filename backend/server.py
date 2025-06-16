@@ -343,6 +343,22 @@ def generate_targeted_goals(persona_data: PersonaData) -> List[str]:
     
     return goals[:5]  # Limit to top 5 goals
 
+def _generate_communication_style(persona_data: PersonaData) -> str:
+    """Generate communication style based on persona data"""
+    demographics = persona_data.demographics
+    
+    if demographics.age_range == AgeRange.gen_z:
+        return "Authentic, visual, and purpose-driven communication"
+    elif demographics.age_range == AgeRange.millennial:
+        return "Direct, informative, and value-focused communication"
+    elif demographics.age_range == AgeRange.gen_x:
+        return "Professional, detailed, and trustworthy communication"
+    elif demographics.age_range == AgeRange.boomer:
+        return "Respectful, traditional, and service-oriented communication"
+    else:
+        return "Clear, professional, and informative communication"
+
+
 def _get_decision_factors(demographics: Demographics, attributes: Attributes) -> List[str]:
     """Determine key decision factors based on demographics and attributes"""
     factors = []
