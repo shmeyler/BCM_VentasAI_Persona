@@ -146,6 +146,226 @@ class GeneratePersonaRequest(BaseModel):
     persona_id: str
 
 
+# Helper functions for AI-enhanced persona generation based on uploaded data
+def generate_intelligent_insights(persona_data: PersonaData) -> Dict[str, Any]:
+    """Generate AI insights based on actual persona data"""
+    demographics = persona_data.demographics
+    media = persona_data.media_consumption
+    attributes = persona_data.attributes
+    
+    # Base personality traits on demographics and uploaded data
+    personality_traits = []
+    
+    # Age-based traits
+    if demographics.age_range == AgeRange.gen_z:
+        personality_traits.extend(["Digital native", "Socially conscious", "Entrepreneurial"])
+    elif demographics.age_range == AgeRange.millennial:
+        personality_traits.extend(["Tech-savvy", "Value-conscious", "Experience-focused"])
+    elif demographics.age_range == AgeRange.gen_x:
+        personality_traits.extend(["Pragmatic", "Independent", "Quality-focused"])
+    elif demographics.age_range == AgeRange.boomer:
+        personality_traits.extend(["Traditional", "Brand loyal", "Quality-oriented"])
+    
+    # Gender-based adjustments
+    if demographics.gender == "Female":
+        personality_traits.append("Community-oriented")
+    elif demographics.gender == "Male":
+        personality_traits.append("Goal-oriented")
+    
+    # Income-based traits
+    if demographics.income_range and "$75,000" in demographics.income_range:
+        personality_traits.extend(["Premium-conscious", "Investment-minded"])
+    elif demographics.income_range and "$50,000" in demographics.income_range:
+        personality_traits.extend(["Value-conscious", "Budget-aware"])
+    
+    # Social media behavior based on platforms
+    platforms = media.social_media_platforms or []
+    digital_behavior = "Limited digital presence"
+    if len(platforms) >= 4:
+        digital_behavior = "Heavy social media user, multi-platform engagement"
+    elif len(platforms) >= 2:
+        digital_behavior = "Active on social media, selective platform usage"
+    elif len(platforms) >= 1:
+        digital_behavior = "Moderate social media usage, focused platform preference"
+    
+    # Shopping behavior based on age and income
+    shopping_behavior = "Standard purchase behavior"
+    if demographics.age_range in [AgeRange.millennial, AgeRange.gen_z]:
+        shopping_behavior = "Research-heavy, reviews-driven, mobile-first shopping"
+    elif demographics.age_range == AgeRange.gen_x:
+        shopping_behavior = "Methodical researcher, brand comparison focused"
+    elif demographics.age_range == AgeRange.boomer:
+        shopping_behavior = "Brand loyal, prefers established retailers"
+    
+    return {
+        "personality_traits": personality_traits[:4],  # Limit to top 4
+        "shopping_behavior": shopping_behavior,
+        "decision_factors": _get_decision_factors(demographics, attributes),
+        "digital_behavior": digital_behavior
+    }
+
+def generate_data_driven_recommendations(persona_data: PersonaData) -> List[str]:
+    """Generate marketing recommendations based on persona data"""
+    recommendations = []
+    demographics = persona_data.demographics
+    media = persona_data.media_consumption
+    
+    # Platform-specific recommendations
+    platforms = media.social_media_platforms or []
+    if "Instagram" in platforms:
+        recommendations.append("Use Instagram visual storytelling and influencer partnerships")
+    if "LinkedIn" in platforms:
+        recommendations.append("Leverage LinkedIn for professional and B2B messaging")
+    if "Facebook" in platforms:
+        recommendations.append("Utilize Facebook targeted advertising and community groups")
+    if "TikTok" in platforms:
+        recommendations.append("Create engaging short-form video content for TikTok")
+    if "Twitter" in platforms or "Twitter/X" in platforms:
+        recommendations.append("Engage in real-time conversations and trending topics on X/Twitter")
+    
+    # Age-based recommendations
+    if demographics.age_range == AgeRange.gen_z:
+        recommendations.append("Focus on authentic, purpose-driven brand messaging")
+        recommendations.append("Prioritize mobile-first, video-centric content")
+    elif demographics.age_range == AgeRange.millennial:
+        recommendations.append("Highlight convenience and time-saving benefits")
+        recommendations.append("Emphasize value for money and experiences over products")
+    elif demographics.age_range == AgeRange.gen_x:
+        recommendations.append("Provide detailed product information and comparisons")
+        recommendations.append("Use trusted review sources and testimonials")
+    elif demographics.age_range == AgeRange.boomer:
+        recommendations.append("Focus on reliability and customer service quality")
+        recommendations.append("Use traditional media channels alongside digital")
+    
+    # Income-based recommendations
+    if demographics.income_range and ("$75,000" in demographics.income_range or "$100,000" in demographics.income_range):
+        recommendations.append("Position premium features and exclusive offerings")
+    else:
+        recommendations.append("Emphasize value propositions and cost-effectiveness")
+    
+    # Location-based recommendations
+    if demographics.location == "Urban":
+        recommendations.append("Highlight convenience and fast delivery options")
+    elif demographics.location == "Suburban":
+        recommendations.append("Focus on family-oriented messaging and bulk options")
+    elif demographics.location == "Rural":
+        recommendations.append("Emphasize online accessibility and shipping benefits")
+    
+    return recommendations[:6]  # Limit to top 6 recommendations
+
+def generate_contextual_pain_points(persona_data: PersonaData) -> List[str]:
+    """Generate pain points based on persona context"""
+    pain_points = []
+    demographics = persona_data.demographics
+    
+    # Age-based pain points
+    if demographics.age_range == AgeRange.gen_z:
+        pain_points.extend([
+            "Limited disposable income for premium products",
+            "Overwhelmed by too many brand choices",
+            "Skeptical of traditional advertising"
+        ])
+    elif demographics.age_range == AgeRange.millennial:
+        pain_points.extend([
+            "Time constraints due to busy lifestyle",
+            "Information overload when researching products",
+            "Balancing quality with affordability"
+        ])
+    elif demographics.age_range == AgeRange.gen_x:
+        pain_points.extend([
+            "Difficulty keeping up with technology changes",
+            "Concerns about online security and privacy",
+            "Preference for proven brands over new options"
+        ])
+    elif demographics.age_range == AgeRange.boomer:
+        pain_points.extend([
+            "Discomfort with complex digital interfaces",
+            "Preference for personal customer service",
+            "Caution about online purchasing"
+        ])
+    
+    # Income-based pain points
+    if demographics.income_range and "$25,000" in demographics.income_range:
+        pain_points.append("Budget constraints limiting premium options")
+    elif demographics.income_range and "$50,000" in demographics.income_range:
+        pain_points.append("Need to justify larger purchases carefully")
+    
+    # General pain points
+    pain_points.extend([
+        "Finding trustworthy product reviews",
+        "Comparing similar products effectively"
+    ])
+    
+    return pain_points[:5]  # Limit to top 5 pain points
+
+def generate_targeted_goals(persona_data: PersonaData) -> List[str]:
+    """Generate goals based on persona characteristics"""
+    goals = []
+    demographics = persona_data.demographics
+    
+    # Age-based goals
+    if demographics.age_range == AgeRange.gen_z:
+        goals.extend([
+            "Discover brands that align with personal values",
+            "Find affordable options that don't compromise quality",
+            "Stay current with trends and innovations"
+        ])
+    elif demographics.age_range == AgeRange.millennial:
+        goals.extend([
+            "Make efficient purchasing decisions",
+            "Find products that enhance lifestyle and experiences",
+            "Get the best value for money spent"
+        ])
+    elif demographics.age_range == AgeRange.gen_x:
+        goals.extend([
+            "Make informed, researched purchase decisions",
+            "Find reliable products that last long-term",
+            "Support brands with good customer service"
+        ])
+    elif demographics.age_range == AgeRange.boomer:
+        goals.extend([
+            "Purchase from trusted, established brands",
+            "Receive excellent customer support",
+            "Find products that meet specific needs reliably"
+        ])
+    
+    # Income-based goals
+    if demographics.income_range and ("$75,000" in demographics.income_range or "$100,000" in demographics.income_range):
+        goals.append("Access premium products and services")
+    else:
+        goals.append("Maximize value within budget constraints")
+    
+    # General goals
+    goals.extend([
+        "Avoid purchase regret through careful selection",
+        "Save time in the buying process"
+    ])
+    
+    return goals[:5]  # Limit to top 5 goals
+
+def _get_decision_factors(demographics: Demographics, attributes: Attributes) -> List[str]:
+    """Determine key decision factors based on demographics and attributes"""
+    factors = []
+    
+    # Age-based factors
+    if demographics.age_range == AgeRange.gen_z:
+        factors.extend(["Social impact", "Authenticity", "Price"])
+    elif demographics.age_range == AgeRange.millennial:
+        factors.extend(["Reviews", "Convenience", "Value"])
+    elif demographics.age_range == AgeRange.gen_x:
+        factors.extend(["Quality", "Brand reputation", "Features"])
+    elif demographics.age_range == AgeRange.boomer:
+        factors.extend(["Trust", "Customer service", "Reliability"])
+    
+    # Income-based factors
+    if demographics.income_range and "$75,000" in demographics.income_range:
+        factors.append("Premium features")
+    else:
+        factors.append("Price competitiveness")
+    
+    return factors[:4]  # Limit to top 4 factors
+
+
 # Helper functions for data normalization
 def _normalize_gender(gender):
     """Normalize gender data for image generation"""
