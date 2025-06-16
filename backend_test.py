@@ -1006,9 +1006,36 @@ class VentasAIPersonaGeneratorTester:
         print("=" * 60)
 
 
-def main():
-    print("🚀 Starting BCM VentasAI Persona Generator Backend Tests")
-    print("=" * 60)
+def create_test_csv_with_quoted_values():
+    """Create a test CSV file with properly quoted values to handle commas"""
+    temp_dir = tempfile.mkdtemp()
+    csv_path = os.path.join(temp_dir, "demographics_quoted.csv")
+    
+    with open(csv_path, 'w') as f:
+        f.write('Age Group,Gender,Household Income,Education Level,Location,Occupation,Social Platforms\n')
+        f.write('"25-40","Female","$50,000-$75,000","Bachelor\'s Degree","Urban","Marketing Professional","Instagram, Facebook, LinkedIn"\n')
+        f.write('"41-56","Male","$75,000-$100,000","Master\'s Degree","Suburban","Executive","LinkedIn, Twitter, Facebook"\n')
+        f.write('"18-24","Female","$25,000-$50,000","Some College","Urban","Student","TikTok, Instagram, YouTube"\n')
+    
+    # Create a ZIP file with this CSV
+    zip_path = os.path.join(temp_dir, "test_quoted_data.zip")
+    with zipfile.ZipFile(zip_path, 'w') as zip_file:
+        zip_file.write(csv_path, os.path.basename(csv_path))
+    
+    return zip_path
+
+def test_complete_e2e_workflow():
+    """
+    Test the complete end-to-end workflow for BCM VentasAI Persona Generator:
+    1. Create persona with resonate_upload starting method
+    2. Upload a Resonate ZIP file with sample demographic data
+    3. Create persona from the parsed data
+    4. Generate the final persona
+    5. Verify that the generated persona uses the uploaded data intelligently
+    """
+    print("\n" + "=" * 80)
+    print("🔍 TESTING COMPLETE END-TO-END DATA UPLOAD AND PERSONA GENERATION WORKFLOW")
+    print("=" * 80)
     
     # Get backend URL from frontend/.env
     backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
@@ -1016,61 +1043,323 @@ def main():
     
     tester = VentasAIPersonaGeneratorTester(backend_url)
     
+    # Step 1: Create a test ZIP file with properly quoted values
+    print("\n📦 Creating test ZIP file with demographic data...")
+    zip_path = create_test_csv_with_quoted_values()
+    print(f"   ✅ Created test ZIP file at: {zip_path}")
+    
+    # Step 2: Upload the ZIP file
+    print("\n📤 Uploading ZIP file to resonate-upload endpoint...")
+    files = {
+        'file': ('test_quoted_data.zip', open(zip_path, 'rb'), 'application/zip')
+    }
+    
+    upload_success, upload_response = tester.run_test(
+        "E2E Test - Resonate Upload",
+        "POST",
+        "personas/resonate-upload",
+        200,
+        files=files
+    )
+    
+    if not upload_success or not upload_response.get('success'):
+        print("❌ Failed to upload ZIP file. Aborting E2E test.")
+        os.remove(zip_path)
+        return False
+    
+    print("   ✅ Successfully uploaded and parsed ZIP file")
+    parsed_data = upload_response.get('parsed_data', {})
+    
+    # Step 3: Create persona from parsed data
+    print("\n👤 Creating persona from parsed Resonate data...")
+    create_success, create_response = tester.run_test(
+        "E2E Test - Create Persona from Resonate Data",
+        "POST",
+        "personas/resonate-create",
+        200,
+        data={
+            "name": "E2E Test Persona",
+            "parsed_data": parsed_data
+        }
+    )
+    
+    if not create_success or not create_response.get('success'):
+        print("❌ Failed to create persona from parsed data. Aborting E2E test.")
+        os.remove(zip_path)
+        return False
+    
+    print("   ✅ Successfully created persona from parsed data")
+    persona = create_response.get('persona', {})
+    persona_id = persona.get('id')
+    
+    if not persona_id:
+        print("❌ No persona ID returned. Aborting E2E test.")
+        os.remove(zip_path)
+        return False
+    
+    # Step 4: Generate the final persona
+    print(f"\n🧠 Generating final persona with AI insights for persona ID: {persona_id}...")
+    generate_success, generate_response = tester.run_test(
+        "E2E Test - Generate Final Persona",
+        "POST",
+        f"personas/{persona_id}/generate",
+        200
+    )
+    
+    if not generate_success:
+        print("❌ Failed to generate final persona. Aborting E2E test.")
+        os.remove(zip_path)
+        return False
+    
+    print("   ✅ Successfully generated final persona with AI insights")
+    
+    # Step 5: Verify the generated persona uses the uploaded data intelligently
+    print("\n🔍 Verifying generated persona uses uploaded data intelligently...")
+    
+    # Check demographics
+    demographics = generate_response.get('persona_data', {}).get('demographics', {})
+    print("\n📊 DEMOGRAPHICS VERIFICATION:")
+    if demographics.get('age_range') == "25-40":
+        print("   ✅ Age range correctly set to: 25-40")
+    else:
+        print(f"   ❌ Age range incorrect: {demographics.get('age_range')}")
+    
+    if demographics.get('gender') == "Female":
+        print("   ✅ Gender correctly set to: Female")
+    else:
+        print(f"   ❌ Gender incorrect: {demographics.get('gender')}")
+    
+    if demographics.get('income_range') and "$50,000-$75,000" in demographics.get('income_range'):
+        print("   ✅ Income range correctly includes: $50,000-$75,000")
+    else:
+        print(f"   ❌ Income range incorrect: {demographics.get('income_range')}")
+    
+    if demographics.get('location') == "Urban":
+        print("   ✅ Location correctly set to: Urban")
+    else:
+        print(f"   ❌ Location incorrect: {demographics.get('location')}")
+    
+    if demographics.get('occupation') and "Marketing" in demographics.get('occupation'):
+        print("   ✅ Occupation correctly includes: Marketing Professional")
+    else:
+        print(f"   ❌ Occupation incorrect: {demographics.get('occupation')}")
+    
+    # Check media consumption
+    media = generate_response.get('persona_data', {}).get('media_consumption', {})
+    print("\n📱 MEDIA CONSUMPTION VERIFICATION:")
+    platforms = media.get('social_media_platforms', [])
+    expected_platforms = ["Instagram", "Facebook", "LinkedIn"]
+    
+    found_platforms = [p for p in expected_platforms if any(p.lower() in platform.lower() for platform in platforms)]
+    if len(found_platforms) >= 2:
+        print(f"   ✅ Social platforms correctly include at least 2 of: {', '.join(expected_platforms)}")
+        print(f"   Actual platforms: {', '.join(platforms)}")
+    else:
+        print(f"   ❌ Social platforms missing expected values. Found: {', '.join(platforms)}")
+    
+    # Check AI insights
+    ai_insights = generate_response.get('ai_insights', {})
+    print("\n🧠 AI INSIGHTS VERIFICATION:")
+    
+    personality_traits = ai_insights.get('personality_traits', [])
+    millennial_traits = ["Tech-savvy", "Value-conscious", "Experience-focused"]
+    
+    found_traits = [t for t in millennial_traits if any(t.lower() in trait.lower() for trait in personality_traits)]
+    if len(found_traits) >= 1:
+        print(f"   ✅ Personality traits correctly include Millennial-specific traits")
+        print(f"   Actual traits: {', '.join(personality_traits)}")
+    else:
+        print(f"   ❌ Personality traits missing Millennial-specific values. Found: {', '.join(personality_traits)}")
+    
+    # Check recommendations
+    recommendations = generate_response.get('recommendations', [])
+    print("\n💡 RECOMMENDATIONS VERIFICATION:")
+    
+    platform_specific_recs = []
+    for platform in ["Instagram", "Facebook", "LinkedIn"]:
+        for rec in recommendations:
+            if platform.lower() in rec.lower():
+                platform_specific_recs.append(f"{platform}: {rec}")
+                break
+    
+    if len(platform_specific_recs) >= 2:
+        print(f"   ✅ Recommendations correctly include platform-specific advice")
+        for rec in platform_specific_recs:
+            print(f"   - {rec}")
+    else:
+        print(f"   ❌ Recommendations missing platform-specific advice. Found: {len(platform_specific_recs)} platform mentions")
+    
+    # Check communication style
+    comm_style = generate_response.get('communication_style', '')
+    print("\n💬 COMMUNICATION STYLE VERIFICATION:")
+    
+    if "Direct" in comm_style and "informative" in comm_style:
+        print(f"   ✅ Communication style correctly matches Millennial demographic")
+        print(f"   Style: {comm_style}")
+    else:
+        print(f"   ❌ Communication style doesn't match expected Millennial pattern")
+        print(f"   Style: {comm_style}")
+    
+    # Check pain points
+    pain_points = generate_response.get('pain_points', [])
+    print("\n⚠️ PAIN POINTS VERIFICATION:")
+    
+    millennial_pain_points = ["Time constraints", "busy lifestyle", "information overload"]
+    found_pain_points = []
+    
+    for point in pain_points:
+        for expected in millennial_pain_points:
+            if expected.lower() in point.lower():
+                found_pain_points.append(point)
+                break
+    
+    if len(found_pain_points) >= 1:
+        print(f"   ✅ Pain points correctly include Millennial-specific issues")
+        for point in found_pain_points:
+            print(f"   - {point}")
+    else:
+        print(f"   ❌ Pain points missing Millennial-specific issues")
+        print(f"   Points: {', '.join(pain_points)}")
+    
+    # Check image generation
+    image_url = generate_response.get('persona_image_url')
+    print("\n🖼️ IMAGE GENERATION VERIFICATION:")
+    
+    if image_url:
+        print(f"   ✅ Persona image successfully generated")
+        print(f"   Image URL: {image_url[:60]}...")
+    else:
+        print(f"   ❌ No persona image generated")
+    
+    # Clean up
+    os.remove(zip_path)
+    
+    # Overall assessment
+    print("\n" + "=" * 80)
+    print("🏁 END-TO-END WORKFLOW TEST RESULTS")
+    print("=" * 80)
+    
+    success_criteria = [
+        demographics.get('age_range') == "25-40",
+        demographics.get('gender') == "Female",
+        "$50,000-$75,000" in (demographics.get('income_range') or ""),
+        demographics.get('location') == "Urban",
+        "Marketing" in (demographics.get('occupation') or ""),
+        len(found_platforms) >= 2,
+        len(found_traits) >= 1,
+        len(platform_specific_recs) >= 2,
+        "Direct" in comm_style and "informative" in comm_style,
+        len(found_pain_points) >= 1,
+        image_url is not None
+    ]
+    
+    success_rate = sum(1 for c in success_criteria if c) / len(success_criteria) * 100
+    
+    if success_rate >= 80:
+        print(f"✅ END-TO-END TEST PASSED: {success_rate:.1f}% of verification criteria met")
+        return True
+    else:
+        print(f"❌ END-TO-END TEST FAILED: Only {success_rate:.1f}% of verification criteria met")
+        return False
+
+def main():
+    print("🚀 Starting BCM VentasAI Persona Generator Backend Tests")
+    print("=" * 60)
+    
     # Check if we should run specific tests
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == "resonate":
-        print("\n🔍 Running focused Resonate data parsing and mapping tests...")
-        tests = [
-            # API Health Check
-            tester.test_api_root,
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "e2e":
+            # Run only the end-to-end workflow test
+            return 0 if test_complete_e2e_workflow() else 1
+        elif sys.argv[1] == "resonate":
+            # Get backend URL from frontend/.env
+            backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+            print(f"Using backend URL: {backend_url}")
             
-            # Resonate Upload Tests
-            tester.test_resonate_upload_realistic,
-            tester.test_resonate_upload_multiple_formats,
-            tester.test_resonate_upload_error_handling,
-            tester.test_resonate_upload_non_zip,
+            tester = VentasAIPersonaGeneratorTester(backend_url)
+            print("\n🔍 Running focused Resonate data parsing and mapping tests...")
+            tests = [
+                # API Health Check
+                tester.test_api_root,
+                
+                # Resonate Upload Tests
+                tester.test_resonate_upload_realistic,
+                tester.test_resonate_upload_multiple_formats,
+                tester.test_resonate_upload_error_handling,
+                tester.test_resonate_upload_non_zip,
+                
+                # Resonate Create Tests
+                tester.test_resonate_create_from_data,
+                tester.test_end_to_end_resonate_workflow
+            ]
             
-            # Resonate Create Tests
-            tester.test_resonate_create_from_data,
-            tester.test_end_to_end_resonate_workflow
-        ]
-    else:
-        # Define full test sequence
-        tests = [
-            # 1. Basic API Health Check
-            tester.test_api_root,
+            print(f"\n📋 Running {len(tests)} API tests...")
             
-            # 2. Persona Creation Workflow
-            tester.test_create_persona,
-            tester.test_get_persona,
-            tester.test_update_persona_demographics,
-            tester.test_update_persona_attributes,
-            tester.test_update_persona_media_consumption,
+            for test in tests:
+                try:
+                    test()
+                    # Add a small delay between tests to avoid overwhelming the server
+                    time.sleep(0.5)
+                except Exception as e:
+                    print(f"❌ Test failed with exception: {str(e)}")
             
-            # 3. OpenAI Integration Test
-            tester.test_generate_persona,
+            # Print summary of results
+            tester.print_summary()
             
-            # 4. Data Sources Integration
-            tester.test_data_sources_status,
-            tester.test_data_sources_demo,
-            tester.test_persona_insights,
-            
-            # 5. File Upload Functionality
-            tester.test_resonate_upload,
-            tester.test_resonate_upload_realistic,
-            tester.test_resonate_upload_multiple_formats,
-            tester.test_resonate_upload_error_handling,
-            tester.test_resonate_upload_non_zip,
-            tester.test_resonate_create_from_data,
-            tester.test_end_to_end_resonate_workflow,
-            
-            # Additional Tests
-            tester.test_list_personas,
-            tester.test_list_generated_personas,
-            
-            # Cleanup
-            tester.test_delete_persona
-        ]
+            if tester.tests_passed == tester.tests_run:
+                print("🎉 All tests passed! The BCM VentasAI Persona Generator API is working correctly.")
+                return 0
+            else:
+                print("⚠️  Some tests failed. Check the output above for details.")
+                return 1
+    
+    # Run the comprehensive end-to-end test by default
+    print("\n🔍 Running comprehensive end-to-end workflow test...")
+    e2e_success = test_complete_e2e_workflow()
+    
+    # Get backend URL from frontend/.env
+    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+    print(f"\nUsing backend URL: {backend_url}")
+    
+    tester = VentasAIPersonaGeneratorTester(backend_url)
+    
+    # Define full test sequence
+    tests = [
+        # 1. Basic API Health Check
+        tester.test_api_root,
+        
+        # 2. Persona Creation Workflow
+        tester.test_create_persona,
+        tester.test_get_persona,
+        tester.test_update_persona_demographics,
+        tester.test_update_persona_attributes,
+        tester.test_update_persona_media_consumption,
+        
+        # 3. OpenAI Integration Test
+        tester.test_generate_persona,
+        
+        # 4. Data Sources Integration
+        tester.test_data_sources_status,
+        tester.test_data_sources_demo,
+        tester.test_persona_insights,
+        
+        # 5. File Upload Functionality
+        tester.test_resonate_upload,
+        tester.test_resonate_upload_realistic,
+        tester.test_resonate_upload_multiple_formats,
+        tester.test_resonate_upload_error_handling,
+        tester.test_resonate_upload_non_zip,
+        tester.test_resonate_create_from_data,
+        tester.test_end_to_end_resonate_workflow,
+        
+        # Additional Tests
+        tester.test_list_personas,
+        tester.test_list_generated_personas,
+        
+        # Cleanup
+        tester.test_delete_persona
+    ]
     
     print(f"\n📋 Running {len(tests)} API tests...")
     
@@ -1085,7 +1374,7 @@ def main():
     # Print summary of results
     tester.print_summary()
     
-    if tester.tests_passed == tester.tests_run:
+    if tester.tests_passed == tester.tests_run and e2e_success:
         print("🎉 All tests passed! The BCM VentasAI Persona Generator API is working correctly.")
         return 0
     else:
