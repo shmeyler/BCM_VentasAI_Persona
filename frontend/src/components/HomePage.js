@@ -231,9 +231,6 @@ const HomePage = () => {
           </div>
         </div>
 
-        </div>
-      </div>
-
       {/* Navigation Buttons */}
       <div className="mt-8 pt-4 border-t border-gray-200 flex justify-between">
         <button 
