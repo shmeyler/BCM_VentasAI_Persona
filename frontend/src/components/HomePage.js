@@ -8,7 +8,7 @@ const API = `${BACKEND_URL}/api`;
 const HomePage = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [selectedMethod, setSelectedMethod] = useState("multi_source_data");
 
   console.log('BACKEND_URL:', BACKEND_URL); // Debug log
   console.log('API:', API); // Debug log
