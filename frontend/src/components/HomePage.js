@@ -153,10 +153,10 @@ const HomePage = () => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Deprecated Options - Hidden but preserved for future use */}
-          <div className="hidden">
-            {/* Start with Demographics - DEPRECATED */}
+        {/* Navigation Buttons */}
+        <div className="mt-8 pt-4 border-t border-gray-200 flex justify-between">
             <div 
               className={`bcm-card cursor-pointer transition-all duration-200 ${
                 selectedMethod === 'demographics' ? 'ring-4 ring-blue-500 ring-opacity-50 bg-blue-50' : ''
