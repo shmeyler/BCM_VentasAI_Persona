@@ -23,6 +23,21 @@ const PersonaWizard = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // Multi-source data collection state
+  const [dataSources, setDataSources] = useState({
+    resonate: { uploaded: false, data: null, required: true },
+    sparktoro: { uploaded: false, data: null, required: false },
+    semrush: { uploaded: false, data: null, required: false },
+    buzzabout: { uploaded: false, data: null, required: false }
+  });
+  
+  // Track which data sources have been processed
+  const [dataIntegration, setDataIntegration] = useState({
+    processed: false,
+    combinedInsights: null,
+    aiPrompt: null
+  });
 
   // Define the new multi-source data collection flow
   const getSteps = () => {
