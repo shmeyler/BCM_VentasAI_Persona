@@ -825,6 +825,138 @@ async def get_demo_data_sources():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get demo data: {str(e)}")
 
+# Multi-Source Data Integration Endpoints
+@api_router.post("/personas/integrate-data")
+async def integrate_multi_source_data(request: dict):
+    """
+    Integrate data from multiple sources (Resonate, SparkToro, SEMRush, Buzzabout.ai)
+    and prepare comprehensive AI prompt for persona generation
+    """
+    try:
+        data_sources = request.get('data_sources', {})
+        persona_name = request.get('persona_name', 'Multi-Source Persona')
+        
+        # Extract data from each source
+        combined_insights = {}
+        ai_prompt_sections = []
+        
+        # Process Resonate data (required)
+        if data_sources.get('resonate', {}).get('uploaded'):
+            resonate_data = data_sources['resonate'].get('data', {})
+            combined_insights['resonate'] = resonate_data
+            
+            # Build Resonate section of AI prompt
+            resonate_prompt = "RESONATE DATA ANALYSIS:\n"
+            if 'demographics' in resonate_data:
+                resonate_prompt += f"Demographics: {_format_data_for_prompt(resonate_data['demographics'])}\n"
+            if 'media_consumption' in resonate_data:
+                resonate_prompt += f"Media Consumption: {_format_data_for_prompt(resonate_data['media_consumption'])}\n"
+            if 'brand_affinity' in resonate_data:
+                resonate_prompt += f"Brand Preferences: {_format_data_for_prompt(resonate_data['brand_affinity'])}\n"
+            
+            ai_prompt_sections.append(resonate_prompt)
+        
+        # Process SparkToro data (optional)
+        if data_sources.get('sparktoro', {}).get('uploaded'):
+            sparktoro_data = data_sources['sparktoro'].get('data', {})
+            combined_insights['sparktoro'] = sparktoro_data
+            ai_prompt_sections.append(f"SPARKTORO AUDIENCE RESEARCH:\n{_format_data_for_prompt(sparktoro_data)}\n")
+        
+        # Process SEMRush data (optional)
+        if data_sources.get('semrush', {}).get('uploaded'):
+            semrush_data = data_sources['semrush'].get('data', {})
+            combined_insights['semrush'] = semrush_data
+            ai_prompt_sections.append(f"SEMRUSH SEARCH BEHAVIOR:\n{_format_data_for_prompt(semrush_data)}\n")
+        
+        # Process Buzzabout.ai data (optional)
+        if data_sources.get('buzzabout', {}).get('uploaded'):
+            buzzabout_data = data_sources['buzzabout'].get('data', {})
+            combined_insights['buzzabout'] = buzzabout_data
+            ai_prompt_sections.append(f"BUZZABOUT SOCIAL SENTIMENT:\n{_format_data_for_prompt(buzzabout_data)}\n")
+        
+        # Create comprehensive AI prompt
+        ai_prompt = f"""
+Create a comprehensive customer persona named "{persona_name}" based on the following multi-source data analysis:
+
+{chr(10).join(ai_prompt_sections)}
+
+SYNTHESIS REQUIREMENTS:
+1. Demographic Profile: Extract and synthesize age, gender, income, location, education, occupation
+2. Behavioral Patterns: Identify key behaviors, preferences, and decision-making patterns
+3. Media Consumption: Analyze platform preferences, content types, consumption habits
+4. Pain Points: Identify frustrations, challenges, and barriers
+5. Goals & Motivations: Determine primary objectives and driving factors
+6. Communication Style: Recommend optimal messaging approach and tone
+7. Marketing Channels: Suggest most effective channels and platforms
+8. Brand Affinities: Highlight preferred brands and category preferences
+
+DELIVERABLE:
+Provide a detailed, actionable persona profile that marketing teams can use for targeting, messaging, and campaign development. Include specific recommendations for content strategy, channel selection, and messaging frameworks.
+
+Focus on creating a cohesive narrative that combines insights from all data sources into a single, comprehensive persona that represents the target audience's complete behavioral and demographic profile.
+"""
+        
+        # Prepare demographic insights summary
+        demographic_insights = {}
+        if combined_insights.get('resonate', {}).get('demographics'):
+            demo_data = combined_insights['resonate']['demographics']
+            for key, value in demo_data.items():
+                if isinstance(value, dict) and 'top_values' in value:
+                    demographic_insights[key] = list(value['top_values'].keys())[:3]  # Top 3 values
+        
+        # Prepare behavioral patterns summary
+        behavioral_patterns = []
+        if combined_insights.get('resonate', {}).get('media_consumption'):
+            media_data = combined_insights['resonate']['media_consumption']
+            for key, value in media_data.items():
+                if isinstance(value, dict) and 'top_values' in value:
+                    top_behaviors = list(value['top_values'].keys())[:2]
+                    behavioral_patterns.extend([f"{key}: {behavior}" for behavior in top_behaviors])
+        
+        # Add patterns from other sources
+        for source_name in ['sparktoro', 'semrush', 'buzzabout']:
+            if source_name in combined_insights:
+                behavioral_patterns.append(f"{source_name.title()} insights available")
+        
+        return {
+            "success": True,
+            "message": "Data sources integrated successfully",
+            "combined_insights": {
+                "total_sources": len([s for s in data_sources.values() if s.get('uploaded')]),
+                "demographic_insights": demographic_insights,
+                "behavioral_patterns": behavioral_patterns[:10],  # Limit to top 10
+                "data_quality": "High" if len(demographic_insights) >= 3 else "Medium",
+                "integration_timestamp": datetime.utcnow().isoformat()
+            },
+            "ai_prompt": ai_prompt,
+            "raw_data": combined_insights
+        }
+        
+    except Exception as e:
+        logging.error(f"Error integrating multi-source data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Data integration failed: {str(e)}")
+
+def _format_data_for_prompt(data: dict) -> str:
+    """Format data dictionary for inclusion in AI prompt"""
+    if not data:
+        return "No data available"
+    
+    formatted_parts = []
+    for key, value in data.items():
+        if isinstance(value, dict):
+            if 'top_values' in value:
+                top_items = list(value['top_values'].keys())[:5]  # Top 5 items
+                formatted_parts.append(f"{key}: {', '.join(top_items)}")
+            else:
+                formatted_parts.append(f"{key}: {str(value)[:100]}...")  # Truncate long values
+        elif isinstance(value, list):
+            formatted_parts.append(f"{key}: {', '.join(map(str, value[:5]))}")  # Top 5 items
+        else:
+            formatted_parts.append(f"{key}: {str(value)[:100]}")
+    
+    return "; ".join(formatted_parts)
+
+
 # END DATA SOURCES ENDPOINTS
 
 # Resonate File Upload Endpoints
