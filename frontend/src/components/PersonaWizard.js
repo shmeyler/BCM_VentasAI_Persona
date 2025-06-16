@@ -24,9 +24,19 @@ const PersonaWizard = () => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Define steps based on starting method - with Media Consumption included
+  // Define the new multi-source data collection flow
   const getSteps = () => {
-    if (startingMethod === "demographics") {
+    if (startingMethod === "multi_source_data") {
+      return [
+        { id: 1, name: "Basic Info", component: "basic" },
+        { id: 2, name: "Resonate Data", component: "resonate_upload", required: true },
+        { id: 3, name: "SparkToro Data", component: "sparktoro_upload", required: false },
+        { id: 4, name: "SEMRush Data", component: "semrush_upload", required: false },
+        { id: 5, name: "Buzzabout.ai Data", component: "buzzabout_upload", required: false },
+        { id: 6, name: "Data Integration", component: "data_integration" },
+        { id: 7, name: "AI Persona Generation", component: "ai_generation" }
+      ];
+    } else if (startingMethod === "demographics") {
       return [
         { id: 1, name: "Basic Info", component: "basic" },
         { id: 2, name: "Demographics", component: "demographics" },
