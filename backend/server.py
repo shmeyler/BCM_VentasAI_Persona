@@ -729,17 +729,63 @@ async def create_persona_from_resonate_data(request: dict):
         
         # Map media consumption data from Resonate insights
         if 'media_consumption' in parsed_data:
+            media_data = parsed_data['media_consumption']
             media_consumption = MediaConsumption()
             
-            # Set some defaults based on Resonate data presence
-            media_consumption.social_media_platforms = ['Facebook', 'Instagram', 'YouTube']
+            print(f"DEBUG: Processing media consumption data keys: {list(media_data.keys())}")
+            
+            # Extract gender and demographic info that might be in media consumption data
+            demographics = persona_data.demographics
+            platforms = []
+            
+            # Process media platforms data which often contains demographic breakdowns
+            if 'media_platforms' in media_data:
+                platform_data = media_data['media_platforms']
+                if isinstance(platform_data, list):
+                    for source_entry in platform_data:
+                        if isinstance(source_entry, dict) and 'data' in source_entry:
+                            if isinstance(source_entry['data'], list):
+                                for insight in source_entry['data']:
+                                    if isinstance(insight, dict) and 'data' in insight:
+                                        insight_data = insight['data']
+                                        insight_text = insight_data.get('insight', '').lower()
+                                        insight_value = str(insight_data.get('value', '')).lower()
+                                        composition = insight_data.get('composition', '')
+                                        
+                                        # Look for demographic clues in media consumption
+                                        # Check for gender indicators in the data
+                                        if any(male_indicator in insight_text + insight_value for male_indicator in ['male', 'man', 'men', 'father', 'dad', 'husband', 'masculine']):
+                                            demographics.gender = 'Male'
+                                            print(f"DEBUG: Updated gender to Male from media insight: {insight_text} = {insight_value}")
+                                        
+                                        # Extract social media platforms
+                                        if 'social media membership' in insight_text:
+                                            if insight_value not in ['none of the above', '']:
+                                                platforms.append(insight_value.title())
+            
+            # Set media consumption defaults based on findings
+            if platforms:
+                # Clean up platform names and remove duplicates
+                cleaned_platforms = []
+                for platform in platforms:
+                    if platform.lower() == 'x (formerly known as twitter)':
+                        cleaned_platforms.append('Twitter/X')
+                    elif platform not in cleaned_platforms:
+                        cleaned_platforms.append(platform)
+                
+                media_consumption.social_media_platforms = cleaned_platforms[:6]  # Limit to top 6
+            else:
+                media_consumption.social_media_platforms = ['Facebook', 'Instagram', 'YouTube']
+            
             media_consumption.preferred_devices = ['Mobile', 'Desktop']
             media_consumption.consumption_time = '2-4 hours'
             media_consumption.news_sources = ['Social Media', 'Digital News']
             
-            print(f"DEBUG: Set default media consumption values")
+            print(f"DEBUG: Final gender set to: {demographics.gender}")
+            print(f"DEBUG: Extracted platforms: {media_consumption.social_media_platforms}")
             
             persona_data.media_consumption = media_consumption
+            persona_data.demographics = demographics  # Update demographics with any findings from media data
             if 'income' in demo_data:
                 income_info = demo_data['income']
                 if isinstance(income_info, list) and len(income_info) > 0:
