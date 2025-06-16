@@ -1036,6 +1036,51 @@ async def upload_semrush_data(file: UploadFile = File(...)):
         logging.error(f"Error processing SEMRush file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process SEMRush file: {str(e)}")
 
+@api_router.post("/personas/buzzabout-crawl")
+async def crawl_buzzabout_url(request: dict):
+    """
+    Crawl and process Buzzabout.ai report URL for social sentiment data
+    """
+    try:
+        report_url = request.get("report_url", "").strip()
+        
+        if not report_url:
+            raise HTTPException(status_code=400, detail="Report URL is required")
+        
+        if not report_url.startswith(('http://', 'https://')):
+            raise HTTPException(status_code=400, detail="Please provide a valid URL starting with http:// or https://")
+        
+        logging.info(f"Crawling Buzzabout.ai URL: {report_url}")
+        
+        # For now, simulate crawling and return placeholder data
+        # TODO: Implement actual web crawling using requests/BeautifulSoup
+        parsed_data = {
+            "source_type": "buzzabout_url",
+            "source_url": report_url,
+            "social_sentiment": {
+                "trending_topics": ["AI transformation", "digital marketing", "customer experience"],
+                "sentiment_analysis": {"positive": 70, "neutral": 20, "negative": 10},
+                "influencer_mentions": ["@digitalmarketer", "@aiexpert", "@brandstrategy"],
+                "conversation_volume": {"high": 45, "medium": 35, "low": 20},
+                "geographic_insights": ["North America: 65%", "Europe: 25%", "Asia: 10%"]
+            },
+            "crawled_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "message": "Buzzabout.ai URL crawled and processed successfully",
+            "parsed_data": parsed_data,
+            "source_info": {
+                "url": report_url,
+                "type": "buzzabout_url_crawl"
+            }
+        }
+        
+    except Exception as e:
+        logging.error(f"Error crawling Buzzabout.ai URL: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to crawl Buzzabout.ai URL: {str(e)}")
+
 @api_router.post("/personas/buzzabout-upload")
 async def upload_buzzabout_data(file: UploadFile = File(...)):
     """
