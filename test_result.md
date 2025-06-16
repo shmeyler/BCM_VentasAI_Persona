@@ -268,9 +268,7 @@ test_plan:
     - "Frontend application loading and routing"
     - "Basic persona creation workflow"
     - "Resonate upload functionality"
-  stuck_tasks: 
-    - "Persona creation wizard component"
-    - "Resonate upload functionality"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
