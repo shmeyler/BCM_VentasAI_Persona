@@ -1,0 +1,4 @@
+id,age_range,gender,income_range,location,occupation,social_media_platforms,brand_preferences
+1,"25-40","Female","$50,000-$75,000","Urban","Marketing Professional","Instagram, Facebook, LinkedIn, Twitter/X","Apple, Nike, Starbucks, Whole Foods"
+2,"41-56","Male","$75,000-$100,000","Suburban","IT Manager","LinkedIn, Facebook, YouTube","Samsung, Under Armour, Dunkin Donuts"
+3,"18-24","Female","$25,000-$50,000","Urban","Student","TikTok, Instagram, Snapchat, YouTube","H&M, Sephora, Spotify, Target"
