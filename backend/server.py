@@ -1293,10 +1293,8 @@ async def upload_resonate_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"File processing failed: {str(e)}")
 
 @api_router.post("/personas/resonate-create")
-async def create_persona_from_resonate_data(request: dict):
-    """
-    Create a new persona from parsed Resonate data
-    """
+async def create_persona_from_resonate(request: dict):
+    """Create a persona from parsed Resonate data"""
     try:
         parsed_data = request.get('parsed_data', {})
         persona_name = request.get('name', 'Resonate Persona')
