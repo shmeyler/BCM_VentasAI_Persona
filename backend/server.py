@@ -1839,17 +1839,115 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
             
             logging.info(f"Processing SparkToro file: {file.filename}")
             
-            # Process the file (placeholder for now - will add real SparkToro parsing)
-            parsed_data = {
-                "source_type": "sparktoro",
-                "file_name": file.filename,
-                "audience_insights": {
-                    "social_platforms": ["Instagram", "Facebook", "TikTok"],
-                    "content_preferences": ["Educational", "Entertainment", "News"],
-                    "demographics": {"age_range": "25-34", "interests": ["Technology", "Marketing"]}
-                },
-                "processed_at": datetime.now().isoformat()
-            }
+            # Add pandas and openpyxl for Excel parsing if not already imported
+            import pandas as pd
+            
+            parsed_data = {}
+            
+            # Check if it's an Excel file with multiple tabs (SparkToro format)
+            if file.filename.lower().endswith(('.xlsx', '.xls')):
+                try:
+                    # Read all sheets from the Excel file
+                    excel_file = pd.ExcelFile(file_path)
+                    sheet_names = excel_file.sheet_names
+                    
+                    logging.info(f"Found {len(sheet_names)} tabs in SparkToro Excel file: {sheet_names}")
+                    
+                    parsed_data = {
+                        "source_type": "sparktoro",
+                        "file_name": file.filename,
+                        "tabs_found": sheet_names,
+                        "categories": {},
+                        "processed_at": datetime.now().isoformat()
+                    }
+                    
+                    # Parse each tab as a category
+                    for sheet_name in sheet_names:
+                        try:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name)
+                            
+                            # Extract meaningful data from each tab
+                            category_data = {
+                                "tab_name": sheet_name,
+                                "row_count": len(df),
+                                "columns": list(df.columns),
+                                "top_values": {}
+                            }
+                            
+                            # Extract top values from each column that has data
+                            for column in df.columns:
+                                if df[column].dtype == 'object':  # String/text columns
+                                    value_counts = df[column].value_counts().head(10)
+                                    if not value_counts.empty:
+                                        category_data["top_values"][column] = value_counts.to_dict()
+                                elif df[column].dtype in ['int64', 'float64']:  # Numeric columns
+                                    if not df[column].isna().all():
+                                        category_data["top_values"][column] = {
+                                            "mean": float(df[column].mean()) if not df[column].isna().all() else 0,
+                                            "max": float(df[column].max()) if not df[column].isna().all() else 0,
+                                            "min": float(df[column].min()) if not df[column].isna().all() else 0
+                                        }
+                            
+                            parsed_data["categories"][sheet_name] = category_data
+                            
+                        except Exception as e:
+                            logging.warning(f"Error parsing sheet '{sheet_name}': {str(e)}")
+                            parsed_data["categories"][sheet_name] = {
+                                "tab_name": sheet_name,
+                                "error": f"Failed to parse: {str(e)}"
+                            }
+                    
+                except Exception as e:
+                    logging.error(f"Error reading Excel file: {str(e)}")
+                    # Fallback to basic file info
+                    parsed_data = {
+                        "source_type": "sparktoro",
+                        "file_name": file.filename,
+                        "error": f"Excel parsing failed: {str(e)}",
+                        "processed_at": datetime.now().isoformat()
+                    }
+                    
+            elif file.filename.lower().endswith('.csv'):
+                try:
+                    # Handle CSV files
+                    df = pd.read_csv(file_path)
+                    parsed_data = {
+                        "source_type": "sparktoro",
+                        "file_name": file.filename,
+                        "categories": {
+                            "main_data": {
+                                "tab_name": "CSV_Data",
+                                "row_count": len(df),
+                                "columns": list(df.columns),
+                                "top_values": {}
+                            }
+                        },
+                        "processed_at": datetime.now().isoformat()
+                    }
+                    
+                    # Extract top values from CSV
+                    for column in df.columns:
+                        if df[column].dtype == 'object':
+                            value_counts = df[column].value_counts().head(10)
+                            if not value_counts.empty:
+                                parsed_data["categories"]["main_data"]["top_values"][column] = value_counts.to_dict()
+                                
+                except Exception as e:
+                    logging.error(f"Error reading CSV file: {str(e)}")
+                    parsed_data = {
+                        "source_type": "sparktoro",
+                        "file_name": file.filename,
+                        "error": f"CSV parsing failed: {str(e)}",
+                        "processed_at": datetime.now().isoformat()
+                    }
+            else:
+                # Handle other file types
+                parsed_data = {
+                    "source_type": "sparktoro",
+                    "file_name": file.filename,
+                    "error": "Unsupported file format for detailed parsing",
+                    "processed_at": datetime.now().isoformat()
+                }
             
             return {
                 "success": True,
