@@ -149,6 +149,345 @@ class GeneratePersonaRequest(BaseModel):
 
 
 # Helper functions for AI-enhanced persona generation based on uploaded data
+def generate_enhanced_insights_from_uploaded_data(persona_data: PersonaData, data_sources: dict, combined_insights: dict) -> Dict[str, Any]:
+    """Generate AI insights using actual uploaded data from all sources"""
+    insights = {
+        "personality_traits": [],
+        "shopping_behavior": "",
+        "decision_factors": [],
+        "digital_behavior": ""
+    }
+    
+    # Extract insights from SparkToro data
+    if data_sources.get('sparktoro', {}).get('uploaded'):
+        sparktoro_data = data_sources['sparktoro'].get('data', {})
+        if 'categories' in sparktoro_data:
+            # Use actual SparkToro categories
+            for category_name, category_data in sparktoro_data['categories'].items():
+                if 'top_values' in category_data:
+                    # Extract personality traits from SparkToro data
+                    if 'interests' in category_name.lower() or 'topics' in category_name.lower():
+                        for column, values in category_data['top_values'].items():
+                            if isinstance(values, dict):
+                                top_interests = list(values.keys())[:3]
+                                for interest in top_interests:
+                                    if 'technology' in interest.lower():
+                                        insights["personality_traits"].append("Tech-savvy")
+                                    elif 'business' in interest.lower() or 'marketing' in interest.lower():
+                                        insights["personality_traits"].append("Business-oriented")
+                                    elif 'innovation' in interest.lower():
+                                        insights["personality_traits"].append("Innovation-focused")
+                                    elif 'education' in interest.lower() or 'learning' in interest.lower():
+                                        insights["personality_traits"].append("Knowledge-seeking")
+                    
+                    # Extract digital behavior from social platforms
+                    elif 'social' in category_name.lower() or 'networks' in category_name.lower():
+                        for column, values in category_data['top_values'].items():
+                            if isinstance(values, dict):
+                                platforms = list(values.keys())[:5]
+                                platform_count = len([p for p in platforms if p.lower() in ['facebook', 'instagram', 'linkedin', 'twitter', 'tiktok', 'youtube']])
+                                if platform_count >= 4:
+                                    insights["digital_behavior"] = "Heavy multi-platform social media user, highly engaged across channels"
+                                elif platform_count >= 2:
+                                    insights["digital_behavior"] = "Active on multiple social platforms, selective engagement"
+                                else:
+                                    insights["digital_behavior"] = "Focused social media usage, platform-specific preferences"
+    
+    # Extract insights from SEMRush data  
+    if data_sources.get('semrush', {}).get('uploaded'):
+        semrush_data = data_sources['semrush'].get('data', {})
+        if 'keyword_data' in semrush_data:
+            all_keywords = []
+            for sheet_name, sheet_data in semrush_data['keyword_data'].items():
+                if 'keywords' in sheet_data:
+                    for column, keywords in sheet_data['keywords'].items():
+                        all_keywords.extend(keywords[:10])  # Top 10 from each column
+            
+            # Analyze actual search behavior from keywords
+            research_keywords = [k for k in all_keywords if any(term in str(k).lower() for term in ['how to', 'best', 'review', 'compare', 'vs', 'guide'])]
+            commercial_keywords = [k for k in all_keywords if any(term in str(k).lower() for term in ['buy', 'price', 'cost', 'cheap', 'deal', 'discount'])]
+            
+            if len(research_keywords) > len(commercial_keywords):
+                insights["shopping_behavior"] = "Research-driven buyer, extensively evaluates options before purchasing"
+                insights["decision_factors"].extend(["Detailed product information", "Expert reviews", "Comparison data"])
+            else:
+                insights["shopping_behavior"] = "Efficient buyer, focuses on value and convenience"
+                insights["decision_factors"].extend(["Price competitiveness", "Quick purchase process", "Deal availability"])
+    
+    # Extract insights from Buzzabout data
+    if data_sources.get('buzzabout', {}).get('uploaded'):
+        buzzabout_data = data_sources['buzzabout'].get('data', {})
+        if 'social_sentiment' in buzzabout_data:
+            sentiment_data = buzzabout_data['social_sentiment']
+            
+            # Use actual trending topics
+            if 'trending_topics' in sentiment_data and sentiment_data['trending_topics']:
+                topics = sentiment_data['trending_topics'][:5]
+                for topic in topics:
+                    topic_lower = str(topic).lower()
+                    if 'ai' in topic_lower or 'technology' in topic_lower:
+                        insights["personality_traits"].append("Early technology adopter")
+                    elif 'marketing' in topic_lower or 'business' in topic_lower:
+                        insights["personality_traits"].append("Business-focused")
+                    elif 'innovation' in topic_lower or 'future' in topic_lower:
+                        insights["personality_traits"].append("Forward-thinking")
+            
+            # Use actual sentiment analysis
+            if 'sentiment_analysis' in sentiment_data:
+                sentiment = sentiment_data['sentiment_analysis']
+                if isinstance(sentiment, dict):
+                    positive_ratio = sentiment.get('positive', 0)
+                    if positive_ratio > 60:
+                        insights["personality_traits"].append("Optimistic")
+                        insights["decision_factors"].append("Positive brand perception")
+                    elif positive_ratio < 40:
+                        insights["personality_traits"].append("Cautious")
+                        insights["decision_factors"].append("Risk mitigation")
+    
+    # Remove duplicates and limit lists
+    insights["personality_traits"] = list(set(insights["personality_traits"]))[:4]
+    insights["decision_factors"] = list(set(insights["decision_factors"]))[:4]
+    
+    # Fallback to basic insights if no data found
+    if not insights["personality_traits"]:
+        insights = generate_intelligent_insights(persona_data)
+    
+    return insights
+
+def generate_enhanced_recommendations_from_data(persona_data: PersonaData, data_sources: dict) -> List[str]:
+    """Generate marketing recommendations using actual uploaded data"""
+    recommendations = []
+    
+    # Extract recommendations from SparkToro data
+    if data_sources.get('sparktoro', {}).get('uploaded'):
+        sparktoro_data = data_sources['sparktoro'].get('data', {})
+        if 'categories' in sparktoro_data:
+            # Use actual websites and platforms from SparkToro
+            for category_name, category_data in sparktoro_data['categories'].items():
+                if 'websites' in category_name.lower():
+                    for column, values in category_data.get('top_values', {}).items():
+                        if isinstance(values, dict):
+                            top_sites = list(values.keys())[:3]
+                            for site in top_sites:
+                                if 'reddit' in str(site).lower():
+                                    recommendations.append("Engage in Reddit communities relevant to your audience")
+                                elif 'youtube' in str(site).lower():
+                                    recommendations.append("Create YouTube content or advertise on YouTube")
+                                elif 'linkedin' in str(site).lower():
+                                    recommendations.append("Focus on LinkedIn professional networking and B2B content")
+                
+                elif 'podcasts' in category_name.lower():
+                    recommendations.append("Consider podcast advertising or guest appearances on relevant shows")
+                
+                elif 'subreddits' in category_name.lower():
+                    recommendations.append("Engage with specific Reddit communities where your audience is active")
+    
+    # Extract recommendations from SEMRush data
+    if data_sources.get('semrush', {}).get('uploaded'):
+        semrush_data = data_sources['semrush'].get('data', {})
+        if 'keyword_data' in semrush_data:
+            # Use actual keywords for content strategy
+            recommendations.append("Create content targeting your audience's actual search queries")
+            recommendations.append("Optimize SEO for high-intent keywords identified in your data")
+            
+            # Analyze keyword patterns
+            all_keywords = []
+            for sheet_data in semrush_data['keyword_data'].values():
+                for keywords in sheet_data.get('keywords', {}).values():
+                    all_keywords.extend(keywords[:5])
+            
+            question_keywords = [k for k in all_keywords if any(q in str(k).lower() for q in ['how', 'what', 'why', 'when', 'where'])]
+            if question_keywords:
+                recommendations.append("Develop FAQ content and educational resources addressing common questions")
+    
+    # Extract recommendations from Buzzabout data
+    if data_sources.get('buzzabout', {}).get('uploaded'):
+        buzzabout_data = data_sources['buzzabout'].get('data', {})
+        if 'social_sentiment' in buzzabout_data:
+            sentiment_data = buzzabout_data['social_sentiment']
+            
+            if 'hashtags' in sentiment_data and sentiment_data['hashtags']:
+                recommendations.append("Use trending hashtags identified in social sentiment analysis")
+            
+            if 'social_mentions' in sentiment_data and sentiment_data['social_mentions']:
+                recommendations.append("Monitor and engage with social conversations around your brand")
+    
+    # Add platform-specific recommendations based on actual social media data
+    if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms:
+        platforms = persona_data.media_consumption.social_media_platforms
+        if len(platforms) >= 3:
+            recommendations.append("Implement multi-platform social media strategy with consistent messaging")
+        
+        for platform in platforms[:3]:  # Top 3 platforms
+            if platform == "LinkedIn":
+                recommendations.append("Leverage LinkedIn for professional thought leadership content")
+            elif platform == "Instagram":
+                recommendations.append("Focus on visual storytelling and Instagram Stories engagement")
+            elif platform == "Facebook":
+                recommendations.append("Utilize Facebook groups and community engagement")
+    
+    # Remove duplicates and limit
+    recommendations = list(set(recommendations))[:6]
+    
+    # Fallback if no data found
+    if not recommendations:
+        recommendations = generate_data_driven_recommendations(persona_data)
+    
+    return recommendations
+
+def generate_enhanced_pain_points_from_data(persona_data: PersonaData, data_sources: dict) -> List[str]:
+    """Generate pain points using actual uploaded data insights"""
+    pain_points = []
+    
+    # Extract pain points from SEMRush search behavior
+    if data_sources.get('semrush', {}).get('uploaded'):
+        semrush_data = data_sources['semrush'].get('data', {})
+        if 'keyword_data' in semrush_data:
+            # Analyze search patterns for pain indicators
+            all_keywords = []
+            for sheet_data in semrush_data['keyword_data'].values():
+                for keywords in sheet_data.get('keywords', {}).values():
+                    all_keywords.extend([str(k).lower() for k in keywords[:10]])
+            
+            # Look for problem-indicating keywords
+            problem_keywords = [k for k in all_keywords if any(term in k for term in ['problem', 'issue', 'fix', 'error', 'not working', 'broken', 'slow'])]
+            comparison_keywords = [k for k in all_keywords if any(term in k for term in ['vs', 'versus', 'compare', 'alternative', 'better than'])]
+            cost_keywords = [k for k in all_keywords if any(term in k for term in ['cheap', 'affordable', 'budget', 'free', 'cost', 'price'])]
+            
+            if problem_keywords:
+                pain_points.append("Experiencing specific technical or performance issues")
+            if comparison_keywords:
+                pain_points.append("Difficulty choosing between multiple similar options")
+            if cost_keywords:
+                pain_points.append("Budget constraints affecting purchasing decisions")
+    
+    # Extract pain points from Buzzabout sentiment
+    if data_sources.get('buzzabout', {}).get('uploaded'):
+        buzzabout_data = data_sources['buzzabout'].get('data', {})
+        if 'social_sentiment' in buzzabout_data:
+            sentiment_data = buzzabout_data['social_sentiment']
+            
+            if 'sentiment_analysis' in sentiment_data:
+                sentiment = sentiment_data['sentiment_analysis']
+                if isinstance(sentiment, dict):
+                    negative_ratio = sentiment.get('negative', 0)
+                    if negative_ratio > 20:
+                        pain_points.append("Negative experiences or concerns shared in social conversations")
+            
+            # Analyze trending topics for pain indicators
+            if 'trending_topics' in sentiment_data:
+                topics = [str(topic).lower() for topic in sentiment_data['trending_topics'][:5]]
+                for topic in topics:
+                    if any(term in topic for term in ['problem', 'issue', 'concern', 'challenge']):
+                        pain_points.append(f"Concerns related to {topic}")
+    
+    # Extract pain points from SparkToro audience research
+    if data_sources.get('sparktoro', {}).get('uploaded'):
+        sparktoro_data = data_sources['sparktoro'].get('data', {})
+        if 'categories' in sparktoro_data:
+            # Look for job roles or experience indicators
+            for category_name, category_data in sparktoro_data['categories'].items():
+                if 'experience' in category_name.lower() or 'roles' in category_name.lower():
+                    pain_points.append("Professional development and career advancement challenges")
+                elif 'education' in category_name.lower():
+                    pain_points.append("Need for continuous learning and skill development")
+    
+    # Add demographic-based pain points
+    if persona_data.demographics:
+        if persona_data.demographics.age_range == AgeRange.millennial:
+            pain_points.append("Balancing multiple responsibilities and time constraints")
+        elif persona_data.demographics.age_range == AgeRange.gen_z:
+            pain_points.append("Limited purchasing power and need for value-driven options")
+    
+    # Remove duplicates and limit
+    pain_points = list(set(pain_points))[:5]
+    
+    # Fallback if no data found
+    if not pain_points:
+        pain_points = generate_contextual_pain_points(persona_data)
+    
+    return pain_points
+
+def generate_enhanced_goals_from_data(persona_data: PersonaData, data_sources: dict) -> List[str]:
+    """Generate goals using actual uploaded data insights"""
+    goals = []
+    
+    # Extract goals from SparkToro interests and topics
+    if data_sources.get('sparktoro', {}).get('uploaded'):
+        sparktoro_data = data_sources['sparktoro'].get('data', {})
+        if 'categories' in sparktoro_data:
+            for category_name, category_data in sparktoro_data['categories'].items():
+                if 'topics' in category_name.lower() or 'interests' in category_name.lower():
+                    for column, values in category_data.get('top_values', {}).items():
+                        if isinstance(values, dict):
+                            top_interests = list(values.keys())[:3]
+                            for interest in top_interests:
+                                interest_lower = str(interest).lower()
+                                if 'business' in interest_lower or 'entrepreneurship' in interest_lower:
+                                    goals.append("Achieve business growth and professional success")
+                                elif 'technology' in interest_lower or 'innovation' in interest_lower:
+                                    goals.append("Stay current with technological advances")
+                                elif 'marketing' in interest_lower:
+                                    goals.append("Improve marketing effectiveness and ROI")
+                                elif 'education' in interest_lower or 'learning' in interest_lower:
+                                    goals.append("Continuously develop skills and knowledge")
+                
+                elif 'job' in category_name.lower() or 'roles' in category_name.lower():
+                    goals.append("Advance in career and professional development")
+    
+    # Extract goals from SEMRush search intent
+    if data_sources.get('semrush', {}).get('uploaded'):
+        semrush_data = data_sources['semrush'].get('data', {})
+        if 'keyword_data' in semrush_data:
+            all_keywords = []
+            for sheet_data in semrush_data['keyword_data'].values():
+                for keywords in sheet_data.get('keywords', {}).values():
+                    all_keywords.extend([str(k).lower() for k in keywords[:10]])
+            
+            # Analyze search intent for goals
+            learning_keywords = [k for k in all_keywords if any(term in k for term in ['learn', 'guide', 'tutorial', 'how to', 'training'])]
+            improvement_keywords = [k for k in all_keywords if any(term in k for term in ['improve', 'optimize', 'increase', 'boost', 'enhance'])]
+            solution_keywords = [k for k in all_keywords if any(term in k for term in ['solution', 'tools', 'software', 'platform', 'system'])]
+            
+            if learning_keywords:
+                goals.append("Acquire new skills and knowledge through research")
+            if improvement_keywords:
+                goals.append("Optimize and improve current processes or performance")
+            if solution_keywords:
+                goals.append("Find effective tools and solutions for specific needs")
+    
+    # Extract goals from Buzzabout social engagement
+    if data_sources.get('buzzabout', {}).get('uploaded'):
+        buzzabout_data = data_sources['buzzabout'].get('data', {})
+        if 'social_sentiment' in buzzabout_data:
+            sentiment_data = buzzabout_data['social_sentiment']
+            
+            if 'trending_topics' in sentiment_data:
+                topics = [str(topic).lower() for topic in sentiment_data['trending_topics'][:5]]
+                for topic in topics:
+                    if 'community' in topic or 'network' in topic:
+                        goals.append("Build and maintain professional networks")
+                    elif 'growth' in topic or 'success' in topic:
+                        goals.append("Achieve sustainable growth and success")
+    
+    # Add platform-specific goals based on social media usage
+    if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms:
+        platforms = persona_data.media_consumption.social_media_platforms
+        if "LinkedIn" in platforms:
+            goals.append("Expand professional network and thought leadership")
+        if len(platforms) >= 3:
+            goals.append("Maintain consistent brand presence across multiple channels")
+    
+    # Remove duplicates and limit
+    goals = list(set(goals))[:5]
+    
+    # Fallback if no data found
+    if not goals:
+        goals = generate_targeted_goals(persona_data)
+    
+    return goals
+
+
 def generate_intelligent_insights(persona_data: PersonaData) -> Dict[str, Any]:
     """Generate AI insights based on actual persona data"""
     demographics = persona_data.demographics
