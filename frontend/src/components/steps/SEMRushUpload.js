@@ -51,6 +51,12 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
             required: false
           }
         }));
+        
+        // Save SEMRush data to the persona
+        await updatePersona({
+          semrush_data: result.parsed_data
+        }, null);
+        
       } else {
         throw new Error(result.message || 'Failed to process SEMRush file');
       }
