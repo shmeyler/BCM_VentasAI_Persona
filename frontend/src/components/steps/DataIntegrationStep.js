@@ -30,7 +30,8 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
         },
         body: JSON.stringify({
           data_sources: dataSources,
-          persona_name: persona.name || 'Multi-Source Persona'
+          persona_name: persona.name || 'Multi-Source Persona',
+          persona_id: persona.id
         }),
       });
 
