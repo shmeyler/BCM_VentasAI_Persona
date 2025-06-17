@@ -1071,11 +1071,27 @@ async def generate_persona(persona_id: str, request: dict = None):
     # Check if this is a multi-source data generation
     is_multi_source = request and request.get('use_multi_source_data', False)
     
+    # Generate persona image first
+    try:
+        persona_image_url = await generate_persona_image(persona_data)
+    except Exception as e:
+        logging.error(f"Image generation failed: {str(e)}")
+        # Use default image if generation fails
+        gender = persona_data.demographics.gender if persona_data.demographics else 'Unknown'
+        if gender and gender.lower() == 'female':
+            persona_image_url = "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
+        else:
+            persona_image_url = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
+    
     if is_multi_source:
         # For multi-source personas, use the uploaded data that's already in the persona
         logging.info(f"Generating multi-source persona for {persona_data.name}")
         logging.info(f"Persona demographics: {persona_data.demographics}")
         logging.info(f"Persona media consumption: {persona_data.media_consumption}")
+        
+        # Get the actual uploaded data for enhanced insights
+        data_sources = request.get('data_sources', {})
+        combined_insights = request.get('combined_insights', {})
         
         # Verify we have the uploaded data
         if not persona_data.demographics or not persona_data.demographics.age_range:
@@ -1092,24 +1108,20 @@ async def generate_persona(persona_id: str, request: dict = None):
                         {"id": persona_id}, 
                         {"$set": {"demographics": updated_demographics.dict()}}
                     )
+        
+        # Generate enhanced insights using actual uploaded data
+        logging.info("Generating enhanced insights from uploaded data sources")
+        ai_insights = generate_enhanced_insights_from_uploaded_data(persona_data, data_sources, combined_insights)
+        recommendations = generate_enhanced_recommendations_from_data(persona_data, data_sources)
+        pain_points = generate_enhanced_pain_points_from_data(persona_data, data_sources)
+        goals = generate_enhanced_goals_from_data(persona_data, data_sources)
+    else:
+        # Use standard generation for non-multi-source personas
+        ai_insights = generate_intelligent_insights(persona_data)
+        recommendations = generate_data_driven_recommendations(persona_data)
+        pain_points = generate_contextual_pain_points(persona_data)
+        goals = generate_targeted_goals(persona_data)
     
-    # Generate persona image using the comprehensive function
-    try:
-        persona_image_url = await generate_persona_image(persona_data)
-    except Exception as e:
-        logging.error(f"Image generation failed: {str(e)}")
-        # Use default image if generation fails
-        gender = persona_data.demographics.gender if persona_data.demographics else 'Unknown'
-        if gender and gender.lower() == 'female':
-            persona_image_url = "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
-        else:
-            persona_image_url = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-    
-    # Generate AI-enhanced insights based on uploaded data
-    ai_insights = generate_intelligent_insights(persona_data)
-    recommendations = generate_data_driven_recommendations(persona_data)
-    pain_points = generate_contextual_pain_points(persona_data)
-    goals = generate_targeted_goals(persona_data)
     communication_style = _generate_communication_style(persona_data)
     
     # Generate platform-specific insights based on actual uploaded data
