@@ -653,7 +653,16 @@ async def generate_persona(persona_id: str, request: dict = None):
                     )
     
     # Generate persona image using the comprehensive function
-    persona_image_url = await generate_persona_image(persona_data)
+    try:
+        persona_image_url = await generate_persona_image(persona_data)
+    except Exception as e:
+        logging.error(f"Image generation failed: {str(e)}")
+        # Use default image if generation fails
+        gender = persona_data.demographics.gender if persona_data.demographics else 'Unknown'
+        if gender and gender.lower() == 'female':
+            persona_image_url = "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face"
+        else:
+            persona_image_url = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
     
     # Generate AI-enhanced insights based on uploaded data
     ai_insights = generate_intelligent_insights(persona_data)
