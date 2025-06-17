@@ -211,7 +211,24 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-700">
-                {combinedInsights.demographic_insights ? Object.keys(combinedInsights.demographic_insights).length : 0}
+                {(() => {
+                  // Count actual demographic data from persona
+                  let count = 0;
+                  if (persona && persona.demographics) {
+                    const demo = persona.demographics;
+                    if (demo.age_range) count++;
+                    if (demo.gender) count++;
+                    if (demo.income_range) count++;
+                    if (demo.location) count++;
+                    if (demo.occupation) count++;
+                    if (demo.education) count++;
+                  }
+                  // Fallback to combinedInsights if persona data isn't available
+                  if (count === 0 && combinedInsights.demographic_insights) {
+                    count = Object.keys(combinedInsights.demographic_insights).length;
+                  }
+                  return count;
+                })()}
               </div>
               <div className="text-sm text-green-600">Demographic Insights</div>
             </div>
