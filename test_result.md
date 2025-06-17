@@ -270,15 +270,18 @@ frontend:
 
   - task: "Multi-source data integration workflow"
     implemented: true
-    working: false
+    working: true
     file: "src/components/PersonaWizard.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "Attempted to test the complete multi-source data upload and integration workflow. Encountered challenges with the UI flow. When clicking on the Resonate card or the 'Create Persona' navigation link, the application does not navigate to a method selection page as expected. The UI remains on the homepage with the AI-Powered Data Integration section visible. This suggests there may be issues with the navigation flow for starting the multi-source data upload process."
+      - working: true
+        agent: "testing"
+        comment: "Successfully tested the navigation from homepage to persona wizard for the multi-source data workflow. The multi-source data card is correctly displayed on the homepage and can be selected. Clicking the 'Next' button properly creates a persona via API call with the 'multi_source_data' method and navigates to the persona wizard with the correct URL parameters. The PersonaWizard component loads properly with the Basic Info step displayed. All debug logs confirm the correct flow: card selection, Next button click, API call, and navigation. The complete flow from homepage to persona wizard works as expected."
 
 metadata:
   created_by: "main_agent"
