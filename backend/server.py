@@ -149,6 +149,270 @@ class GeneratePersonaRequest(BaseModel):
 
 
 # Helper functions for AI-enhanced persona generation based on uploaded data
+def assemble_real_uploaded_data(data_sources: dict, persona_data: PersonaData) -> dict:
+    """Assemble all real uploaded data from various sources"""
+    assembled = {
+        "demographics": {
+            "age_range": persona_data.demographics.age_range if persona_data.demographics else None,
+            "gender": persona_data.demographics.gender if persona_data.demographics else None,
+            "income": persona_data.demographics.income_range if persona_data.demographics else None,
+            "location": persona_data.demographics.location if persona_data.demographics else None,
+            "occupation": persona_data.demographics.occupation if persona_data.demographics else None,
+            "education": persona_data.demographics.education if persona_data.demographics else None
+        },
+        "social_platforms": persona_data.media_consumption.social_media_platforms if persona_data.media_consumption else [],
+        "sparktoro_data": {},
+        "semrush_data": {},
+        "buzzabout_data": {},
+        "resonate_data": {}
+    }
+    
+    # Extract SparkToro real data
+    if data_sources.get('sparktoro', {}).get('uploaded'):
+        sparktoro_data = data_sources['sparktoro'].get('data', {})
+        if 'categories' in sparktoro_data:
+            assembled["sparktoro_data"] = {
+                "total_categories": len(sparktoro_data['categories']),
+                "categories": {}
+            }
+            
+            for category_name, category_data in sparktoro_data['categories'].items():
+                if 'top_values' in category_data:
+                    category_summary = {}
+                    for column, values in category_data['top_values'].items():
+                        if isinstance(values, dict):
+                            # Get top 5 items from each column
+                            top_items = list(values.items())[:5]
+                            category_summary[column] = top_items
+                    
+                    if category_summary:
+                        assembled["sparktoro_data"]["categories"][category_name] = category_summary
+    
+    # Extract SEMRush real data
+    if data_sources.get('semrush', {}).get('uploaded'):
+        semrush_data = data_sources['semrush'].get('data', {})
+        if 'keyword_data' in semrush_data:
+            assembled["semrush_data"] = {
+                "total_sheets": len(semrush_data['keyword_data']),
+                "keywords_by_sheet": {}
+            }
+            
+            for sheet_name, sheet_data in semrush_data['keyword_data'].items():
+                if 'keywords' in sheet_data:
+                    sheet_keywords = {}
+                    for column, keywords in sheet_data['keywords'].items():
+                        # Get top 10 keywords from each column
+                        sheet_keywords[column] = keywords[:10]
+                    
+                    if sheet_keywords:
+                        assembled["semrush_data"]["keywords_by_sheet"][sheet_name] = sheet_keywords
+                
+                # Also capture search data if available
+                if 'search_data' in sheet_data:
+                    if 'search_data' not in assembled["semrush_data"]:
+                        assembled["semrush_data"]["search_data"] = {}
+                    assembled["semrush_data"]["search_data"][sheet_name] = sheet_data['search_data']
+    
+    # Extract Buzzabout real data
+    if data_sources.get('buzzabout', {}).get('uploaded'):
+        buzzabout_data = data_sources['buzzabout'].get('data', {})
+        if 'social_sentiment' in buzzabout_data:
+            sentiment_data = buzzabout_data['social_sentiment']
+            assembled["buzzabout_data"] = {
+                "trending_topics": sentiment_data.get('trending_topics', [])[:10],
+                "sentiment_analysis": sentiment_data.get('sentiment_analysis', {}),
+                "social_mentions": sentiment_data.get('social_mentions', [])[:10],
+                "hashtags": sentiment_data.get('hashtags', [])[:10],
+                "source_url": buzzabout_data.get('source_url', '')
+            }
+    
+    # Extract Resonate real data (if available in data sources)
+    if data_sources.get('resonate', {}).get('uploaded'):
+        resonate_data = data_sources['resonate'].get('data', {})
+        if resonate_data:
+            assembled["resonate_data"] = {
+                "demographics": resonate_data.get('demographics', {}),
+                "media_consumption": resonate_data.get('media_consumption', {}),
+                "brand_affinity": resonate_data.get('brand_affinity', {})
+            }
+    
+    return assembled
+
+def create_advanced_persona_prompt(assembled_data: dict, persona_data: PersonaData) -> str:
+    """Create comprehensive OpenAI prompt using real assembled data"""
+    
+    prompt = f"""
+Create a comprehensive customer persona based on the following REAL DATA from multiple research sources:
+
+DEMOGRAPHIC PROFILE:
+- Age Range: {assembled_data['demographics']['age_range']}
+- Gender: {assembled_data['demographics']['gender']}
+- Income: {assembled_data['demographics']['income']}
+- Location: {assembled_data['demographics']['location']}
+- Occupation: {assembled_data['demographics']['occupation']}
+- Education: {assembled_data['demographics']['education']}
+- Social Media Platforms: {', '.join(assembled_data['social_platforms']) if assembled_data['social_platforms'] else 'Not specified'}
+
+"""
+
+    # Add SparkToro audience research data
+    if assembled_data['sparktoro_data']:
+        prompt += f"""
+SPARKTORO AUDIENCE RESEARCH DATA ({assembled_data['sparktoro_data']['total_categories']} categories analyzed):
+"""
+        for category_name, category_data in assembled_data['sparktoro_data']['categories'].items():
+            prompt += f"\n{category_name}:\n"
+            for column, top_items in category_data.items():
+                items_str = ', '.join([f"{item} ({score})" for item, score in top_items])
+                prompt += f"  - {column}: {items_str}\n"
+
+    # Add SEMRush search behavior data
+    if assembled_data['semrush_data']:
+        prompt += f"""
+SEMRUSH SEARCH BEHAVIOR DATA ({assembled_data['semrush_data']['total_sheets']} datasets analyzed):
+"""
+        for sheet_name, keywords_data in assembled_data['semrush_data']['keywords_by_sheet'].items():
+            prompt += f"\n{sheet_name} Keywords:\n"
+            for column, keywords in keywords_data.items():
+                keywords_str = ', '.join([str(k) for k in keywords])
+                prompt += f"  - {column}: {keywords_str}\n"
+
+    # Add Buzzabout social sentiment data
+    if assembled_data['buzzabout_data']:
+        prompt += f"""
+BUZZABOUT SOCIAL SENTIMENT DATA:
+- Trending Topics: {', '.join([str(t) for t in assembled_data['buzzabout_data']['trending_topics']])}
+- Sentiment Analysis: {assembled_data['buzzabout_data']['sentiment_analysis']}
+- Social Mentions: {', '.join([str(m) for m in assembled_data['buzzabout_data']['social_mentions']])}
+- Key Hashtags: {', '.join([str(h) for h in assembled_data['buzzabout_data']['hashtags']])}
+- Source URL: {assembled_data['buzzabout_data']['source_url']}
+
+"""
+
+    # Add Resonate data if available
+    if assembled_data['resonate_data']:
+        prompt += f"""
+RESONATE PSYCHOGRAPHIC DATA:
+- Demographics: {assembled_data['resonate_data']['demographics']}
+- Media Consumption: {assembled_data['resonate_data']['media_consumption']}
+- Brand Affinity: {assembled_data['resonate_data']['brand_affinity']}
+
+"""
+
+    prompt += """
+ANALYSIS REQUIREMENTS:
+Based on this REAL data, provide a comprehensive persona analysis in the following JSON format:
+
+{
+  "ai_insights": {
+    "personality_traits": [4 specific traits based on the actual data],
+    "shopping_behavior": "detailed description based on search keywords and social data",
+    "decision_factors": [4 factors based on actual search patterns and interests],
+    "digital_behavior": "specific description based on actual platform usage and social sentiment"
+  },
+  "recommendations": [6 specific marketing recommendations based on the actual data sources],
+  "pain_points": [5 pain points derived from actual search queries and social sentiment],
+  "goals": [5 goals based on actual interests and search behavior]
+}
+
+IMPORTANT: 
+- Base ALL insights on the actual data provided above
+- Reference specific websites, keywords, topics, and platforms from the real data
+- Do not use generic assumptions - only insights that can be directly supported by the provided data
+- Make recommendations specific to the actual platforms, interests, and search behaviors shown in the data
+- Ensure pain points and goals reflect the actual search patterns and social sentiment discovered
+
+Return ONLY the JSON object, no additional text.
+"""
+
+    return prompt
+
+async def generate_openai_persona_insights(prompt: str) -> tuple:
+    """Generate persona insights using OpenAI with real data prompt"""
+    try:
+        import openai
+        from openai import OpenAI
+        import json
+        import os
+        
+        # Initialize OpenAI client
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            logging.error("OpenAI API key not found")
+            return _get_fallback_insights()
+        
+        client = OpenAI(api_key=api_key)
+        
+        logging.info("Sending persona generation request to OpenAI")
+        
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert marketing analyst who creates detailed customer personas based on real market research data."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.7
+        )
+        
+        # Parse the OpenAI response
+        response_text = response.choices[0].message.content.strip()
+        logging.info(f"OpenAI response received: {len(response_text)} characters")
+        
+        # Try to parse as JSON
+        try:
+            persona_data = json.loads(response_text)
+            
+            ai_insights = persona_data.get('ai_insights', {})
+            recommendations = persona_data.get('recommendations', [])
+            pain_points = persona_data.get('pain_points', [])
+            goals = persona_data.get('goals', [])
+            
+            logging.info("Successfully parsed OpenAI persona insights")
+            return ai_insights, recommendations, pain_points, goals
+            
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse OpenAI response as JSON: {str(e)}")
+            logging.error(f"Response text: {response_text}")
+            return _get_fallback_insights()
+    
+    except Exception as e:
+        logging.error(f"OpenAI persona generation failed: {str(e)}")
+        return _get_fallback_insights()
+
+def _get_fallback_insights() -> tuple:
+    """Fallback insights if OpenAI fails"""
+    ai_insights = {
+        "personality_traits": ["Data-driven", "Research-oriented", "Platform-savvy", "Goal-focused"],
+        "shopping_behavior": "Methodical research approach with platform-specific preferences",
+        "decision_factors": ["Data validation", "Platform alignment", "ROI potential", "Scalability"],
+        "digital_behavior": "Multi-platform engagement with analytical approach"
+    }
+    
+    recommendations = [
+        "Leverage data-driven marketing strategies",
+        "Focus on platform-specific content optimization",
+        "Implement comprehensive analytics tracking",
+        "Develop multi-channel engagement strategies"
+    ]
+    
+    pain_points = [
+        "Information overload from multiple data sources",
+        "Platform integration complexities", 
+        "ROI measurement challenges",
+        "Time constraints for thorough analysis"
+    ]
+    
+    goals = [
+        "Optimize marketing performance across platforms",
+        "Improve data-driven decision making",
+        "Enhance cross-platform engagement",
+        "Achieve measurable ROI improvements"
+    ]
+    
+    return ai_insights, recommendations, pain_points, goals
+
+
 def generate_enhanced_insights_from_uploaded_data(persona_data: PersonaData, data_sources: dict, combined_insights: dict) -> Dict[str, Any]:
     """Generate AI insights using actual uploaded data from all sources"""
     insights = {
