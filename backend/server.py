@@ -1248,17 +1248,40 @@ async def integrate_multi_source_data(request: dict):
             
             ai_prompt_sections.append(resonate_prompt)
         
-        # Process SparkToro data (optional)
+        # Process SparkToro data (optional) - now with real category parsing
         if data_sources.get('sparktoro', {}).get('uploaded'):
             sparktoro_data = data_sources['sparktoro'].get('data', {})
             combined_insights['sparktoro'] = sparktoro_data
-            ai_prompt_sections.append(f"SPARKTORO AUDIENCE RESEARCH:\n{_format_data_for_prompt(sparktoro_data)}\n")
+            
+            # Build SparkToro section with category analysis
+            sparktoro_prompt = "SPARKTORO AUDIENCE RESEARCH:\n"
+            if 'categories' in sparktoro_data:
+                for category_name, category_data in sparktoro_data['categories'].items():
+                    sparktoro_prompt += f"Category '{category_name}': {category_data.get('row_count', 0)} data points\n"
+                    if 'top_values' in category_data:
+                        for column, values in category_data['top_values'].items():
+                            if isinstance(values, dict):
+                                top_items = list(values.keys())[:3]
+                                sparktoro_prompt += f"  {column}: {', '.join(top_items)}\n"
+            
+            ai_prompt_sections.append(sparktoro_prompt)
         
-        # Process SEMRush data (optional)
+        # Process SEMRush data (optional) - now with real keyword parsing
         if data_sources.get('semrush', {}).get('uploaded'):
             semrush_data = data_sources['semrush'].get('data', {})
             combined_insights['semrush'] = semrush_data
-            ai_prompt_sections.append(f"SEMRUSH SEARCH BEHAVIOR:\n{_format_data_for_prompt(semrush_data)}\n")
+            
+            # Build SEMRush section with keyword analysis
+            semrush_prompt = "SEMRUSH SEARCH BEHAVIOR:\n"
+            if 'keyword_data' in semrush_data:
+                for sheet_name, sheet_data in semrush_data['keyword_data'].items():
+                    semrush_prompt += f"Sheet '{sheet_name}': {sheet_data.get('row_count', 0)} keywords\n"
+                    if 'keywords' in sheet_data:
+                        for column, keywords in sheet_data['keywords'].items():
+                            if keywords:
+                                semrush_prompt += f"  {column}: {', '.join(keywords[:5])}\n"
+            
+            ai_prompt_sections.append(semrush_prompt)
         
         # Process Buzzabout.ai data (optional)
         if data_sources.get('buzzabout', {}).get('uploaded'):
