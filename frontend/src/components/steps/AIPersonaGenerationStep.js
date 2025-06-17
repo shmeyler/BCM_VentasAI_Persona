@@ -14,7 +14,10 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
-      // Send persona ID directly to the existing generate endpoint
+      // Send persona ID directly to the existing generate endpoint with longer timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      
       const response = await fetch(`${backendUrl}/api/personas/${persona.id}/generate`, {
         method: 'POST',
         headers: {
@@ -23,7 +26,10 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
         body: JSON.stringify({
           use_multi_source_data: true
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json();
