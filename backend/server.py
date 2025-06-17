@@ -1294,15 +1294,119 @@ async def upload_resonate_file(file: UploadFile = File(...)):
 
 @api_router.post("/personas/resonate-create")
 async def create_persona_from_resonate(request: dict):
-    """Create a persona from parsed Resonate data"""
+    """Create a persona from parsed Resonate data with enhanced data extraction"""
     try:
+        name = request.get('name', 'Resonate Persona')
         parsed_data = request.get('parsed_data', {})
-        persona_name = request.get('name', 'Resonate Persona')
         
-        # Create new persona with resonate_upload starting method
+        if not parsed_data:
+            raise HTTPException(status_code=400, detail="No parsed data provided")
+        
+        # Enhanced demographics extraction with social media platforms
+        demographics = Demographics()
+        social_platforms = []
+        brand_preferences = []
+        interests = []
+        
+        # Extract demographics
+        if 'demographics' in parsed_data:
+            demo_data = parsed_data['demographics']
+            for key, value in demo_data.items():
+                if isinstance(value, dict) and 'top_values' in value:
+                    top_values = list(value['top_values'].keys())
+                    if top_values:
+                        if 'age' in key.lower():
+                            age_value = top_values[0]
+                            if '18-24' in age_value:
+                                demographics.age_range = AgeRange.gen_z
+                            elif '25-40' in age_value or '25-34' in age_value or '35-44' in age_value:
+                                demographics.age_range = AgeRange.millennial
+                            elif '41-56' in age_value or '45-54' in age_value:
+                                demographics.age_range = AgeRange.gen_x
+                            elif '57-75' in age_value or '55-64' in age_value or '65+' in age_value:
+                                demographics.age_range = AgeRange.boomer
+                        elif 'gender' in key.lower():
+                            gender_value = top_values[0].lower()
+                            if 'female' in gender_value:
+                                demographics.gender = 'Female'
+                            elif 'male' in gender_value:
+                                demographics.gender = 'Male'
+                        elif 'income' in key.lower():
+                            demographics.income_range = top_values[0]
+                        elif 'education' in key.lower():
+                            demographics.education = top_values[0]
+                        elif 'location' in key.lower() or 'urban' in key.lower():
+                            demographics.location = top_values[0]
+                        elif 'occupation' in key.lower() or 'job' in key.lower():
+                            demographics.occupation = top_values[0]
+        
+        # Extract media consumption and social platforms
+        media_consumption = MediaConsumption()
+        if 'media_consumption' in parsed_data:
+            media_data = parsed_data['media_consumption']
+            for key, value in media_data.items():
+                if isinstance(value, dict) and 'top_values' in value:
+                    platforms = list(value['top_values'].keys())[:10]  # Top 10
+                    if 'social' in key.lower() or 'platform' in key.lower() or 'media' in key.lower():
+                        # Extract social media platforms
+                        for platform in platforms:
+                            platform_lower = platform.lower()
+                            if 'facebook' in platform_lower:
+                                social_platforms.append('Facebook')
+                            elif 'instagram' in platform_lower:
+                                social_platforms.append('Instagram')
+                            elif 'linkedin' in platform_lower:
+                                social_platforms.append('LinkedIn')
+                            elif 'twitter' in platform_lower or 'x.com' in platform_lower:
+                                social_platforms.append('Twitter/X')
+                            elif 'tiktok' in platform_lower:
+                                social_platforms.append('TikTok')
+                            elif 'youtube' in platform_lower:
+                                social_platforms.append('YouTube')
+                            elif 'snapchat' in platform_lower:
+                                social_platforms.append('Snapchat')
+                            elif 'pinterest' in platform_lower:
+                                social_platforms.append('Pinterest')
+                    elif 'content' in key.lower() or 'interest' in key.lower():
+                        interests.extend(platforms[:5])  # Top 5 interests
+        
+        # Extract brand affinity
+        if 'brand_affinity' in parsed_data:
+            brand_data = parsed_data['brand_affinity']
+            for key, value in brand_data.items():
+                if isinstance(value, dict) and 'top_values' in value:
+                    brands = list(value['top_values'].keys())[:10]  # Top 10 brands
+                    brand_preferences.extend(brands)
+        
+        # Set media consumption with extracted data
+        if social_platforms:
+            media_consumption.social_media_platforms = list(set(social_platforms))  # Remove duplicates
+        
+        if interests:
+            media_consumption.content_types = interests[:5]  # Top 5 content types
+            
+        # Set defaults for missing data
+        media_consumption.preferred_devices = ['Mobile', 'Desktop']
+        media_consumption.consumption_time = '2-4 hours daily'
+        media_consumption.news_sources = ['Social Media', 'Digital News']
+        
+        # Create attributes with extracted interests and brand preferences
+        attributes = Attributes()
+        if interests:
+            attributes.interests = interests[:10]  # Top 10 interests
+        if brand_preferences:
+            attributes.values = brand_preferences[:5]  # Top 5 brand preferences
+        
+        # Create persona with all extracted data
         persona_data = PersonaData(
+            name=name,
             starting_method=StartingMethod.resonate_upload,
-            name=persona_name
+            demographics=demographics,
+            media_consumption=media_consumption,
+            attributes=attributes,
+            current_step=2,
+            completed_steps=[1, 2],
+            resonate_data=parsed_data  # Store raw data for later use
         )
         
         # Map parsed Resonate data to persona structure
