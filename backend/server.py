@@ -783,7 +783,9 @@ async def generate_persona(persona_id: str, request: dict = None):
         pain_points=pain_points,
         goals=goals,
         communication_style=communication_style,
-        persona_image_url=persona_image_url
+        persona_image_url=persona_image_url,
+        platform_insights=platform_insights,
+        social_behavior=social_behavior
     )
     
     # Save generated persona
