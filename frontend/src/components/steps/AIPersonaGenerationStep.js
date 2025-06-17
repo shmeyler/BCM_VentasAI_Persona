@@ -24,7 +24,9 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          use_multi_source_data: true
+          use_multi_source_data: true,
+          data_sources: dataSources,
+          combined_insights: dataIntegration.combinedInsights
         }),
         signal: controller.signal
       });
