@@ -1357,6 +1357,42 @@ async def generate_persona(persona_id: str, request: dict = None):
         data_sources = request.get('data_sources', {})
         combined_insights = request.get('combined_insights', {})
         
+        # If no data sources in request, get from stored persona data
+        if not data_sources or not any(ds.get('uploaded') for ds in data_sources.values()):
+            data_sources = {}
+            
+            # Get stored SparkToro data
+            if persona.get('sparktoro_data'):
+                data_sources['sparktoro'] = {
+                    'uploaded': True,
+                    'data': persona['sparktoro_data']
+                }
+                logging.info("Found stored SparkToro data")
+            
+            # Get stored SEMRush data  
+            if persona.get('semrush_data'):
+                data_sources['semrush'] = {
+                    'uploaded': True,
+                    'data': persona['semrush_data']
+                }
+                logging.info("Found stored SEMRush data")
+            
+            # Get stored Buzzabout data
+            if persona.get('buzzabout_data'):
+                data_sources['buzzabout'] = {
+                    'uploaded': True,
+                    'data': persona['buzzabout_data']
+                }
+                logging.info("Found stored Buzzabout data")
+            
+            # Get stored Resonate data
+            if persona.get('resonate_data'):
+                data_sources['resonate'] = {
+                    'uploaded': True,
+                    'data': persona['resonate_data']
+                }
+                logging.info("Found stored Resonate data")
+        
         # Verify we have the uploaded data
         if not persona_data.demographics or not persona_data.demographics.age_range:
             # Try to get data from the raw uploaded data if available
