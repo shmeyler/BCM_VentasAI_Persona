@@ -1069,14 +1069,55 @@ async def integrate_multi_source_data(request: dict):
     try:
         data_sources = request.get('data_sources', {})
         persona_name = request.get('persona_name', 'Multi-Source Persona')
+        persona_id = request.get('persona_id')  # Add persona_id to get existing data
         
         # Extract data from each source
         combined_insights = {}
         ai_prompt_sections = []
         
+        # If we have a persona_id, get the existing persona data
+        existing_persona_data = None
+        if persona_id:
+            try:
+                persona_doc = await db.personas.find_one({"id": persona_id})
+                if persona_doc:
+                    existing_persona_data = PersonaData(**persona_doc)
+            except Exception as e:
+                logging.warning(f"Could not load existing persona data: {str(e)}")
+        
         # Process Resonate data (required)
         if data_sources.get('resonate', {}).get('uploaded'):
             resonate_data = data_sources['resonate'].get('data', {})
+            
+            # If we don't have parsed resonate data but have existing persona data, use that
+            if not resonate_data and existing_persona_data and existing_persona_data.demographics:
+                # Convert existing persona demographics to the expected format
+                demographics = existing_persona_data.demographics
+                resonate_data = {
+                    'demographics': {}
+                }
+                
+                if demographics.age_range:
+                    resonate_data['demographics']['age'] = {'top_values': {demographics.age_range: 100}}
+                if demographics.gender:
+                    resonate_data['demographics']['gender'] = {'top_values': {demographics.gender: 100}}
+                if demographics.income_range:
+                    resonate_data['demographics']['income'] = {'top_values': {demographics.income_range: 100}}
+                if demographics.location:
+                    resonate_data['demographics']['location'] = {'top_values': {demographics.location: 100}}
+                if demographics.occupation:
+                    resonate_data['demographics']['occupation'] = {'top_values': {demographics.occupation: 100}}
+                if demographics.education:
+                    resonate_data['demographics']['education'] = {'top_values': {demographics.education: 100}}
+                
+                # Add media consumption if available
+                if existing_persona_data.media_consumption and existing_persona_data.media_consumption.social_media_platforms:
+                    resonate_data['media_consumption'] = {
+                        'media_platforms': {
+                            'top_values': {platform: 100 for platform in existing_persona_data.media_consumption.social_media_platforms}
+                        }
+                    }
+            
             combined_insights['resonate'] = resonate_data
             
             # Build Resonate section of AI prompt
