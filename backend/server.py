@@ -771,6 +771,10 @@ async def generate_persona(persona_id: str, request: dict = None):
     goals = generate_targeted_goals(persona_data)
     communication_style = _generate_communication_style(persona_data)
     
+    # Generate platform-specific insights based on actual uploaded data
+    platform_insights = generate_platform_analysis(persona_data)
+    social_behavior = generate_social_behavior_analysis(persona_data)
+    
     generated_persona = GeneratedPersona(
         name=persona_data.name or f"Persona {persona_data.id[:8]}",
         persona_data=persona_data,
