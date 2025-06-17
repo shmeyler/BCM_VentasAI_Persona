@@ -1188,6 +1188,8 @@ async def integrate_multi_source_data(request: dict):
         persona_name = request.get('persona_name', 'Multi-Source Persona')
         persona_id = request.get('persona_id')  # Add persona_id to get existing data
         
+        logging.info(f"Starting data integration for persona: {persona_name}")
+        
         # Extract data from each source
         combined_insights = {}
         ai_prompt_sections = []
@@ -1199,120 +1201,151 @@ async def integrate_multi_source_data(request: dict):
                 persona_doc = await db.personas.find_one({"id": persona_id})
                 if persona_doc:
                     existing_persona_data = PersonaData(**persona_doc)
+                    logging.info(f"Found existing persona data for {persona_id}")
             except Exception as e:
                 logging.warning(f"Could not load existing persona data: {str(e)}")
         
-        # Process Resonate data (required)
-        if data_sources.get('resonate', {}).get('uploaded'):
-            resonate_data = data_sources['resonate'].get('data', {})
-            
-            # If we don't have parsed resonate data but have existing persona data, use that
-            if not resonate_data and existing_persona_data and existing_persona_data.demographics:
-                # Convert existing persona demographics to the expected format
-                demographics = existing_persona_data.demographics
-                resonate_data = {
-                    'demographics': {}
-                }
+        try:
+            # Process Resonate data (required)
+            if data_sources.get('resonate', {}).get('uploaded'):
+                logging.info("Processing Resonate data...")
+                resonate_data = data_sources['resonate'].get('data', {})
                 
-                if demographics.age_range:
-                    resonate_data['demographics']['age'] = {'top_values': {demographics.age_range: 100}}
-                if demographics.gender:
-                    resonate_data['demographics']['gender'] = {'top_values': {demographics.gender: 100}}
-                if demographics.income_range:
-                    resonate_data['demographics']['income'] = {'top_values': {demographics.income_range: 100}}
-                if demographics.location:
-                    resonate_data['demographics']['location'] = {'top_values': {demographics.location: 100}}
-                if demographics.occupation:
-                    resonate_data['demographics']['occupation'] = {'top_values': {demographics.occupation: 100}}
-                if demographics.education:
-                    resonate_data['demographics']['education'] = {'top_values': {demographics.education: 100}}
-                
-                # Add media consumption if available
-                if existing_persona_data.media_consumption and existing_persona_data.media_consumption.social_media_platforms:
-                    resonate_data['media_consumption'] = {
-                        'media_platforms': {
-                            'top_values': {platform: 100 for platform in existing_persona_data.media_consumption.social_media_platforms}
-                        }
+                # If we don't have parsed resonate data but have existing persona data, use that
+                if not resonate_data and existing_persona_data and existing_persona_data.demographics:
+                    # Convert existing persona demographics to the expected format
+                    demographics = existing_persona_data.demographics
+                    resonate_data = {
+                        'demographics': {}
                     }
-            
-            combined_insights['resonate'] = resonate_data
-            
-            # Build Resonate section of AI prompt
-            resonate_prompt = "RESONATE DATA ANALYSIS:\n"
-            if 'demographics' in resonate_data:
-                resonate_prompt += f"Demographics: {_format_data_for_prompt(resonate_data['demographics'])}\n"
-            if 'media_consumption' in resonate_data:
-                resonate_prompt += f"Media Consumption: {_format_data_for_prompt(resonate_data['media_consumption'])}\n"
-            if 'brand_affinity' in resonate_data:
-                resonate_prompt += f"Brand Preferences: {_format_data_for_prompt(resonate_data['brand_affinity'])}\n"
-            
-            ai_prompt_sections.append(resonate_prompt)
-        
-        # Process SparkToro data (optional) - now with real category parsing
-        if data_sources.get('sparktoro', {}).get('uploaded'):
-            sparktoro_data = data_sources['sparktoro'].get('data', {})
-            combined_insights['sparktoro'] = sparktoro_data
-            
-            # Build SparkToro section with category analysis
-            sparktoro_prompt = "SPARKTORO AUDIENCE RESEARCH:\n"
-            if 'categories' in sparktoro_data:
-                for category_name, category_data in sparktoro_data['categories'].items():
-                    sparktoro_prompt += f"Category '{category_name}': {category_data.get('row_count', 0)} data points\n"
-                    if 'top_values' in category_data:
-                        for column, values in category_data['top_values'].items():
-                            if isinstance(values, dict):
-                                top_items = [str(k) for k in list(values.keys())[:3]]
-                                sparktoro_prompt += f"  {column}: {', '.join(top_items)}\n"
-            
-            ai_prompt_sections.append(sparktoro_prompt)
-        
-        # Process SEMRush data (optional) - now with real keyword parsing
-        if data_sources.get('semrush', {}).get('uploaded'):
-            semrush_data = data_sources['semrush'].get('data', {})
-            combined_insights['semrush'] = semrush_data
-            
-            # Build SEMRush section with keyword analysis
-            semrush_prompt = "SEMRUSH SEARCH BEHAVIOR:\n"
-            if 'keyword_data' in semrush_data:
-                for sheet_name, sheet_data in semrush_data['keyword_data'].items():
-                    semrush_prompt += f"Sheet '{sheet_name}': {sheet_data.get('row_count', 0)} keywords\n"
-                    if 'keywords' in sheet_data:
-                        for column, keywords in sheet_data['keywords'].items():
-                            if keywords:
-                                # Convert all items to strings to avoid join() errors
-                                keyword_strings = [str(k) for k in keywords[:5]]
-                                semrush_prompt += f"  {column}: {', '.join(keyword_strings)}\n"
-            
-            ai_prompt_sections.append(semrush_prompt)
-        
-        # Process Buzzabout.ai data (optional) - now with real URL parsing
-        if data_sources.get('buzzabout', {}).get('uploaded'):
-            buzzabout_data = data_sources['buzzabout'].get('data', {})
-            combined_insights['buzzabout'] = buzzabout_data
-            
-            # Build Buzzabout section with actual crawled content
-            buzzabout_prompt = "BUZZABOUT.AI SOCIAL SENTIMENT:\n"
-            if 'social_sentiment' in buzzabout_data:
-                sentiment_data = buzzabout_data['social_sentiment']
-                
-                if 'trending_topics' in sentiment_data and sentiment_data['trending_topics']:
-                    buzzabout_prompt += f"Trending Topics: {', '.join(sentiment_data['trending_topics'][:5])}\n"
                     
-                if 'sentiment_analysis' in sentiment_data:
-                    sentiment = sentiment_data['sentiment_analysis']
-                    if isinstance(sentiment, dict) and 'positive' in sentiment:
-                        buzzabout_prompt += f"Sentiment Distribution: {sentiment}\n"
-                
-                if 'social_mentions' in sentiment_data and sentiment_data['social_mentions']:
-                    buzzabout_prompt += f"Social Mentions: {', '.join(sentiment_data['social_mentions'][:5])}\n"
+                    if demographics.age_range:
+                        resonate_data['demographics']['age'] = {'top_values': {demographics.age_range: 100}}
+                    if demographics.gender:
+                        resonate_data['demographics']['gender'] = {'top_values': {demographics.gender: 100}}
+                    if demographics.income_range:
+                        resonate_data['demographics']['income'] = {'top_values': {demographics.income_range: 100}}
+                    if demographics.location:
+                        resonate_data['demographics']['location'] = {'top_values': {demographics.location: 100}}
+                    if demographics.occupation:
+                        resonate_data['demographics']['occupation'] = {'top_values': {demographics.occupation: 100}}
+                    if demographics.education:
+                        resonate_data['demographics']['education'] = {'top_values': {demographics.education: 100}}
                     
-                if 'hashtags' in sentiment_data and sentiment_data['hashtags']:
-                    buzzabout_prompt += f"Key Hashtags: {', '.join(sentiment_data['hashtags'][:5])}\n"
-            
-            if 'source_url' in buzzabout_data:
-                buzzabout_prompt += f"Source URL: {buzzabout_data['source_url']}\n"
-            
-            ai_prompt_sections.append(buzzabout_prompt)
+                    # Add media consumption if available
+                    if existing_persona_data.media_consumption and existing_persona_data.media_consumption.social_media_platforms:
+                        resonate_data['media_consumption'] = {
+                            'media_platforms': {
+                                'top_values': {platform: 100 for platform in existing_persona_data.media_consumption.social_media_platforms}
+                            }
+                        }
+                
+                combined_insights['resonate'] = resonate_data
+                
+                # Build Resonate section of AI prompt
+                resonate_prompt = "RESONATE DATA ANALYSIS:\n"
+                if 'demographics' in resonate_data:
+                    resonate_prompt += f"Demographics: {_format_data_for_prompt(resonate_data['demographics'])}\n"
+                if 'media_consumption' in resonate_data:
+                    resonate_prompt += f"Media Consumption: {_format_data_for_prompt(resonate_data['media_consumption'])}\n"
+                if 'brand_affinity' in resonate_data:
+                    resonate_prompt += f"Brand Preferences: {_format_data_for_prompt(resonate_data['brand_affinity'])}\n"
+                
+                ai_prompt_sections.append(resonate_prompt)
+                logging.info("Resonate data processed successfully")
+        except Exception as e:
+            logging.error(f"Error processing Resonate data: {str(e)}")
+            raise e
+        
+        try:
+            # Process SparkToro data (optional) - now with real category parsing
+            if data_sources.get('sparktoro', {}).get('uploaded'):
+                logging.info("Processing SparkToro data...")
+                sparktoro_data = data_sources['sparktoro'].get('data', {})
+                combined_insights['sparktoro'] = sparktoro_data
+                
+                # Build SparkToro section with category analysis
+                sparktoro_prompt = "SPARKTORO AUDIENCE RESEARCH:\n"
+                if 'categories' in sparktoro_data:
+                    for category_name, category_data in sparktoro_data['categories'].items():
+                        sparktoro_prompt += f"Category '{category_name}': {category_data.get('row_count', 0)} data points\n"
+                        if 'top_values' in category_data:
+                            for column, values in category_data['top_values'].items():
+                                if isinstance(values, dict):
+                                    top_items = [str(k) for k in list(values.keys())[:3]]
+                                    sparktoro_prompt += f"  {column}: {', '.join(top_items)}\n"
+                
+                ai_prompt_sections.append(sparktoro_prompt)
+                logging.info("SparkToro data processed successfully")
+        except Exception as e:
+            logging.error(f"Error processing SparkToro data: {str(e)}")
+            raise e
+        
+        try:
+            # Process SEMRush data (optional) - now with real keyword parsing
+            if data_sources.get('semrush', {}).get('uploaded'):
+                logging.info("Processing SEMRush data...")
+                semrush_data = data_sources['semrush'].get('data', {})
+                combined_insights['semrush'] = semrush_data
+                
+                # Build SEMRush section with keyword analysis
+                semrush_prompt = "SEMRUSH SEARCH BEHAVIOR:\n"
+                if 'keyword_data' in semrush_data:
+                    for sheet_name, sheet_data in semrush_data['keyword_data'].items():
+                        semrush_prompt += f"Sheet '{sheet_name}': {sheet_data.get('row_count', 0)} keywords\n"
+                        if 'keywords' in sheet_data:
+                            for column, keywords in sheet_data['keywords'].items():
+                                if keywords:
+                                    # Convert all items to strings to avoid join() errors
+                                    keyword_strings = [str(k) for k in keywords[:5]]
+                                    semrush_prompt += f"  {column}: {', '.join(keyword_strings)}\n"
+                
+                ai_prompt_sections.append(semrush_prompt)
+                logging.info("SEMRush data processed successfully")
+        except Exception as e:
+            logging.error(f"Error processing SEMRush data: {str(e)}")
+            raise e
+        
+        try:
+            # Process Buzzabout.ai data (optional) - now with real URL parsing
+            if data_sources.get('buzzabout', {}).get('uploaded'):
+                logging.info("Processing Buzzabout data...")
+                buzzabout_data = data_sources['buzzabout'].get('data', {})
+                combined_insights['buzzabout'] = buzzabout_data
+                
+                # Build Buzzabout section with actual crawled content
+                buzzabout_prompt = "BUZZABOUT.AI SOCIAL SENTIMENT:\n"
+                if 'social_sentiment' in buzzabout_data:
+                    sentiment_data = buzzabout_data['social_sentiment']
+                    
+                    if 'trending_topics' in sentiment_data and sentiment_data['trending_topics']:
+                        # Ensure all topics are strings
+                        topics = [str(topic) for topic in sentiment_data['trending_topics'][:5]]
+                        buzzabout_prompt += f"Trending Topics: {', '.join(topics)}\n"
+                        
+                    if 'sentiment_analysis' in sentiment_data:
+                        sentiment = sentiment_data['sentiment_analysis']
+                        if isinstance(sentiment, dict) and 'positive' in sentiment:
+                            buzzabout_prompt += f"Sentiment Distribution: {sentiment}\n"
+                    
+                    if 'social_mentions' in sentiment_data and sentiment_data['social_mentions']:
+                        # Ensure all mentions are strings  
+                        mentions = [str(mention) for mention in sentiment_data['social_mentions'][:5]]
+                        buzzabout_prompt += f"Social Mentions: {', '.join(mentions)}\n"
+                        
+                    if 'hashtags' in sentiment_data and sentiment_data['hashtags']:
+                        # Ensure all hashtags are strings
+                        hashtags = [str(tag) for tag in sentiment_data['hashtags'][:5]]
+                        buzzabout_prompt += f"Key Hashtags: {', '.join(hashtags)}\n"
+                
+                if 'source_url' in buzzabout_data:
+                    buzzabout_prompt += f"Source URL: {buzzabout_data['source_url']}\n"
+                
+                ai_prompt_sections.append(buzzabout_prompt)
+                logging.info("Buzzabout data processed successfully")
+        except Exception as e:
+            logging.error(f"Error processing Buzzabout data: {str(e)}")
+            raise e
         
         # Create comprehensive AI prompt
         ai_prompt = f"""
