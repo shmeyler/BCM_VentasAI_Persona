@@ -50,7 +50,11 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
       
     } catch (error) {
       console.error('Error generating AI persona:', error);
-      setGenerationError(`Generation failed: ${error.message}`);
+      if (error.name === 'AbortError') {
+        setGenerationError('Generation timed out. This can happen when generating high-quality AI images. Please try again.');
+      } else {
+        setGenerationError(`Generation failed: ${error.message}`);
+      }
     } finally {
       setIsGenerating(false);
     }
