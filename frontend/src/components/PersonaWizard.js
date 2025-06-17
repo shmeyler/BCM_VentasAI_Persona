@@ -94,9 +94,11 @@ const PersonaWizard = () => {
     if (personaId) {
       loadPersona();
     } else {
+      console.error('No persona ID provided in URL');
+      alert('Error: No persona ID provided. Redirecting to homepage.');
       navigate('/');
     }
-  }, [personaId]);
+  }, [personaId, navigate]);
 
   const loadPersona = async () => {
     try {
