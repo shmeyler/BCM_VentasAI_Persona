@@ -54,7 +54,8 @@ const PersonaWizard = () => {
         { id: 4, name: "SEMRush Data", component: "semrush_upload", required: false },
         { id: 5, name: "Buzzabout.ai Data", component: "buzzabout_upload", required: false },
         { id: 6, name: "Data Integration", component: "data_integration" },
-        { id: 7, name: "AI Persona Generation", component: "ai_generation" }
+        { id: 7, name: "AI Persona Generation", component: "ai_generation" },
+        { id: 8, name: "Generated Persona", component: "generate" }
       ];
     } else if (startingMethod === "demographics") {
       return [
