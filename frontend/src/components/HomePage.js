@@ -28,6 +28,7 @@ const HomePage = () => {
       
       // Navigate to wizard with the created persona ID
       const navUrl = `/persona-wizard?id=${response.data.id}&method=${startingMethod}`;
+      console.log('Navigating to:', navUrl);
       navigate(navUrl);
     } catch (error) {
       console.error("Error creating persona:", error);
