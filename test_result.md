@@ -310,6 +310,7 @@ test_plan:
     - "Frontend application loading and routing"
     - "Basic persona creation workflow"
     - "Resonate upload functionality"
+    - "Multi-source data persona generation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
