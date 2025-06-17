@@ -51,6 +51,12 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
             required: false
           }
         }));
+        
+        // Save SparkToro data to the persona
+        await updatePersona({
+          sparktoro_data: result.parsed_data
+        }, null);
+        
       } else {
         throw new Error(result.message || 'Failed to process SparkToro file');
       }
