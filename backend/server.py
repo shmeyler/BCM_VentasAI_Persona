@@ -1261,7 +1261,7 @@ async def integrate_multi_source_data(request: dict):
                     if 'top_values' in category_data:
                         for column, values in category_data['top_values'].items():
                             if isinstance(values, dict):
-                                top_items = list(values.keys())[:3]
+                                top_items = [str(k) for k in list(values.keys())[:3]]
                                 sparktoro_prompt += f"  {column}: {', '.join(top_items)}\n"
             
             ai_prompt_sections.append(sparktoro_prompt)
