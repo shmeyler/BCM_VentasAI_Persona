@@ -95,11 +95,12 @@ class OpenAIImageGenerator:
         else:
             background = "contemporary office environment"
         
-        # Build a concise, effective prompt
-        prompt = f"""Professional headshot photograph of a {age}-year-old {gender_term}, {attire}, 
-        confident expression, direct eye contact, {background}, shot with 85mm lens, 
-        shallow depth of field, natural skin texture, realistic lighting, 
-        high-resolution professional photography, photorealistic quality"""
+        # Build a concise, effective prompt for ultra-realistic professional headshots
+        prompt = f"""Ultra-realistic professional corporate headshot photograph of a {age}-year-old {gender_term}, {attire}, 
+        confident and approachable expression, direct eye contact with camera, {background}, 
+        shot with professional 85mm portrait lens, shallow depth of field, natural skin texture and pores visible, 
+        realistic lighting with soft shadows, high-resolution DSLR photography, photojournalistic style, 
+        corporate executive portrait quality, absolutely photorealistic, no cartoon or illustration elements"""
         
         return prompt
     
