@@ -1262,6 +1262,349 @@ def test_complete_e2e_workflow():
         print(f"❌ END-TO-END TEST FAILED: Only {success_rate:.1f}% of verification criteria met")
         return False
 
+def test_multi_source_persona_workflow():
+    """
+    Test the complete multi-source persona workflow:
+    1. Create a persona with multi_source_data starting method
+    2. Upload Resonate data using the resonate-upload endpoint
+    3. Create a persona from parsed data using resonate-create endpoint
+    4. Generate the final persona using the updated personas/{id}/generate endpoint with use_multi_source_data=true
+    5. Verify that demographic data from uploaded Resonate file is properly used
+    """
+    print("\n" + "=" * 80)
+    print("🔍 TESTING MULTI-SOURCE PERSONA GENERATION WORKFLOW")
+    print("=" * 80)
+    
+    # Get backend URL from frontend/.env
+    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+    print(f"Using backend URL: {backend_url}")
+    
+    tester = VentasAIPersonaGeneratorTester(backend_url)
+    
+    # Step 1: Create a persona with multi_source_data starting method
+    print("\n1️⃣ Creating persona with multi_source_data starting method...")
+    success, create_response = tester.run_test(
+        "Create Multi-Source Persona",
+        "POST",
+        "personas",
+        200,
+        data={
+            "starting_method": "multi_source_data",
+            "name": "Multi-Source Test Persona"
+        }
+    )
+    
+    if not success or 'id' not in create_response:
+        print("❌ Failed to create persona. Aborting test.")
+        return False
+    
+    persona_id = create_response['id']
+    print(f"   ✅ Created persona with ID: {persona_id}")
+    print(f"   Starting method: {create_response['starting_method']}")
+    
+    # Step 2: Create and upload a test ZIP file with demographic data
+    print("\n2️⃣ Uploading Resonate data...")
+    zip_path = create_test_csv_with_quoted_values()
+    
+    files = {
+        'file': ('test_demographic_data.zip', open(zip_path, 'rb'), 'application/zip')
+    }
+    
+    upload_success, upload_response = tester.run_test(
+        "Upload Resonate Data for Multi-Source Persona",
+        "POST",
+        "personas/resonate-upload",
+        200,
+        files=files
+    )
+    
+    if not upload_success or not upload_response.get('success'):
+        print("❌ Failed to upload Resonate data. Aborting test.")
+        os.remove(zip_path)
+        return False
+    
+    print("   ✅ Successfully uploaded and parsed Resonate data")
+    print(f"   Extracted {len(upload_response['extracted_files'])} files")
+    
+    # Clean up the ZIP file
+    os.remove(zip_path)
+    
+    # Step 3: Update the persona with the parsed Resonate data
+    print("\n3️⃣ Updating persona with parsed Resonate data...")
+    
+    # Extract demographics from parsed data
+    parsed_data = upload_response['parsed_data']
+    
+    # Update the persona with the demographic data
+    update_success, update_response = tester.run_test(
+        "Update Multi-Source Persona with Demographics",
+        "PUT",
+        f"personas/{persona_id}",
+        200,
+        data={
+            "demographics": {
+                "age_range": "25-40",
+                "gender": "Female",
+                "income_range": "$50,000-$75,000",
+                "location": "Urban",
+                "occupation": "Marketing Professional"
+            },
+            "media_consumption": {
+                "social_media_platforms": ["Instagram", "Facebook", "LinkedIn"]
+            },
+            "current_step": 3,
+            "completed_steps": [1, 2]
+        }
+    )
+    
+    if not update_success:
+        print("❌ Failed to update persona with demographic data. Aborting test.")
+        return False
+    
+    print("   ✅ Successfully updated persona with demographic data")
+    
+    # Store the raw Resonate data in the persona
+    print("\n4️⃣ Storing raw Resonate data in the persona...")
+    store_success, store_response = tester.run_test(
+        "Store Raw Resonate Data in Multi-Source Persona",
+        "PUT",
+        f"personas/{persona_id}",
+        200,
+        data={
+            "resonate_data": parsed_data,
+            "current_step": 4,
+            "completed_steps": [1, 2, 3]
+        }
+    )
+    
+    if not store_success:
+        print("❌ Failed to store raw Resonate data. Aborting test.")
+        return False
+    
+    print("   ✅ Successfully stored raw Resonate data in the persona")
+    
+    # Step 4: Generate the final persona with use_multi_source_data=true
+    print("\n5️⃣ Generating final persona with use_multi_source_data=true...")
+    
+    # Add a small delay to ensure data is properly saved
+    time.sleep(1)
+    
+    # Use a longer timeout for OpenAI image generation
+    url = f"{backend_url}/personas/{persona_id}/generate"
+    headers = {'Content-Type': 'application/json'}
+    
+    tester.tests_run += 1
+    print(f"\n🔍 Testing Generate Multi-Source Persona...")
+    print(f"   URL: {url}")
+    
+    try:
+        # Use a longer timeout (60 seconds) for this specific request
+        response = requests.post(
+            url, 
+            json={"use_multi_source_data": True}, 
+            headers=headers, 
+            timeout=60
+        )
+        
+        success = response.status_code == 200
+        if success:
+            tester.tests_passed += 1
+            print(f"✅ Passed - Status: {response.status_code}")
+            generated_persona = response.json()
+            
+            # Store test result
+            tester.test_results["Generate Multi-Source Persona"] = {
+                "success": True,
+                "status_code": response.status_code,
+                "expected_status": 200,
+                "endpoint": f"personas/{persona_id}/generate",
+                "method": "POST"
+            }
+        else:
+            print(f"❌ Failed - Expected 200, got {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text[:200]}")
+            
+            # Store test result
+            tester.test_results["Generate Multi-Source Persona"] = {
+                "success": False,
+                "status_code": response.status_code,
+                "expected_status": 200,
+                "endpoint": f"personas/{persona_id}/generate",
+                "method": "POST"
+            }
+            
+            return False
+            
+    except Exception as e:
+        print(f"❌ Failed - Error: {str(e)}")
+        
+        # Store test result
+        tester.test_results["Generate Multi-Source Persona"] = {
+            "success": False,
+            "error": str(e),
+            "endpoint": f"personas/{persona_id}/generate",
+            "method": "POST"
+        }
+        
+        return False
+    
+    if not success:
+        print("❌ Failed to generate final persona. Aborting test.")
+        return False
+    
+    print("   ✅ Successfully generated final persona")
+    
+    # Step 5: Verify that demographic data is properly used
+    print("\n6️⃣ Verifying demographic data in generated persona...")
+    
+    # Check demographics
+    demographics = generated_persona.get('persona_data', {}).get('demographics', {})
+    print("\n📊 DEMOGRAPHICS VERIFICATION:")
+    
+    verification_results = []
+    
+    # Age verification
+    if demographics.get('age_range') == "25-40":
+        print("   ✅ Age range correctly set to: 25-40")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Age range incorrect: {demographics.get('age_range')}")
+        verification_results.append(False)
+    
+    # Gender verification
+    if demographics.get('gender') == "Female":
+        print("   ✅ Gender correctly set to: Female")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Gender incorrect: {demographics.get('gender')}")
+        verification_results.append(False)
+    
+    # Income verification
+    if demographics.get('income_range') and "$50,000-$75,000" in demographics.get('income_range'):
+        print("   ✅ Income range correctly includes: $50,000-$75,000")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Income range incorrect: {demographics.get('income_range')}")
+        verification_results.append(False)
+    
+    # Location verification
+    if demographics.get('location') == "Urban":
+        print("   ✅ Location correctly set to: Urban")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Location incorrect: {demographics.get('location')}")
+        verification_results.append(False)
+    
+    # Occupation verification
+    if demographics.get('occupation') and "Marketing" in demographics.get('occupation'):
+        print("   ✅ Occupation correctly includes: Marketing Professional")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Occupation incorrect: {demographics.get('occupation')}")
+        verification_results.append(False)
+    
+    # Check AI insights
+    ai_insights = generated_persona.get('ai_insights', {})
+    print("\n🧠 AI INSIGHTS VERIFICATION:")
+    
+    personality_traits = ai_insights.get('personality_traits', [])
+    millennial_traits = ["Tech-savvy", "Value-conscious", "Experience-focused"]
+    
+    found_traits = [t for t in millennial_traits if any(t.lower() in trait.lower() for trait in personality_traits)]
+    if len(found_traits) >= 1:
+        print(f"   ✅ Personality traits correctly include Millennial-specific traits")
+        print(f"   Actual traits: {', '.join(personality_traits)}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Personality traits missing Millennial-specific values. Found: {', '.join(personality_traits)}")
+        verification_results.append(False)
+    
+    # Check recommendations
+    recommendations = generated_persona.get('recommendations', [])
+    print("\n💡 RECOMMENDATIONS VERIFICATION:")
+    
+    platform_specific_recs = []
+    for platform in ["Instagram", "Facebook", "LinkedIn"]:
+        for rec in recommendations:
+            if platform.lower() in rec.lower():
+                platform_specific_recs.append(f"{platform}: {rec}")
+                break
+    
+    if len(platform_specific_recs) >= 2:
+        print(f"   ✅ Recommendations correctly include platform-specific advice")
+        for rec in platform_specific_recs:
+            print(f"   - {rec}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Recommendations missing platform-specific advice. Found: {len(platform_specific_recs)} platform mentions")
+        verification_results.append(False)
+    
+    # Check communication style
+    comm_style = generated_persona.get('communication_style', '')
+    print("\n💬 COMMUNICATION STYLE VERIFICATION:")
+    
+    if "Direct" in comm_style and "informative" in comm_style:
+        print(f"   ✅ Communication style correctly matches Millennial demographic")
+        print(f"   Style: {comm_style}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Communication style doesn't match expected Millennial pattern")
+        print(f"   Style: {comm_style}")
+        verification_results.append(False)
+    
+    # Check pain points
+    pain_points = generated_persona.get('pain_points', [])
+    print("\n⚠️ PAIN POINTS VERIFICATION:")
+    
+    millennial_pain_points = ["Time constraints", "busy lifestyle", "information overload"]
+    found_pain_points = []
+    
+    for point in pain_points:
+        for expected in millennial_pain_points:
+            if expected.lower() in point.lower():
+                found_pain_points.append(point)
+                break
+    
+    if len(found_pain_points) >= 1:
+        print(f"   ✅ Pain points correctly include Millennial-specific issues")
+        for point in found_pain_points:
+            print(f"   - {point}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Pain points missing Millennial-specific issues")
+        print(f"   Points: {', '.join(pain_points)}")
+        verification_results.append(False)
+    
+    # Check image generation
+    image_url = generated_persona.get('persona_image_url')
+    print("\n🖼️ IMAGE GENERATION VERIFICATION:")
+    
+    if image_url:
+        print(f"   ✅ Persona image successfully generated")
+        print(f"   Image URL: {image_url[:60]}...")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ No persona image generated")
+        verification_results.append(False)
+    
+    # Overall assessment
+    print("\n" + "=" * 80)
+    print("🏁 MULTI-SOURCE PERSONA GENERATION TEST RESULTS")
+    print("=" * 80)
+    
+    success_rate = sum(1 for result in verification_results if result) / len(verification_results) * 100
+    
+    if success_rate >= 80:
+        print(f"✅ TEST PASSED: {success_rate:.1f}% of verification criteria met")
+        return True
+    else:
+        print(f"❌ TEST FAILED: Only {success_rate:.1f}% of verification criteria met")
+        return False
+
 def main():
     print("🚀 Starting BCM VentasAI Persona Generator Backend Tests")
     print("=" * 60)
@@ -1272,6 +1615,9 @@ def main():
         if sys.argv[1] == "e2e":
             # Run only the end-to-end workflow test
             return 0 if test_complete_e2e_workflow() else 1
+        elif sys.argv[1] == "multi-source":
+            # Run only the multi-source persona workflow test
+            return 0 if test_multi_source_persona_workflow() else 1
         elif sys.argv[1] == "resonate":
             # Get backend URL from frontend/.env
             backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
