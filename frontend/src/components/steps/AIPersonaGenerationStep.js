@@ -14,17 +14,17 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
-      // Send integrated data to OpenAI for comprehensive persona generation
-      const response = await fetch(`${backendUrl}/api/personas/ai-generate`, {
+      // Send persona ID and integrated data for comprehensive AI generation
+      const response = await fetch(`${backendUrl}/api/personas/${persona.id}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          use_multi_source_data: true,
           data_sources: dataSources,
           combined_insights: dataIntegration.combinedInsights,
-          ai_prompt: dataIntegration.aiPrompt,
-          persona_name: persona.name || 'AI-Generated Persona'
+          ai_prompt: dataIntegration.aiPrompt
         }),
       });
 
