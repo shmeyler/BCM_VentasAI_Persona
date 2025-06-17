@@ -127,6 +127,8 @@ class GeneratedPersona(BaseModel):
     goals: List[str] = []
     communication_style: str = ""
     persona_image_url: Optional[str] = None
+    platform_insights: Dict[str, Any] = {}
+    social_behavior: Dict[str, Any] = {}
     generated_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Request/Response Models
