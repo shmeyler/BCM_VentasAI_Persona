@@ -1374,11 +1374,10 @@ async def generate_persona(persona_id: str, request: dict = None):
                     )
         
         # Generate enhanced insights using actual uploaded data
-        logging.info("Generating enhanced insights from uploaded data sources")
-        ai_insights = generate_enhanced_insights_from_uploaded_data(persona_data, data_sources, combined_insights)
-        recommendations = generate_enhanced_recommendations_from_data(persona_data, data_sources)
-        pain_points = generate_enhanced_pain_points_from_data(persona_data, data_sources)
-        goals = generate_enhanced_goals_from_data(persona_data, data_sources)
+        logging.info("Generating persona insights using OpenAI with assembled real data")
+        assembled_data = assemble_real_uploaded_data(data_sources, persona_data)
+        advanced_prompt = create_advanced_persona_prompt(assembled_data, persona_data)
+        ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(advanced_prompt)
     else:
         # Use standard generation for non-multi-source personas
         ai_insights = generate_intelligent_insights(persona_data)
