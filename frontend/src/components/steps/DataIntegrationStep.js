@@ -70,16 +70,18 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
     
     // If we have persona data with demographics, consider integration complete
     if (persona && persona.demographics && persona.demographics.age_range && !integrationComplete) {
+      const demographicData = {};
+      
+      if (persona.demographics.age_range) demographicData.age = [persona.demographics.age_range];
+      if (persona.demographics.gender) demographicData.gender = [persona.demographics.gender];
+      if (persona.demographics.income_range) demographicData.income = [persona.demographics.income_range];
+      if (persona.demographics.location) demographicData.location = [persona.demographics.location];
+      if (persona.demographics.occupation) demographicData.occupation = [persona.demographics.occupation];
+      if (persona.demographics.education) demographicData.education = [persona.demographics.education];
+      
       const mockInsights = {
         total_sources: 1,
-        demographic_insights: {
-          age: [persona.demographics.age_range],
-          gender: [persona.demographics.gender],
-          income: [persona.demographics.income_range],
-          location: [persona.demographics.location],
-          occupation: [persona.demographics.occupation],
-          education: [persona.demographics.education]
-        }.filter(([key, value]) => value && value[0]),
+        demographic_insights: demographicData,
         behavioral_patterns: persona.media_consumption?.social_media_platforms || [],
         data_quality: "High"
       };
@@ -92,7 +94,7 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
       });
       setIntegrationComplete(true);
     }
-  }, [dataSources, dataIntegration.processed, persona]);
+  }, [dataSources, dataIntegration.processed, persona, integrationComplete]);
 
   const availableSources = getAvailableSources();
   const totalSources = availableSources.length;
