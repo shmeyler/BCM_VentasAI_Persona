@@ -1279,7 +1279,9 @@ async def integrate_multi_source_data(request: dict):
                     if 'keywords' in sheet_data:
                         for column, keywords in sheet_data['keywords'].items():
                             if keywords:
-                                semrush_prompt += f"  {column}: {', '.join(keywords[:5])}\n"
+                                # Convert all items to strings to avoid join() errors
+                                keyword_strings = [str(k) for k in keywords[:5]]
+                                semrush_prompt += f"  {column}: {', '.join(keyword_strings)}\n"
             
             ai_prompt_sections.append(semrush_prompt)
         
