@@ -572,14 +572,85 @@ async def update_persona(persona_id: str, request: UpdatePersonaRequest):
     await db.personas.replace_one({"id": persona_id}, persona_data.dict())
     return persona_data
 
+def _extract_demographics_from_resonate(resonate_data: dict) -> Demographics:
+    """Extract demographics from raw Resonate data"""
+    demographics = Demographics()
+    
+    # Set defaults
+    demographics.age_range = AgeRange.millennial
+    demographics.gender = 'Female'
+    demographics.location = 'Urban'
+    demographics.occupation = 'Professional'
+    demographics.income_range = '$50,000 - $99,999'
+    demographics.education = "Bachelor's Degree"
+    
+    if 'demographics' in resonate_data:
+        demo_data = resonate_data['demographics']
+        
+        for key, value in demo_data.items():
+            if isinstance(value, dict) and 'top_values' in value:
+                top_values = list(value['top_values'].keys())
+                if top_values:
+                    if 'age' in key.lower():
+                        age_value = top_values[0]
+                        if '18-24' in age_value:
+                            demographics.age_range = AgeRange.gen_z
+                        elif '25-40' in age_value or '25-34' in age_value:
+                            demographics.age_range = AgeRange.millennial
+                        elif '41-56' in age_value or '35-44' in age_value:
+                            demographics.age_range = AgeRange.gen_x
+                        elif '57-75' in age_value:
+                            demographics.age_range = AgeRange.boomer
+                    elif 'gender' in key.lower():
+                        gender_value = top_values[0].lower()
+                        if 'female' in gender_value:
+                            demographics.gender = 'Female'
+                        elif 'male' in gender_value:
+                            demographics.gender = 'Male'
+                    elif 'income' in key.lower():
+                        demographics.income_range = top_values[0]
+                    elif 'education' in key.lower():
+                        demographics.education = top_values[0]
+                    elif 'location' in key.lower():
+                        demographics.location = top_values[0]
+                    elif 'occupation' in key.lower():
+                        demographics.occupation = top_values[0]
+    
+    return demographics
+
 @api_router.post("/personas/{persona_id}/generate", response_model=GeneratedPersona)
-async def generate_persona(persona_id: str):
+async def generate_persona(persona_id: str, request: dict = None):
     """Generate the final AI-powered persona with image"""
     persona = await db.personas.find_one({"id": persona_id})
     if not persona:
         raise HTTPException(status_code=404, detail="Persona not found")
     
     persona_data = PersonaData(**persona)
+    
+    # Check if this is a multi-source data generation
+    is_multi_source = request and request.get('use_multi_source_data', False)
+    
+    if is_multi_source:
+        # For multi-source personas, use the uploaded data that's already in the persona
+        logging.info(f"Generating multi-source persona for {persona_data.name}")
+        logging.info(f"Persona demographics: {persona_data.demographics}")
+        logging.info(f"Persona media consumption: {persona_data.media_consumption}")
+        
+        # Verify we have the uploaded data
+        if not persona_data.demographics or not persona_data.demographics.age_range:
+            # Try to get data from the raw uploaded data if available
+            raw_resonate_data = persona.get('resonate_data')
+            if raw_resonate_data:
+                logging.info("Found raw Resonate data, re-extracting demographics")
+                # Re-extract demographics from raw data
+                updated_demographics = _extract_demographics_from_resonate(raw_resonate_data)
+                if updated_demographics:
+                    persona_data.demographics = updated_demographics
+                    # Update the stored persona with corrected data
+                    await db.personas.update_one(
+                        {"id": persona_id}, 
+                        {"$set": {"demographics": updated_demographics.dict()}}
+                    )
     
     # Generate persona image using the comprehensive function
     persona_image_url = await generate_persona_image(persona_data)
@@ -589,6 +660,7 @@ async def generate_persona(persona_id: str):
     recommendations = generate_data_driven_recommendations(persona_data)
     pain_points = generate_contextual_pain_points(persona_data)
     goals = generate_targeted_goals(persona_data)
+    communication_style = _generate_communication_style(persona_data)
     
     generated_persona = GeneratedPersona(
         name=persona_data.name or f"Persona {persona_data.id[:8]}",
@@ -597,7 +669,7 @@ async def generate_persona(persona_id: str):
         recommendations=recommendations,
         pain_points=pain_points,
         goals=goals,
-        communication_style=_generate_communication_style(persona_data),
+        communication_style=communication_style,
         persona_image_url=persona_image_url
     )
     
