@@ -1993,17 +1993,108 @@ async def upload_semrush_data(file: UploadFile = File(...)):
             
             logging.info(f"Processing SEMRush file: {file.filename}")
             
-            # Process the file (placeholder for now - will add real SEMRush parsing)
-            parsed_data = {
-                "source_type": "semrush",
-                "file_name": file.filename,
-                "search_behavior": {
-                    "top_keywords": ["marketing automation", "CRM software", "lead generation"],
-                    "search_volume": {"high": 15, "medium": 35, "low": 50},
-                    "content_gaps": ["AI tools", "data analytics", "customer retention"]
-                },
-                "processed_at": datetime.now().isoformat()
-            }
+            # Add pandas for Excel/CSV parsing
+            import pandas as pd
+            
+            parsed_data = {}
+            
+            # Parse the SEMRush file (usually CSV or Excel)
+            try:
+                if file.filename.lower().endswith(('.xlsx', '.xls')):
+                    # Read Excel file
+                    excel_file = pd.ExcelFile(file_path)
+                    sheet_names = excel_file.sheet_names
+                    
+                    logging.info(f"Found {len(sheet_names)} tabs in SEMRush Excel file: {sheet_names}")
+                    
+                    parsed_data = {
+                        "source_type": "semrush",
+                        "file_name": file.filename,
+                        "sheets_found": sheet_names,
+                        "keyword_data": {},
+                        "processed_at": datetime.now().isoformat()
+                    }
+                    
+                    # Parse each sheet
+                    for sheet_name in sheet_names:
+                        try:
+                            df = pd.read_excel(file_path, sheet_name=sheet_name)
+                            
+                            sheet_data = {
+                                "sheet_name": sheet_name,
+                                "row_count": len(df),
+                                "columns": list(df.columns),
+                                "keywords": {},
+                                "search_data": {}
+                            }
+                            
+                            # Look for keyword-related columns
+                            keyword_columns = [col for col in df.columns if any(term in col.lower() for term in ['keyword', 'query', 'term', 'search'])]
+                            volume_columns = [col for col in df.columns if any(term in col.lower() for term in ['volume', 'traffic', 'searches', 'count'])]
+                            difficulty_columns = [col for col in df.columns if any(term in col.lower() for term in ['difficulty', 'competition', 'cpc', 'cost'])]
+                            
+                            # Extract keywords and their metrics
+                            for col in keyword_columns:
+                                if col in df.columns:
+                                    keywords = df[col].dropna().head(20).tolist()  # Top 20 keywords
+                                    sheet_data["keywords"][col] = keywords
+                            
+                            # Extract search volumes and metrics
+                            for col in volume_columns + difficulty_columns:
+                                if col in df.columns and df[col].dtype in ['int64', 'float64']:
+                                    sheet_data["search_data"][col] = {
+                                        "mean": float(df[col].mean()) if not df[col].isna().all() else 0,
+                                        "max": float(df[col].max()) if not df[col].isna().all() else 0,
+                                        "median": float(df[col].median()) if not df[col].isna().all() else 0
+                                    }
+                            
+                            parsed_data["keyword_data"][sheet_name] = sheet_data
+                            
+                        except Exception as e:
+                            logging.warning(f"Error parsing SEMRush sheet '{sheet_name}': {str(e)}")
+                            
+                elif file.filename.lower().endswith('.csv'):
+                    # Read CSV file
+                    df = pd.read_csv(file_path)
+                    
+                    parsed_data = {
+                        "source_type": "semrush", 
+                        "file_name": file.filename,
+                        "keyword_data": {
+                            "main_data": {
+                                "sheet_name": "CSV_Data",
+                                "row_count": len(df),
+                                "columns": list(df.columns),
+                                "keywords": {},
+                                "search_data": {}
+                            }
+                        },
+                        "processed_at": datetime.now().isoformat()
+                    }
+                    
+                    # Extract keywords and metrics from CSV
+                    keyword_columns = [col for col in df.columns if any(term in col.lower() for term in ['keyword', 'query', 'term', 'search'])]
+                    volume_columns = [col for col in df.columns if any(term in col.lower() for term in ['volume', 'traffic', 'searches', 'count'])]
+                    
+                    for col in keyword_columns:
+                        keywords = df[col].dropna().head(20).tolist()
+                        parsed_data["keyword_data"]["main_data"]["keywords"][col] = keywords
+                    
+                    for col in volume_columns:
+                        if df[col].dtype in ['int64', 'float64']:
+                            parsed_data["keyword_data"]["main_data"]["search_data"][col] = {
+                                "mean": float(df[col].mean()) if not df[col].isna().all() else 0,
+                                "total": float(df[col].sum()) if not df[col].isna().all() else 0
+                            }
+                            
+            except Exception as e:
+                logging.error(f"Error parsing SEMRush file: {str(e)}")
+                parsed_data = {
+                    "source_type": "semrush",
+                    "file_name": file.filename,
+                    "error": f"File parsing failed: {str(e)}",
+                    "processed_at": datetime.now().isoformat()
+                }
             
             return {
                 "success": True,
