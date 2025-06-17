@@ -67,7 +67,32 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
     if (dataSources.resonate.uploaded && !dataIntegration.processed && !isProcessing) {
       processDataIntegration();
     }
-  }, [dataSources, dataIntegration.processed]);
+    
+    // If we have persona data with demographics, consider integration complete
+    if (persona && persona.demographics && persona.demographics.age_range && !integrationComplete) {
+      const mockInsights = {
+        total_sources: 1,
+        demographic_insights: {
+          age: [persona.demographics.age_range],
+          gender: [persona.demographics.gender],
+          income: [persona.demographics.income_range],
+          location: [persona.demographics.location],
+          occupation: [persona.demographics.occupation],
+          education: [persona.demographics.education]
+        }.filter(([key, value]) => value && value[0]),
+        behavioral_patterns: persona.media_consumption?.social_media_platforms || [],
+        data_quality: "High"
+      };
+      
+      setCombinedInsights(mockInsights);
+      setDataIntegration({
+        processed: true,
+        combinedInsights: mockInsights,
+        aiPrompt: "Using uploaded demographic data for persona generation"
+      });
+      setIntegrationComplete(true);
+    }
+  }, [dataSources, dataIntegration.processed, persona]);
 
   const availableSources = getAvailableSources();
   const totalSources = availableSources.length;
