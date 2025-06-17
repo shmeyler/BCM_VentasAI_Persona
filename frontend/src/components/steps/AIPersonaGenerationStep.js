@@ -14,17 +14,14 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
       // Get backend URL from environment
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       
-      // Send persona ID and integrated data for comprehensive AI generation
+      // Send persona ID directly to the existing generate endpoint
       const response = await fetch(`${backendUrl}/api/personas/${persona.id}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          use_multi_source_data: true,
-          data_sources: dataSources,
-          combined_insights: dataIntegration.combinedInsights,
-          ai_prompt: dataIntegration.aiPrompt
+          use_multi_source_data: true
         }),
       });
 
@@ -35,28 +32,19 @@ const AIPersonaGenerationStep = ({ persona, updatePersona, onNext, onPrev, savin
 
       const result = await response.json();
       
-      if (result.success) {
-        setGeneratedPersona(result.persona);
-        setGenerationComplete(true);
-        
-        // Update the main persona with AI-generated data
-        const success = await updatePersona({
-          ...result.persona,
-          ai_generated: true,
-          data_sources_used: Object.keys(dataSources).filter(key => dataSources[key].uploaded),
-          generation_timestamp: new Date().toISOString()
-        }, null);
-        
-        if (!success) {
-          throw new Error('Failed to save AI-generated persona');
-        }
-      } else {
-        throw new Error(result.message || 'Failed to generate persona');
-      }
+      setGeneratedPersona(result);
+      setGenerationComplete(true);
+      
+      // Update the main persona to mark as AI generated
+      await updatePersona({
+        ai_generated: true,
+        data_sources_used: Object.keys(dataSources).filter(key => dataSources[key].uploaded),
+        generation_timestamp: new Date().toISOString()
+      }, null);
       
     } catch (error) {
       console.error('Error generating AI persona:', error);
-      setGenerationError(error.message);
+      setGenerationError(`Generation failed: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
