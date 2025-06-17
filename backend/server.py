@@ -1283,11 +1283,34 @@ async def integrate_multi_source_data(request: dict):
             
             ai_prompt_sections.append(semrush_prompt)
         
-        # Process Buzzabout.ai data (optional)
+        # Process Buzzabout.ai data (optional) - now with real URL parsing
         if data_sources.get('buzzabout', {}).get('uploaded'):
             buzzabout_data = data_sources['buzzabout'].get('data', {})
             combined_insights['buzzabout'] = buzzabout_data
-            ai_prompt_sections.append(f"BUZZABOUT SOCIAL SENTIMENT:\n{_format_data_for_prompt(buzzabout_data)}\n")
+            
+            # Build Buzzabout section with actual crawled content
+            buzzabout_prompt = "BUZZABOUT.AI SOCIAL SENTIMENT:\n"
+            if 'social_sentiment' in buzzabout_data:
+                sentiment_data = buzzabout_data['social_sentiment']
+                
+                if 'trending_topics' in sentiment_data and sentiment_data['trending_topics']:
+                    buzzabout_prompt += f"Trending Topics: {', '.join(sentiment_data['trending_topics'][:5])}\n"
+                    
+                if 'sentiment_analysis' in sentiment_data:
+                    sentiment = sentiment_data['sentiment_analysis']
+                    if isinstance(sentiment, dict) and 'positive' in sentiment:
+                        buzzabout_prompt += f"Sentiment Distribution: {sentiment}\n"
+                
+                if 'social_mentions' in sentiment_data and sentiment_data['social_mentions']:
+                    buzzabout_prompt += f"Social Mentions: {', '.join(sentiment_data['social_mentions'][:5])}\n"
+                    
+                if 'hashtags' in sentiment_data and sentiment_data['hashtags']:
+                    buzzabout_prompt += f"Key Hashtags: {', '.join(sentiment_data['hashtags'][:5])}\n"
+            
+            if 'source_url' in buzzabout_data:
+                buzzabout_prompt += f"Source URL: {buzzabout_data['source_url']}\n"
+            
+            ai_prompt_sections.append(buzzabout_prompt)
         
         # Create comprehensive AI prompt
         ai_prompt = f"""
