@@ -1361,6 +1361,10 @@ async def generate_persona(persona_id: str, request: dict = None):
         data_sources = request.get('data_sources', {})
         combined_insights = request.get('combined_insights', {})
         
+        # Debug: Log what data we're receiving
+        logging.info(f"Data sources received: {list(data_sources.keys()) if data_sources else 'None'}")
+        logging.info(f"Combined insights available: {bool(combined_insights)}")
+        
         # If no data sources in request, get from stored persona data
         if not data_sources or not any(ds.get('uploaded') for ds in data_sources.values()):
             data_sources = {}
