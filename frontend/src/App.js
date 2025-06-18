@@ -3,6 +3,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import HomePage from "./components/HomePage";
 import PersonaWizard from "./components/PersonaWizard";
+import DirectPersonaGenerator from "./components/DirectPersonaGenerator";
 import SavedPersonas from "./components/SavedPersonas";
 import DataSources from "./components/DataSources";
 import VisualPersonaTemplate from "./components/VisualPersonaTemplate";
