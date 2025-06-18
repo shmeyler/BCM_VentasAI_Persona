@@ -2839,38 +2839,43 @@ async def direct_generate_persona_from_files(
             except Exception as e:
                 logging.warning(f"Error processing Buzzabout URL: {str(e)}")
         
-        # Create comprehensive OpenAI prompt with REAL extracted data
+        # Create concise OpenAI prompt (avoid token limits)
         prompt = f"""
-Create a detailed customer persona for "{persona_name}" based on this REAL MARKET RESEARCH DATA:
+Create a customer persona for "{persona_name}" based on this real data:
 
-SPARKTORO AUDIENCE RESEARCH:
-{real_data['sparktoro_insights']}
+AUDIENCE DATA:"""
 
-SEMRUSH SEARCH BEHAVIOR:  
-{real_data['semrush_insights']}
+        if real_data["sparktoro_insights"]:
+            prompt += f"\nSparkToro ({len(real_data['sparktoro_insights'])} categories):"
+            for category, data in list(real_data["sparktoro_insights"].items())[:3]:  # Top 3 categories
+                for column, values in list(data.items())[:2]:  # Top 2 columns per category
+                    top_items = list(values.keys())[:3]  # Top 3 items
+                    prompt += f"\n- {category} {column}: {', '.join(top_items)}"
 
-BUZZABOUT SOCIAL SENTIMENT:
-{real_data['buzzabout_insights']}
+        if real_data["semrush_insights"]:
+            prompt += f"\nSEMRush Keywords:"
+            for column, keywords in list(real_data["semrush_insights"].items())[:2]:  # Top 2 columns
+                prompt += f"\n- {column}: {', '.join(keywords[:5])}"  # Top 5 keywords
 
-Based on this actual data, provide a comprehensive persona analysis in JSON format:
+        if real_data["buzzabout_insights"]:
+            if real_data["buzzabout_insights"].get("trending_topics"):
+                prompt += f"\nSocial Trends: {', '.join(real_data['buzzabout_insights']['trending_topics'][:5])}"
 
-{{
-  "personality_traits": [4 specific traits based on the actual data above],
-  "shopping_behavior": "detailed description based on actual search keywords and social data",
-  "decision_factors": [4 factors based on actual search patterns and interests],
-  "digital_behavior": "specific description based on actual platform usage",
-  "recommendations": [6 specific marketing recommendations based on the actual data],
-  "pain_points": [5 pain points derived from actual search queries and social sentiment],
-  "goals": [5 goals based on actual interests and search behavior]
-}}
+        prompt += """
 
-IMPORTANT: Base ALL insights on the actual data provided above. Reference specific websites, keywords, and topics from the real data. Do not use generic assumptions.
-
-Return ONLY the JSON object.
-"""
+Return JSON only:
+{
+  "personality_traits": [4 traits based on actual data],
+  "shopping_behavior": "description based on keywords/trends", 
+  "decision_factors": [4 factors from data],
+  "digital_behavior": "based on platforms/trends",
+  "recommendations": [6 recommendations from real data],
+  "pain_points": [5 pain points from search patterns],
+  "goals": [5 goals from interests/keywords]
+}"""
         
         # Send to OpenAI for analysis
-        logging.info("Sending real data to OpenAI for persona generation")
+        logging.info(f"Sending concise prompt to OpenAI ({len(prompt)} characters)")
         
         try:
             import openai
@@ -2881,12 +2886,12 @@ Return ONLY the JSON object.
             client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
             
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # Use faster, cheaper model with higher limits
                 messages=[
-                    {"role": "system", "content": "You are an expert marketing analyst who creates detailed customer personas based on real market research data."},
+                    {"role": "system", "content": "You are a marketing analyst. Return only valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=2000,
+                max_tokens=1500,
                 temperature=0.7
             )
             
@@ -2904,7 +2909,7 @@ Return ONLY the JSON object.
                     "semrush": bool(real_data["semrush_insights"]),
                     "buzzabout": bool(real_data["buzzabout_insights"])
                 },
-                "raw_data_extracted": real_data
+                "prompt_size": len(prompt)
             }
             
         except Exception as e:
