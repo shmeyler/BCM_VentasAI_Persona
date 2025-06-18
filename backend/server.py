@@ -1401,26 +1401,31 @@ async def generate_persona(persona_id: str, request: dict = None):
                 }
                 logging.info("Found stored Resonate data")
         
-        # Verify we have the uploaded data
-        if not persona_data.demographics or not persona_data.demographics.age_range:
-            # Try to get data from the raw uploaded data if available
-            raw_resonate_data = persona.get('resonate_data')
-            if raw_resonate_data:
-                logging.info("Found raw Resonate data, re-extracting demographics")
-                # Re-extract demographics from raw data
-                updated_demographics = _extract_demographics_from_resonate(raw_resonate_data)
-                if updated_demographics:
-                    persona_data.demographics = updated_demographics
-                    # Update the stored persona with corrected data
-                    await db.personas.update_one(
-                        {"id": persona_id}, 
-                        {"$set": {"demographics": updated_demographics.dict()}}
-                    )
+        # Final debug: What data sources do we have?
+        uploaded_sources = [source for source, data in data_sources.items() if data.get('uploaded')]
+        logging.info(f"Final data sources for generation: {uploaded_sources}")
         
-        # Generate enhanced insights using actual uploaded data
-        logging.info("Generating persona insights using OpenAI with assembled real data")
-        assembled_data = assemble_real_uploaded_data(data_sources, persona_data)
-        advanced_prompt = create_advanced_persona_prompt(assembled_data, persona_data)
+        # If we still have no real data, create a simple fallback prompt
+        if not uploaded_sources:
+            logging.warning("No real data sources found - using basic demographic data only")
+            basic_prompt = f"""
+Create a customer persona based on these demographics:
+- Age: {persona_data.demographics.age_range if persona_data.demographics else 'Unknown'}
+- Gender: {persona_data.demographics.gender if persona_data.demographics else 'Unknown'}  
+- Location: {persona_data.demographics.location if persona_data.demographics else 'Unknown'}
+- Occupation: {persona_data.demographics.occupation if persona_data.demographics else 'Unknown'}
+- Social Platforms: {', '.join(persona_data.media_consumption.social_media_platforms) if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms else 'Unknown'}
+
+Return a JSON object with: personality_traits (4 items), shopping_behavior (string), decision_factors (4 items), digital_behavior (string), recommendations (6 items), pain_points (5 items), goals (5 items).
+"""
+            advanced_prompt = basic_prompt
+        else:
+            # Assemble all real data from uploads
+            assembled_data = assemble_real_uploaded_data(data_sources, persona_data)
+            logging.info(f"Assembled data summary: SparkToro={bool(assembled_data.get('sparktoro_data'))}, SEMRush={bool(assembled_data.get('semrush_data'))}, Buzzabout={bool(assembled_data.get('buzzabout_data'))}")
+            
+            # Create advanced OpenAI prompt with real data
+            advanced_prompt = create_advanced_persona_prompt(assembled_data, persona_data)
         ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(advanced_prompt)
     else:
         # Use standard generation for non-multi-source personas
