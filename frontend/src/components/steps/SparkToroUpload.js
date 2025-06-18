@@ -178,12 +178,57 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
         </div>
       )}
 
-      {/* Success State */}
-      {parsedData && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <h3 className="text-green-800 font-semibold mb-2">✅ SparkToro Data Processed Successfully</h3>
-          <div className="text-green-700 text-sm">
-            Extracted audience demographics, social behavior, and content preferences from your SparkToro data.
+      {/* Data Summary Section */}
+      {uploadSuccess && uploadedFile && (
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h4 className="font-semibold text-green-800 mb-3">SparkToro Data Summary</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-green-700">File:</span> {uploadedFile.name}
+            </div>
+            <div>
+              <span className="font-medium text-green-700">Size:</span> {(uploadedFile.size / 1024).toFixed(1)} KB
+            </div>
+          </div>
+          
+          {/* Show actual data summary if available */}
+          {dataSources.sparktoro.data && dataSources.sparktoro.data.categories && (
+            <div className="mt-3">
+              <span className="font-medium text-green-700">Categories Found:</span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Object.keys(dataSources.sparktoro.data.categories).slice(0, 8).map((category, idx) => (
+                  <span key={idx} className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                    {category}
+                  </span>
+                ))}
+                {Object.keys(dataSources.sparktoro.data.categories).length > 8 && (
+                  <span className="text-green-600 text-xs">
+                    +{Object.keys(dataSources.sparktoro.data.categories).length - 8} more
+                  </span>
+                )}
+              </div>
+              
+              {/* Show sample data from first category */}
+              {(() => {
+                const firstCategory = Object.values(dataSources.sparktoro.data.categories)[0];
+                if (firstCategory && firstCategory.top_values) {
+                  const firstColumn = Object.keys(firstCategory.top_values)[0];
+                  const sampleData = firstColumn ? Object.keys(firstCategory.top_values[firstColumn]).slice(0, 3) : [];
+                  
+                  return (
+                    <div className="mt-2 text-xs text-green-700">
+                      <span className="font-medium">Sample data:</span> {sampleData.join(', ')}
+                      {sampleData.length > 0 && '...'}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
+          
+          <div className="mt-3 text-xs text-green-600">
+            ✓ This data will be used to generate audience insights and platform recommendations
           </div>
         </div>
       )}
