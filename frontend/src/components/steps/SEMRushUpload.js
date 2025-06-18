@@ -166,12 +166,52 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
         </div>
       )}
 
-      {/* Success State */}
-      {parsedData && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <h3 className="text-green-800 font-semibold mb-2">✅ SEMRush Data Processed Successfully</h3>
-          <div className="text-green-700 text-sm">
-            Extracted search behavior patterns, keyword interests, and content preferences from your SEMRush data.
+      {/* Data Summary Section */}
+      {uploadSuccess && uploadedFile && (
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-semibold text-blue-800 mb-3">SEMRush Data Summary</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-blue-700">File:</span> {uploadedFile.name}
+            </div>
+            <div>
+              <span className="font-medium text-blue-700">Size:</span> {(uploadedFile.size / 1024).toFixed(1)} KB
+            </div>
+          </div>
+          
+          {/* Show actual keyword data if available */}
+          {dataSources.semrush.data && dataSources.semrush.data.keyword_data && (
+            <div className="mt-3">
+              <span className="font-medium text-blue-700">Keyword Sheets:</span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Object.keys(dataSources.semrush.data.keyword_data).slice(0, 5).map((sheet, idx) => (
+                  <span key={idx} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    {sheet}
+                  </span>
+                ))}
+              </div>
+              
+              {/* Show sample keywords */}
+              {(() => {
+                const firstSheet = Object.values(dataSources.semrush.data.keyword_data)[0];
+                if (firstSheet && firstSheet.keywords) {
+                  const firstColumn = Object.keys(firstSheet.keywords)[0];
+                  const sampleKeywords = firstColumn ? firstSheet.keywords[firstColumn].slice(0, 3) : [];
+                  
+                  return (
+                    <div className="mt-2 text-xs text-blue-700">
+                      <span className="font-medium">Sample keywords:</span> {sampleKeywords.join(', ')}
+                      {sampleKeywords.length > 0 && '...'}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
+          
+          <div className="mt-3 text-xs text-blue-600">
+            ✓ This search data will be used to generate behavior insights and content recommendations
           </div>
         </div>
       )}
