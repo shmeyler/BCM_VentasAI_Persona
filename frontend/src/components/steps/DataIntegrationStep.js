@@ -201,14 +201,11 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
 
       {/* Integration Complete */}
       {integrationComplete && combinedInsights && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-          <h3 className="text-green-800 font-semibold mb-3">✅ Data Integration Complete</h3>
+        <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Complete Data Summary</h3>
           
+          {/* Data Sources Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-700">{totalSources}</div>
-              <div className="text-sm text-green-600">Data Sources Integrated</div>
-            </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-700">
                 {(() => {
@@ -232,18 +229,127 @@ const DataIntegrationStep = ({ persona, updatePersona, onNext, onPrev, saving, d
               </div>
               <div className="text-sm text-green-600">Demographic Insights</div>
             </div>
+            
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-700">
-                {combinedInsights.behavioral_patterns ? combinedInsights.behavioral_patterns.length : 0}
+              <div className="text-2xl font-bold text-blue-700">
+                {combinedInsights.behavioral_patterns ? combinedInsights.behavioral_patterns.length : (persona?.media_consumption?.social_media_platforms?.length || 0)}
               </div>
-              <div className="text-sm text-green-600">Behavioral Patterns</div>
+              <div className="text-sm text-blue-600">Behavioral Patterns</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-700">
+                {combinedInsights.total_sources || Object.keys(dataSources).filter(key => dataSources[key].uploaded).length}
+              </div>
+              <div className="text-sm text-purple-600">Data Sources</div>
             </div>
           </div>
-
-          <div className="text-green-700 text-sm">
-            Your data has been successfully analyzed and prepared for AI persona generation. 
-            The system has identified key demographic patterns, behavioral insights, and content preferences 
-            that will be used to create a comprehensive, data-driven persona.
+          
+          {/* Detailed Data Breakdown */}
+          <div className="space-y-4">
+            {/* SparkToro Data Summary */}
+            {dataSources.sparktoro?.uploaded && dataSources.sparktoro?.data?.categories && (
+              <div className="bg-white p-4 rounded border">
+                <h4 className="font-semibold text-green-800 mb-2">🎯 SparkToro Audience Research</h4>
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">{Object.keys(dataSources.sparktoro.data.categories).length} categories analyzed:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {Object.keys(dataSources.sparktoro.data.categories).slice(0, 6).map((cat, idx) => (
+                      <span key={idx} className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                        {cat}
+                      </span>
+                    ))}
+                    {Object.keys(dataSources.sparktoro.data.categories).length > 6 && (
+                      <span className="text-green-600 text-xs">+{Object.keys(dataSources.sparktoro.data.categories).length - 6} more</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* SEMRush Data Summary */}
+            {dataSources.semrush?.uploaded && dataSources.semrush?.data?.keyword_data && (
+              <div className="bg-white p-4 rounded border">
+                <h4 className="font-semibold text-blue-800 mb-2">🔍 SEMRush Search Behavior</h4>
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">{Object.keys(dataSources.semrush.data.keyword_data).length} keyword datasets:</span>
+                  {(() => {
+                    const allKeywords = [];
+                    Object.values(dataSources.semrush.data.keyword_data).forEach(sheet => {
+                      if (sheet.keywords) {
+                        Object.values(sheet.keywords).forEach(keywords => {
+                          allKeywords.push(...keywords.slice(0, 3));
+                        });
+                      }
+                    });
+                    
+                    return allKeywords.length > 0 ? (
+                      <div className="mt-1 text-xs text-blue-700">
+                        Sample keywords: {allKeywords.slice(0, 5).join(', ')}...
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+            )}
+            
+            {/* Buzzabout Data Summary */}
+            {dataSources.buzzabout?.uploaded && dataSources.buzzabout?.data?.social_sentiment && (
+              <div className="bg-white p-4 rounded border">
+                <h4 className="font-semibold text-purple-800 mb-2">💬 Buzzabout Social Sentiment</h4>
+                <div className="text-sm text-gray-700">
+                  {dataSources.buzzabout.data.social_sentiment.trending_topics?.length > 0 && (
+                    <div>
+                      <span className="font-medium">Trending topics:</span>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {dataSources.buzzabout.data.social_sentiment.trending_topics.slice(0, 5).map((topic, idx) => (
+                          <span key={idx} className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Resonate Data Summary */}
+            {dataSources.resonate?.uploaded && (
+              <div className="bg-white p-4 rounded border">
+                <h4 className="font-semibold text-orange-800 mb-2">👥 Resonate Demographics</h4>
+                <div className="text-sm text-gray-700">
+                  <div className="grid grid-cols-2 gap-2">
+                    {persona?.demographics?.age_range && (
+                      <span><span className="font-medium">Age:</span> {persona.demographics.age_range}</span>
+                    )}
+                    {persona?.demographics?.gender && (
+                      <span><span className="font-medium">Gender:</span> {persona.demographics.gender}</span>
+                    )}
+                    {persona?.demographics?.occupation && (
+                      <span><span className="font-medium">Occupation:</span> {persona.demographics.occupation}</span>
+                    )}
+                    {persona?.demographics?.location && (
+                      <span><span className="font-medium">Location:</span> {persona.demographics.location}</span>
+                    )}
+                  </div>
+                  {persona?.media_consumption?.social_media_platforms?.length > 0 && (
+                    <div className="mt-2">
+                      <span className="font-medium">Platforms:</span> {persona.media_consumption.social_media_platforms.join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-4 p-3 bg-gradient-to-r from-green-100 to-blue-100 rounded text-center">
+            <p className="text-sm font-medium text-gray-800">
+              🚀 All data collected and ready for AI-powered persona generation
+            </p>
+            <p className="text-xs text-gray-600 mt-1">
+              This comprehensive dataset will be used to create detailed, personalized insights
+            </p>
           </div>
         </div>
       )}
