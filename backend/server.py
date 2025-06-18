@@ -2707,6 +2707,210 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to process SparkToro file: {str(e)}")
 
 
+@api_router.post("/personas/direct-generate")
+async def direct_generate_persona_from_files(
+    persona_name: str = Form(...),
+    sparktoro_file: Optional[UploadFile] = File(None),
+    semrush_file: Optional[UploadFile] = File(None),
+    buzzabout_url: Optional[str] = Form(None)
+):
+    """Direct persona generation from uploaded files - bypass complex workflow"""
+    try:
+        logging.info(f"Direct persona generation for: {persona_name}")
+        
+        # Process files immediately and extract real data
+        real_data = {
+            "persona_name": persona_name,
+            "sparktoro_insights": {},
+            "semrush_insights": {},
+            "buzzabout_insights": {}
+        }
+        
+        # Process SparkToro file if provided
+        if sparktoro_file:
+            logging.info(f"Processing SparkToro file: {sparktoro_file.filename}")
+            content = await sparktoro_file.read()
+            
+            # Save to temp file and process
+            temp_dir = tempfile.mkdtemp()
+            try:
+                file_path = os.path.join(temp_dir, sparktoro_file.filename)
+                with open(file_path, 'wb') as f:
+                    f.write(content)
+                
+                # Parse Excel file directly
+                import pandas as pd
+                excel_file = pd.ExcelFile(file_path)
+                
+                sparktoro_summary = {}
+                for sheet_name in excel_file.sheet_names[:10]:  # Process top 10 sheets
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name)
+                        if not df.empty:
+                            # Extract top values from each column
+                            sheet_data = {}
+                            for column in df.columns[:5]:  # Top 5 columns per sheet
+                                if df[column].dtype == 'object':
+                                    top_values = df[column].value_counts().head(5).to_dict()
+                                    if top_values:
+                                        sheet_data[str(column)] = top_values
+                            
+                            if sheet_data:
+                                sparktoro_summary[sheet_name] = sheet_data
+                    except Exception as e:
+                        logging.warning(f"Error processing sheet {sheet_name}: {str(e)}")
+                
+                real_data["sparktoro_insights"] = sparktoro_summary
+                logging.info(f"Extracted SparkToro data: {len(sparktoro_summary)} sheets")
+                
+            finally:
+                shutil.rmtree(temp_dir)
+        
+        # Process SEMRush file if provided  
+        if semrush_file:
+            logging.info(f"Processing SEMRush file: {semrush_file.filename}")
+            content = await semrush_file.read()
+            
+            temp_dir = tempfile.mkdtemp()
+            try:
+                file_path = os.path.join(temp_dir, semrush_file.filename)
+                with open(file_path, 'wb') as f:
+                    f.write(content)
+                
+                # Parse CSV file directly
+                import pandas as pd
+                df = pd.read_csv(file_path)
+                
+                semrush_summary = {}
+                # Extract keywords from relevant columns
+                keyword_columns = [col for col in df.columns if any(term in col.lower() for term in ['keyword', 'query', 'term'])]
+                
+                for column in keyword_columns[:3]:  # Top 3 keyword columns
+                    keywords = df[column].dropna().head(20).tolist()
+                    if keywords:
+                        semrush_summary[str(column)] = [str(k) for k in keywords]
+                
+                real_data["semrush_insights"] = semrush_summary
+                logging.info(f"Extracted SEMRush data: {len(semrush_summary)} keyword columns")
+                
+            finally:
+                shutil.rmtree(temp_dir)
+        
+        # Process Buzzabout URL if provided
+        if buzzabout_url:
+            logging.info(f"Processing Buzzabout URL: {buzzabout_url}")
+            try:
+                import requests
+                from bs4 import BeautifulSoup
+                
+                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                response = requests.get(buzzabout_url, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    page_text = soup.get_text()
+                    
+                    # Extract trending topics and sentiment
+                    import re
+                    topics = re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', page_text)
+                    topic_counts = {}
+                    for topic in topics:
+                        if len(topic) > 3:
+                            topic_counts[topic] = topic_counts.get(topic, 0) + 1
+                    
+                    trending_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+                    
+                    real_data["buzzabout_insights"] = {
+                        "trending_topics": [topic for topic, count in trending_topics],
+                        "source_url": buzzabout_url
+                    }
+                    
+                    logging.info(f"Extracted Buzzabout data: {len(trending_topics)} trending topics")
+                
+            except Exception as e:
+                logging.warning(f"Error processing Buzzabout URL: {str(e)}")
+        
+        # Create comprehensive OpenAI prompt with REAL extracted data
+        prompt = f"""
+Create a detailed customer persona for "{persona_name}" based on this REAL MARKET RESEARCH DATA:
+
+SPARKTORO AUDIENCE RESEARCH:
+{real_data['sparktoro_insights']}
+
+SEMRUSH SEARCH BEHAVIOR:  
+{real_data['semrush_insights']}
+
+BUZZABOUT SOCIAL SENTIMENT:
+{real_data['buzzabout_insights']}
+
+Based on this actual data, provide a comprehensive persona analysis in JSON format:
+
+{{
+  "personality_traits": [4 specific traits based on the actual data above],
+  "shopping_behavior": "detailed description based on actual search keywords and social data",
+  "decision_factors": [4 factors based on actual search patterns and interests],
+  "digital_behavior": "specific description based on actual platform usage",
+  "recommendations": [6 specific marketing recommendations based on the actual data],
+  "pain_points": [5 pain points derived from actual search queries and social sentiment],
+  "goals": [5 goals based on actual interests and search behavior]
+}}
+
+IMPORTANT: Base ALL insights on the actual data provided above. Reference specific websites, keywords, and topics from the real data. Do not use generic assumptions.
+
+Return ONLY the JSON object.
+"""
+        
+        # Send to OpenAI for analysis
+        logging.info("Sending real data to OpenAI for persona generation")
+        
+        try:
+            import openai
+            from openai import OpenAI
+            import json
+            import os
+            
+            client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert marketing analyst who creates detailed customer personas based on real market research data."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=2000,
+                temperature=0.7
+            )
+            
+            response_text = response.choices[0].message.content.strip()
+            persona_data = json.loads(response_text)
+            
+            logging.info("Successfully generated persona from real data")
+            
+            return {
+                "success": True,
+                "persona_name": persona_name,
+                "generated_persona": persona_data,
+                "data_sources_processed": {
+                    "sparktoro": bool(real_data["sparktoro_insights"]),
+                    "semrush": bool(real_data["semrush_insights"]),
+                    "buzzabout": bool(real_data["buzzabout_insights"])
+                },
+                "raw_data_extracted": real_data
+            }
+            
+        except Exception as e:
+            logging.error(f"OpenAI generation failed: {str(e)}")
+            return {
+                "success": False,
+                "error": f"AI generation failed: {str(e)}",
+                "raw_data_extracted": real_data
+            }
+        
+    except Exception as e:
+        logging.error(f"Direct persona generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Persona generation failed: {str(e)}")
+
+
 @api_router.post("/personas/{persona_id}/save-sparktoro")
 async def save_sparktoro_to_persona(persona_id: str, request: dict):
     """Save SparkToro data to persona"""
