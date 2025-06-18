@@ -179,7 +179,7 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
       )}
 
       {/* Data Summary Section */}
-      {uploadSuccess && uploadedFile && (
+      {uploadedFile && !uploadError && (
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h4 className="font-semibold text-green-800 mb-3">SparkToro Data Summary</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
