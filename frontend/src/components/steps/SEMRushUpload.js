@@ -167,7 +167,7 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
       )}
 
       {/* Data Summary Section */}
-      {uploadSuccess && uploadedFile && (
+      {uploadedFile && !uploadError && (
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="font-semibold text-blue-800 mb-3">SEMRush Data Summary</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
