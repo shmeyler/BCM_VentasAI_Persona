@@ -2702,6 +2702,28 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
         logging.error(f"Error processing SparkToro file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process SparkToro file: {str(e)}")
 
+
+@api_router.post("/personas/{persona_id}/save-sparktoro")
+async def save_sparktoro_to_persona(persona_id: str, request: dict):
+    """Save SparkToro data to persona"""
+    try:
+        parsed_data = request.get('parsed_data', {})
+        
+        # Update persona with SparkToro data
+        result = await db.personas.update_one(
+            {"id": persona_id},
+            {"$set": {"sparktoro_data": parsed_data}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Persona not found")
+        
+        logging.info(f"Saved SparkToro data to persona {persona_id}")
+        return {"success": True, "message": "SparkToro data saved to persona"}
+        
+    except Exception as e:
+        logging.error(f"Error saving SparkToro data to persona: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save data: {str(e)}")
 @api_router.post("/personas/semrush-upload")
 async def upload_semrush_data(file: UploadFile = File(...)):
     """
