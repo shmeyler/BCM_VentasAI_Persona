@@ -53,9 +53,21 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
         }));
         
         // Save SparkToro data to the persona
-        await updatePersona({
-          sparktoro_data: result.parsed_data
-        }, null);
+        const saveResponse = await fetch(`${backendUrl}/api/personas/${persona.id}/save-sparktoro`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            parsed_data: result.parsed_data
+          }),
+        });
+        
+        if (!saveResponse.ok) {
+          console.warn('Failed to save SparkToro data to persona');
+        } else {
+          console.log('SparkToro data saved to persona successfully');
+        }
         
       } else {
         throw new Error(result.message || 'Failed to process SparkToro file');
