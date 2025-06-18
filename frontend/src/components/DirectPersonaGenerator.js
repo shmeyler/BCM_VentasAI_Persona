@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, Link, Sparkles, AlertCircle } from 'lucide-react';
 
 const DirectPersonaGenerator = () => {
   const [personaName, setPersonaName] = useState('');
@@ -94,8 +93,7 @@ const DirectPersonaGenerator = () => {
             {/* SparkToro File */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileSpreadsheet className="inline w-4 h-4 mr-1" />
-                SparkToro Excel File
+                📊 SparkToro Excel File
               </label>
               <input
                 type="file"
@@ -111,8 +109,7 @@ const DirectPersonaGenerator = () => {
             {/* SEMRush File */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileSpreadsheet className="inline w-4 h-4 mr-1" />
-                SEMRush CSV File
+                🔍 SEMRush CSV File
               </label>
               <input
                 type="file"
@@ -129,8 +126,7 @@ const DirectPersonaGenerator = () => {
           {/* Buzzabout URL */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Link className="inline w-4 h-4 mr-1" />
-              Buzzabout.ai Report URL
+              🔗 Buzzabout.ai Report URL
             </label>
             <input
               type="url"
@@ -158,7 +154,7 @@ const DirectPersonaGenerator = () => {
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5" />
+                <span>✨</span>
                 <span>Generate Persona with Real Data</span>
               </>
             )}
@@ -170,7 +166,7 @@ const DirectPersonaGenerator = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+            <span className="text-red-500 mr-2">⚠️</span>
             <span className="text-red-800">{error}</span>
           </div>
         </div>
