@@ -125,6 +125,7 @@ function App() {
           <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/direct-generate" element={<DirectPersonaGenerator />} />
               <Route path="/persona-wizard" element={<PersonaWizard />} />
               <Route path="/saved-personas" element={<SavedPersonas />} />
               <Route path="/data-sources" element={<DataSources />} />
