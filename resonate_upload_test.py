@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 class ResonateUploadTester:
-    def __init__(self, base_url="https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

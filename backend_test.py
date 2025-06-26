@@ -1038,7 +1038,7 @@ def test_complete_e2e_workflow():
     print("=" * 80)
     
     # Get backend URL from frontend/.env
-    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
     print(f"Using backend URL: {backend_url}")
     
     tester = VentasAIPersonaGeneratorTester(backend_url)
@@ -1276,7 +1276,7 @@ def test_multi_source_persona_workflow():
     print("=" * 80)
     
     # Get backend URL from frontend/.env
-    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
     print(f"Using backend URL: {backend_url}")
     
     tester = VentasAIPersonaGeneratorTester(backend_url)
@@ -1620,7 +1620,7 @@ def main():
             return 0 if test_multi_source_persona_workflow() else 1
         elif sys.argv[1] == "resonate":
             # Get backend URL from frontend/.env
-            backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+            backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
             print(f"Using backend URL: {backend_url}")
             
             tester = VentasAIPersonaGeneratorTester(backend_url)
@@ -1665,7 +1665,7 @@ def main():
     e2e_success = test_complete_e2e_workflow()
     
     # Get backend URL from frontend/.env
-    backend_url = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
     print(f"\nUsing backend URL: {backend_url}")
     
     tester = VentasAIPersonaGeneratorTester(backend_url)

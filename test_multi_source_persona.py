@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 
 # Get backend URL from frontend/.env
-BACKEND_URL = "https://0d86ffe6-71b5-47b2-b182-692556be7d93.preview.emergentagent.com/api"
+BACKEND_URL = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
 print(f"Using backend URL: {BACKEND_URL}")
 
 def create_test_csv_with_demographics():
