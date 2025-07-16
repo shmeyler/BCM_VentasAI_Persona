@@ -354,11 +354,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "FastAPI server startup and basic endpoints"
-    - "Frontend application loading and routing"
-    - "Basic persona creation workflow"
-    - "Resonate upload functionality"
     - "Multi-source data persona generation"
+    - "Regular persona generation OpenAI integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
