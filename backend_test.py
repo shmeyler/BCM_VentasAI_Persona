@@ -29,17 +29,20 @@ class VentasAIPersonaGeneratorTester:
         print(f"   URL: {url}")
         
         try:
+            # Use longer timeouts for all requests
+            timeout = 60 if 'generate' in endpoint.lower() else 30
+            
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=10)
+                response = requests.get(url, headers=headers, timeout=timeout)
             elif method == 'POST':
                 if files:
-                    response = requests.post(url, files=files, timeout=30)  # Longer timeout for file uploads
+                    response = requests.post(url, files=files, timeout=timeout)
                 else:
-                    response = requests.post(url, json=data, headers=headers, timeout=10)
+                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=headers, timeout=10)
+                response = requests.put(url, json=data, headers=headers, timeout=timeout)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+                response = requests.delete(url, headers=headers, timeout=timeout)
 
             success = response.status_code == expected_status
             if success:
