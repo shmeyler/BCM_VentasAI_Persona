@@ -1027,6 +1027,580 @@ def create_test_csv_with_quoted_values():
     
     return zip_path
 
+def test_regular_persona_generation_openai_fix():
+    """
+    Test the regular persona generation OpenAI integration fix:
+    1. Create persona with starting_method="demographics"
+    2. Update persona with COMPLETE demographic data (age, gender, occupation)
+    3. Generate persona WITHOUT use_multi_source_data flag
+    4. Verify OpenAI is used instead of fallback functions
+    5. Compare quality of insights with previous test results
+    """
+    print("\n" + "=" * 80)
+    print("🔍 TESTING REGULAR PERSONA GENERATION OPENAI INTEGRATION FIX")
+    print("=" * 80)
+    
+    # Get backend URL from frontend/.env
+    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
+    print(f"Using backend URL: {backend_url}")
+    
+    tester = VentasAIPersonaGeneratorTester(backend_url)
+    
+    # Step 1: Create a persona with demographics starting method
+    print("\n1️⃣ Creating persona with demographics starting method...")
+    success, create_response = tester.run_test(
+        "Create Regular Demographics Persona",
+        "POST",
+        "personas",
+        200,
+        data={
+            "starting_method": "demographics",
+            "name": "Regular Demographics Test Persona"
+        }
+    )
+    
+    if not success or 'id' not in create_response:
+        print("❌ Failed to create persona. Aborting test.")
+        return False
+    
+    persona_id = create_response['id']
+    print(f"   ✅ Created persona with ID: {persona_id}")
+    print(f"   Starting method: {create_response['starting_method']}")
+    
+    # Step 2: Update persona with COMPLETE demographic data
+    print("\n2️⃣ Updating persona with complete demographic data...")
+    
+    complete_demographics = {
+        "age_range": "25-40",
+        "gender": "Female", 
+        "income_range": "$75,000-$100,000",
+        "education": "Bachelor's Degree",
+        "location": "Urban",
+        "occupation": "Marketing Manager",
+        "family_status": "Single"
+    }
+    
+    complete_media_consumption = {
+        "social_media_platforms": ["Instagram", "LinkedIn", "Twitter", "TikTok"],
+        "content_types": ["Industry news", "How-to guides", "Case studies"],
+        "consumption_time": "Evening",
+        "preferred_devices": ["Smartphone", "Laptop"],
+        "news_sources": ["Industry blogs", "LinkedIn"],
+        "entertainment_preferences": ["Podcasts", "Streaming services"],
+        "advertising_receptivity": "Medium"
+    }
+    
+    update_success, update_response = tester.run_test(
+        "Update Regular Persona with Complete Demographics",
+        "PUT",
+        f"personas/{persona_id}",
+        200,
+        data={
+            "demographics": complete_demographics,
+            "media_consumption": complete_media_consumption,
+            "current_step": 4,
+            "completed_steps": [1, 2, 3]
+        }
+    )
+    
+    if not update_success:
+        print("❌ Failed to update persona with complete demographic data. Aborting test.")
+        return False
+    
+    print("   ✅ Successfully updated persona with complete demographic data")
+    print(f"   Demographics: Age={complete_demographics['age_range']}, Gender={complete_demographics['gender']}, Occupation={complete_demographics['occupation']}")
+    
+    # Step 3: Generate persona WITHOUT use_multi_source_data flag (regular generation)
+    print("\n3️⃣ Generating regular persona (without multi-source flag)...")
+    
+    # Add a small delay to ensure data is properly saved
+    time.sleep(1)
+    
+    # Use a longer timeout for OpenAI generation
+    url = f"{backend_url}/personas/{persona_id}/generate"
+    headers = {'Content-Type': 'application/json'}
+    
+    tester.tests_run += 1
+    print(f"\n🔍 Testing Generate Regular Persona with OpenAI...")
+    print(f"   URL: {url}")
+    print(f"   Request: Regular generation (no use_multi_source_data flag)")
+    
+    try:
+        # Use a longer timeout (60 seconds) for this specific request
+        # NOTE: NOT sending use_multi_source_data flag - this should trigger regular persona generation
+        response = requests.post(
+            url, 
+            json={}, 
+            headers=headers, 
+            timeout=60
+        )
+        
+        success = response.status_code == 200
+        if success:
+            tester.tests_passed += 1
+            print(f"✅ Passed - Status: {response.status_code}")
+            generated_persona = response.json()
+            
+            # Store test result
+            tester.test_results["Generate Regular Persona with OpenAI"] = {
+                "success": True,
+                "status_code": response.status_code,
+                "expected_status": 200,
+                "endpoint": f"personas/{persona_id}/generate",
+                "method": "POST"
+            }
+        else:
+            print(f"❌ Failed - Expected 200, got {response.status_code}")
+            try:
+                error_data = response.json()
+                print(f"   Error: {error_data}")
+            except:
+                print(f"   Error: {response.text[:200]}")
+            
+            # Store test result
+            tester.test_results["Generate Regular Persona with OpenAI"] = {
+                "success": False,
+                "status_code": response.status_code,
+                "expected_status": 200,
+                "endpoint": f"personas/{persona_id}/generate",
+                "method": "POST"
+            }
+            
+            return False
+            
+    except Exception as e:
+        print(f"❌ Failed - Error: {str(e)}")
+        
+        # Store test result
+        tester.test_results["Generate Regular Persona with OpenAI"] = {
+            "success": False,
+            "error": str(e),
+            "endpoint": f"personas/{persona_id}/generate",
+            "method": "POST"
+        }
+        
+        return False
+    
+    if not success:
+        print("❌ Failed to generate regular persona. Aborting test.")
+        return False
+    
+    print("   ✅ Successfully generated regular persona")
+    
+    # Step 4: Verify OpenAI is used instead of fallback functions
+    print("\n4️⃣ Verifying OpenAI integration vs fallback generation...")
+    
+    # Check for signs that OpenAI was used vs fallback generation
+    ai_insights = generated_persona.get('ai_insights', {})
+    recommendations = generated_persona.get('recommendations', [])
+    pain_points = generated_persona.get('pain_points', [])
+    goals = generated_persona.get('goals', [])
+    
+    print("\n🔍 OPENAI VS FALLBACK DETECTION:")
+    
+    # Check personality traits for fallback indicators
+    personality_traits = ai_insights.get('personality_traits', [])
+    fallback_traits = ["Data-driven", "Research-oriented", "Platform-savvy", "Goal-focused"]
+    fallback_trait_count = sum(1 for trait in personality_traits if trait in fallback_traits)
+    
+    if fallback_trait_count >= 3:
+        print(f"   ❌ FALLBACK DETECTED: Found {fallback_trait_count}/4 fallback traits")
+        print(f"   Fallback traits found: {[t for t in personality_traits if t in fallback_traits]}")
+        openai_used = False
+    else:
+        print(f"   ✅ OPENAI LIKELY USED: Only {fallback_trait_count}/4 fallback traits found")
+        print(f"   Actual traits: {personality_traits}")
+        openai_used = True
+    
+    # Check recommendations for fallback indicators
+    fallback_recommendations = [
+        "Leverage data-driven marketing strategies",
+        "Focus on platform-specific content optimization", 
+        "Implement comprehensive analytics tracking",
+        "Develop multi-channel engagement strategies"
+    ]
+    
+    fallback_rec_count = sum(1 for rec in recommendations if rec in fallback_recommendations)
+    
+    if fallback_rec_count >= 2:
+        print(f"   ❌ FALLBACK DETECTED: Found {fallback_rec_count} fallback recommendations")
+        print(f"   Fallback recommendations found: {[r for r in recommendations if r in fallback_recommendations]}")
+        openai_used = False
+    else:
+        print(f"   ✅ OPENAI LIKELY USED: Only {fallback_rec_count} fallback recommendations found")
+        print(f"   Sample recommendations: {recommendations[:3]}")
+    
+    # Check pain points for fallback indicators
+    fallback_pain_points = [
+        "Information overload from multiple data sources",
+        "Platform integration complexities",
+        "ROI measurement challenges", 
+        "Time constraints for thorough analysis"
+    ]
+    
+    fallback_pain_count = sum(1 for pain in pain_points if pain in fallback_pain_points)
+    
+    if fallback_pain_count >= 2:
+        print(f"   ❌ FALLBACK DETECTED: Found {fallback_pain_count} fallback pain points")
+        print(f"   Fallback pain points found: {[p for p in pain_points if p in fallback_pain_points]}")
+        openai_used = False
+    else:
+        print(f"   ✅ OPENAI LIKELY USED: Only {fallback_pain_count} fallback pain points found")
+        print(f"   Sample pain points: {pain_points[:3]}")
+    
+    # Step 5: Verify quality of insights for demographic data
+    print("\n5️⃣ Verifying quality and specificity of generated insights...")
+    
+    verification_results = []
+    
+    # Check demographics preservation
+    demographics = generated_persona.get('persona_data', {}).get('demographics', {})
+    print("\n📊 DEMOGRAPHICS PRESERVATION:")
+    
+    if demographics.get('age_range') == "25-40":
+        print("   ✅ Age range correctly preserved: 25-40")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Age range not preserved: {demographics.get('age_range')}")
+        verification_results.append(False)
+    
+    if demographics.get('gender') == "Female":
+        print("   ✅ Gender correctly preserved: Female")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Gender not preserved: {demographics.get('gender')}")
+        verification_results.append(False)
+    
+    if demographics.get('occupation') == "Marketing Manager":
+        print("   ✅ Occupation correctly preserved: Marketing Manager")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Occupation not preserved: {demographics.get('occupation')}")
+        verification_results.append(False)
+    
+    # Check for age-appropriate insights (Millennial 25-40)
+    print("\n🧠 AGE-APPROPRIATE INSIGHTS VERIFICATION:")
+    
+    millennial_traits = ["Tech-savvy", "Value-conscious", "Experience-focused", "Digital native", "Entrepreneurial"]
+    found_millennial_traits = [t for t in millennial_traits if any(t.lower() in trait.lower() for trait in personality_traits)]
+    
+    if len(found_millennial_traits) >= 1:
+        print(f"   ✅ Found age-appropriate Millennial traits: {found_millennial_traits}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ No age-appropriate Millennial traits found")
+        print(f"   Actual traits: {personality_traits}")
+        verification_results.append(False)
+    
+    # Check for occupation-specific insights (Marketing Manager)
+    print("\n💼 OCCUPATION-SPECIFIC INSIGHTS VERIFICATION:")
+    
+    marketing_keywords = ["marketing", "brand", "campaign", "audience", "engagement", "content", "social media", "analytics"]
+    marketing_mentions = 0
+    
+    all_content = ' '.join(recommendations + pain_points + goals).lower()
+    for keyword in marketing_keywords:
+        if keyword in all_content:
+            marketing_mentions += 1
+    
+    if marketing_mentions >= 3:
+        print(f"   ✅ Found occupation-specific marketing insights: {marketing_mentions} marketing-related mentions")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Insufficient occupation-specific insights: Only {marketing_mentions} marketing-related mentions")
+        verification_results.append(False)
+    
+    # Check communication style appropriateness
+    comm_style = generated_persona.get('communication_style', '')
+    print("\n💬 COMMUNICATION STYLE VERIFICATION:")
+    
+    if "Direct" in comm_style and ("informative" in comm_style or "professional" in comm_style):
+        print(f"   ✅ Communication style appropriate for Millennial Marketing Manager")
+        print(f"   Style: {comm_style}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Communication style may not be appropriate")
+        print(f"   Style: {comm_style}")
+        verification_results.append(False)
+    
+    # Check platform-specific recommendations
+    print("\n📱 PLATFORM-SPECIFIC RECOMMENDATIONS VERIFICATION:")
+    
+    platforms = ["Instagram", "LinkedIn", "Twitter", "TikTok"]
+    platform_specific_recs = []
+    
+    for platform in platforms:
+        for rec in recommendations:
+            if platform.lower() in rec.lower():
+                platform_specific_recs.append(f"{platform}: {rec}")
+                break
+    
+    if len(platform_specific_recs) >= 2:
+        print(f"   ✅ Found platform-specific recommendations: {len(platform_specific_recs)} platforms mentioned")
+        for rec in platform_specific_recs[:2]:
+            print(f"   - {rec}")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ Insufficient platform-specific recommendations: {len(platform_specific_recs)} platforms mentioned")
+        verification_results.append(False)
+    
+    # Check image generation
+    image_url = generated_persona.get('persona_image_url')
+    print("\n🖼️ IMAGE GENERATION VERIFICATION:")
+    
+    if image_url:
+        print(f"   ✅ Persona image successfully generated")
+        print(f"   Image URL: {image_url[:60]}...")
+        verification_results.append(True)
+    else:
+        print(f"   ❌ No persona image generated")
+        verification_results.append(False)
+    
+    # Overall assessment
+    print("\n" + "=" * 80)
+    print("🏁 REGULAR PERSONA GENERATION OPENAI FIX TEST RESULTS")
+    print("=" * 80)
+    
+    success_rate = sum(1 for c in verification_results if c) / len(verification_results) * 100
+    
+    print(f"OpenAI Integration: {'✅ WORKING' if openai_used else '❌ FALLBACK USED'}")
+    print(f"Verification Success Rate: {success_rate:.1f}%")
+    print(f"Demographics Preserved: {'✅' if all(verification_results[:3]) else '❌'}")
+    print(f"Age-Appropriate Insights: {'✅' if verification_results[3] else '❌'}")
+    print(f"Occupation-Specific Content: {'✅' if verification_results[4] else '❌'}")
+    print(f"Platform-Specific Recommendations: {'✅' if verification_results[6] else '❌'}")
+    
+    if openai_used and success_rate >= 70:
+        print(f"✅ REGULAR PERSONA GENERATION OPENAI FIX: WORKING")
+        return True
+    else:
+        print(f"❌ REGULAR PERSONA GENERATION OPENAI FIX: NEEDS ATTENTION")
+        if not openai_used:
+            print("   Issue: Still using fallback generation instead of OpenAI")
+        if success_rate < 70:
+            print(f"   Issue: Low quality insights ({success_rate:.1f}% success rate)")
+        return False
+
+def test_regular_vs_multi_source_comparison():
+    """
+    Compare regular persona generation vs multi-source persona generation
+    to verify both paths work correctly and produce quality insights
+    """
+    print("\n" + "=" * 80)
+    print("🔍 TESTING REGULAR VS MULTI-SOURCE PERSONA GENERATION COMPARISON")
+    print("=" * 80)
+    
+    # Get backend URL from frontend/.env
+    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
+    print(f"Using backend URL: {backend_url}")
+    
+    tester = VentasAIPersonaGeneratorTester(backend_url)
+    
+    # Test data for both personas
+    test_demographics = {
+        "age_range": "25-40",
+        "gender": "Female",
+        "income_range": "$75,000-$100,000", 
+        "education": "Bachelor's Degree",
+        "location": "Urban",
+        "occupation": "Marketing Professional",
+        "family_status": "Single"
+    }
+    
+    test_media = {
+        "social_media_platforms": ["Instagram", "LinkedIn", "Facebook"],
+        "content_types": ["Industry news", "How-to guides"],
+        "consumption_time": "Evening",
+        "preferred_devices": ["Smartphone", "Laptop"]
+    }
+    
+    # Step 1: Create and generate regular persona
+    print("\n1️⃣ Creating and generating REGULAR persona...")
+    
+    # Create regular persona
+    regular_success, regular_create = tester.run_test(
+        "Create Regular Persona for Comparison",
+        "POST", 
+        "personas",
+        200,
+        data={
+            "starting_method": "demographics",
+            "name": "Regular Comparison Persona"
+        }
+    )
+    
+    if not regular_success:
+        print("❌ Failed to create regular persona")
+        return False
+    
+    regular_persona_id = regular_create['id']
+    
+    # Update regular persona with demographics
+    regular_update_success, _ = tester.run_test(
+        "Update Regular Persona for Comparison",
+        "PUT",
+        f"personas/{regular_persona_id}",
+        200,
+        data={
+            "demographics": test_demographics,
+            "media_consumption": test_media,
+            "current_step": 4,
+            "completed_steps": [1, 2, 3]
+        }
+    )
+    
+    if not regular_update_success:
+        print("❌ Failed to update regular persona")
+        return False
+    
+    # Generate regular persona (without multi-source flag)
+    time.sleep(1)
+    regular_gen_success, regular_generated = tester.run_test(
+        "Generate Regular Persona for Comparison",
+        "POST",
+        f"personas/{regular_persona_id}/generate",
+        200,
+        data={}
+    )
+    
+    if not regular_gen_success:
+        print("❌ Failed to generate regular persona")
+        return False
+    
+    print("   ✅ Regular persona generated successfully")
+    
+    # Step 2: Create and generate multi-source persona
+    print("\n2️⃣ Creating and generating MULTI-SOURCE persona...")
+    
+    # Create multi-source persona
+    multi_success, multi_create = tester.run_test(
+        "Create Multi-Source Persona for Comparison",
+        "POST",
+        "personas", 
+        200,
+        data={
+            "starting_method": "multi_source_data",
+            "name": "Multi-Source Comparison Persona"
+        }
+    )
+    
+    if not multi_success:
+        print("❌ Failed to create multi-source persona")
+        return False
+    
+    multi_persona_id = multi_create['id']
+    
+    # Update multi-source persona with demographics
+    multi_update_success, _ = tester.run_test(
+        "Update Multi-Source Persona for Comparison",
+        "PUT",
+        f"personas/{multi_persona_id}",
+        200,
+        data={
+            "demographics": test_demographics,
+            "media_consumption": test_media,
+            "current_step": 4,
+            "completed_steps": [1, 2, 3]
+        }
+    )
+    
+    if not multi_update_success:
+        print("❌ Failed to update multi-source persona")
+        return False
+    
+    # Generate multi-source persona (with multi-source flag)
+    time.sleep(1)
+    multi_gen_success, multi_generated = tester.run_test(
+        "Generate Multi-Source Persona for Comparison",
+        "POST",
+        f"personas/{multi_persona_id}/generate",
+        200,
+        data={"use_multi_source_data": True}
+    )
+    
+    if not multi_gen_success:
+        print("❌ Failed to generate multi-source persona")
+        return False
+    
+    print("   ✅ Multi-source persona generated successfully")
+    
+    # Step 3: Compare the results
+    print("\n3️⃣ Comparing regular vs multi-source persona results...")
+    
+    # Extract insights from both personas
+    regular_insights = regular_generated.get('ai_insights', {})
+    regular_recommendations = regular_generated.get('recommendations', [])
+    regular_pain_points = regular_generated.get('pain_points', [])
+    regular_goals = regular_generated.get('goals', [])
+    
+    multi_insights = multi_generated.get('ai_insights', {})
+    multi_recommendations = multi_generated.get('recommendations', [])
+    multi_pain_points = multi_generated.get('pain_points', [])
+    multi_goals = multi_generated.get('goals', [])
+    
+    print("\n📊 COMPARISON RESULTS:")
+    
+    # Compare personality traits
+    regular_traits = regular_insights.get('personality_traits', [])
+    multi_traits = multi_insights.get('personality_traits', [])
+    
+    print(f"\n🧠 PERSONALITY TRAITS:")
+    print(f"   Regular: {regular_traits}")
+    print(f"   Multi-Source: {multi_traits}")
+    
+    # Check for fallback traits in regular persona
+    fallback_traits = ["Data-driven", "Research-oriented", "Platform-savvy", "Goal-focused"]
+    regular_fallback_count = sum(1 for trait in regular_traits if trait in fallback_traits)
+    multi_fallback_count = sum(1 for trait in multi_traits if trait in fallback_traits)
+    
+    print(f"   Regular fallback traits: {regular_fallback_count}/4")
+    print(f"   Multi-source fallback traits: {multi_fallback_count}/4")
+    
+    # Compare recommendations
+    print(f"\n💡 RECOMMENDATIONS:")
+    print(f"   Regular count: {len(regular_recommendations)}")
+    print(f"   Multi-source count: {len(multi_recommendations)}")
+    print(f"   Regular sample: {regular_recommendations[:2]}")
+    print(f"   Multi-source sample: {multi_recommendations[:2]}")
+    
+    # Compare pain points
+    print(f"\n⚠️ PAIN POINTS:")
+    print(f"   Regular count: {len(regular_pain_points)}")
+    print(f"   Multi-source count: {len(multi_pain_points)}")
+    print(f"   Regular sample: {regular_pain_points[:2]}")
+    print(f"   Multi-source sample: {multi_pain_points[:2]}")
+    
+    # Compare goals
+    print(f"\n🎯 GOALS:")
+    print(f"   Regular count: {len(regular_goals)}")
+    print(f"   Multi-source count: {len(multi_goals)}")
+    print(f"   Regular sample: {regular_goals[:2]}")
+    print(f"   Multi-source sample: {multi_goals[:2]}")
+    
+    # Overall assessment
+    print("\n" + "=" * 80)
+    print("🏁 REGULAR VS MULTI-SOURCE COMPARISON RESULTS")
+    print("=" * 80)
+    
+    regular_quality = regular_fallback_count < 3 and len(regular_recommendations) >= 4
+    multi_quality = multi_fallback_count < 3 and len(multi_recommendations) >= 4
+    
+    print(f"Regular Persona Quality: {'✅ GOOD' if regular_quality else '❌ POOR'}")
+    print(f"Multi-Source Persona Quality: {'✅ GOOD' if multi_quality else '❌ POOR'}")
+    
+    if regular_quality and multi_quality:
+        print("✅ BOTH PERSONA GENERATION PATHS WORKING CORRECTLY")
+        return True
+    elif not regular_quality and multi_quality:
+        print("❌ REGULAR PERSONA GENERATION NEEDS FIXING (Multi-source works)")
+        return False
+    elif regular_quality and not multi_quality:
+        print("❌ MULTI-SOURCE PERSONA GENERATION NEEDS FIXING (Regular works)")
+        return False
+    else:
+        print("❌ BOTH PERSONA GENERATION PATHS NEED FIXING")
+        return False
+
 def test_complete_e2e_workflow():
     """
     Test the complete end-to-end workflow for BCM VentasAI Persona Generator:
