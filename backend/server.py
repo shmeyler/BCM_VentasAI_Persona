@@ -1401,34 +1401,106 @@ async def generate_persona(persona_id: str, request: dict = None):
         uploaded_sources = [source for source, data in data_sources.items() if data.get('uploaded')]
         logging.info(f"Final data sources for generation: {uploaded_sources}")
         
-        # If we still have no real data, create a simple fallback prompt
-        if not uploaded_sources:
-            logging.warning("No real data sources found - using basic demographic data only")
-            basic_prompt = f"""
-Create a customer persona based on these demographics:
+        # Always try OpenAI first, even if we only have basic demographic data
+        try:
+            if uploaded_sources:
+                # Assemble all real data from uploads
+                assembled_data = assemble_real_uploaded_data(data_sources, persona_data)
+                logging.info(f"Assembled data summary: SparkToro={bool(assembled_data.get('sparktoro_data'))}, SEMRush={bool(assembled_data.get('semrush_data'))}, Buzzabout={bool(assembled_data.get('buzzabout_data'))}")
+                
+                # Create advanced OpenAI prompt with real data
+                advanced_prompt = create_advanced_persona_prompt(assembled_data, persona_data)
+            else:
+                # Create basic OpenAI prompt with demographic data only
+                logging.info("No uploaded data sources found - using enhanced demographic prompt for OpenAI")
+                advanced_prompt = f"""
+Create a detailed customer persona based on these demographics:
+
+DEMOGRAPHICS:
 - Age: {persona_data.demographics.age_range if persona_data.demographics else 'Unknown'}
 - Gender: {persona_data.demographics.gender if persona_data.demographics else 'Unknown'}  
 - Location: {persona_data.demographics.location if persona_data.demographics else 'Unknown'}
 - Occupation: {persona_data.demographics.occupation if persona_data.demographics else 'Unknown'}
+- Income: {persona_data.demographics.income_range if persona_data.demographics else 'Unknown'}
+- Education: {persona_data.demographics.education if persona_data.demographics else 'Unknown'}
 - Social Platforms: {', '.join(persona_data.media_consumption.social_media_platforms) if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms else 'Unknown'}
 
-Return a JSON object with: personality_traits (4 items), shopping_behavior (string), decision_factors (4 items), digital_behavior (string), recommendations (6 items), pain_points (5 items), goals (5 items).
+Based on these demographics, create a comprehensive persona analysis. Return JSON only:
+{{
+  "ai_insights": {{
+    "personality_traits": [4 age and occupation-specific traits],
+    "shopping_behavior": "detailed description based on demographics",
+    "decision_factors": [4 factors based on age, income, and location],
+    "digital_behavior": "specific description based on age and social platforms"
+  }},
+  "recommendations": [6 specific marketing recommendations based on demographics],
+  "pain_points": [5 pain points based on age, income, and lifestyle],
+  "goals": [5 goals based on age, occupation, and location]
+}}
+
+Make insights specific to the demographic profile provided.
 """
-            advanced_prompt = basic_prompt
-        else:
-            # Assemble all real data from uploads
-            assembled_data = assemble_real_uploaded_data(data_sources, persona_data)
-            logging.info(f"Assembled data summary: SparkToro={bool(assembled_data.get('sparktoro_data'))}, SEMRush={bool(assembled_data.get('semrush_data'))}, Buzzabout={bool(assembled_data.get('buzzabout_data'))}")
             
-            # Create advanced OpenAI prompt with real data
-            advanced_prompt = create_advanced_persona_prompt(assembled_data, persona_data)
-        ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(advanced_prompt)
+            # Always use OpenAI for multi-source personas
+            ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(advanced_prompt)
+            
+        except Exception as e:
+            logging.error(f"OpenAI generation failed for multi-source persona: {str(e)}")
+            # Only fall back to basic generation if OpenAI completely fails
+            ai_insights = generate_intelligent_insights(persona_data)
+            recommendations = generate_data_driven_recommendations(persona_data)
+            pain_points = generate_contextual_pain_points(persona_data)
+            goals = generate_targeted_goals(persona_data)
+            
     else:
-        # Use standard generation for non-multi-source personas
-        ai_insights = generate_intelligent_insights(persona_data)
-        recommendations = generate_data_driven_recommendations(persona_data)
-        pain_points = generate_contextual_pain_points(persona_data)
-        goals = generate_targeted_goals(persona_data)
+        # For non-multi-source personas, try OpenAI first if we have good demographic data
+        try:
+            # Check if we have sufficient demographic data for OpenAI
+            if (persona_data.demographics and 
+                persona_data.demographics.age_range and 
+                persona_data.demographics.gender and 
+                persona_data.demographics.occupation):
+                
+                logging.info("Using OpenAI for non-multi-source persona with good demographic data")
+                basic_prompt = f"""
+Create a detailed customer persona based on these demographics:
+
+DEMOGRAPHICS:
+- Age: {persona_data.demographics.age_range}
+- Gender: {persona_data.demographics.gender}  
+- Location: {persona_data.demographics.location or 'Unknown'}
+- Occupation: {persona_data.demographics.occupation}
+- Income: {persona_data.demographics.income_range or 'Unknown'}
+- Education: {persona_data.demographics.education or 'Unknown'}
+- Social Platforms: {', '.join(persona_data.media_consumption.social_media_platforms) if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms else 'Unknown'}
+
+Create comprehensive persona analysis. Return JSON only:
+{{
+  "ai_insights": {{
+    "personality_traits": [4 age and occupation-specific traits],
+    "shopping_behavior": "detailed description based on demographics",
+    "decision_factors": [4 factors based on age, income, and location],
+    "digital_behavior": "specific description based on age and social platforms"
+  }},
+  "recommendations": [6 specific marketing recommendations based on demographics],
+  "pain_points": [5 pain points based on age, income, and lifestyle],
+  "goals": [5 goals based on age, occupation, and location]
+}}
+
+Make insights specific to the demographic profile provided.
+"""
+                ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(basic_prompt)
+            else:
+                # Use standard generation for personas with limited data
+                raise Exception("Insufficient demographic data for OpenAI generation")
+                
+        except Exception as e:
+            logging.info(f"Using standard generation for non-multi-source persona: {str(e)}")
+            # Use standard generation for non-multi-source personas
+            ai_insights = generate_intelligent_insights(persona_data)
+            recommendations = generate_data_driven_recommendations(persona_data)
+            pain_points = generate_contextual_pain_points(persona_data)
+            goals = generate_targeted_goals(persona_data)
     
     communication_style = _generate_communication_style(persona_data)
     
