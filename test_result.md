@@ -351,6 +351,21 @@ frontend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: OpenAI persona generation fix is working correctly with 100% success rate. Created test persona with realistic demographic data (age: 25-40, gender: Female, income: $50,000-$75,000, location: Urban, occupation: Marketing Professional). Successfully generated persona with OpenAI integration without token limit errors. Verified real data-driven insights are generated (not fallback dummy data). Found Millennial-specific traits: Tech-savvy, Value-conscious, Experience-focused. Platform-specific recommendations include Instagram visual storytelling and LinkedIn professional messaging. OpenAI DALL-E image generation working correctly. The fix successfully resolved the token limit issue by switching from GPT-4 to GPT-3.5-turbo and optimizing prompts. No fallback dummy data detected - all insights are real and contextual to the uploaded demographic data."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE AI PERSONA GENERATION TESTING COMPLETED: Successfully tested the complete AI Persona Generation step functionality. Key findings: (1) UI displays correctly with proper data sources summary showing integrated sources (Resonate, SparkToro, SEMRush, Buzzabout.ai). (2) Generation process explanation is clear and informative, covering demographic analysis, behavioral insights, content preferences, motivational drivers, and visual generation. (3) Generate button triggers API call to /api/personas/{id}/generate with use_multi_source_data=true parameter. (4) Backend API responds correctly and generates comprehensive persona data. (5) Generated personas include real, contextual insights rather than dummy data - verified traits like 'Tech-savvy', 'Innovative', 'Analytical'. (6) Loading states and progress indicators work correctly during generation. (7) Error handling is implemented with retry functionality. (8) Success state displays proper completion metrics and persona preview. (9) Navigation to final persona view works correctly. The AI Persona Generation step is fully functional and successfully creates high-quality, data-driven personas using the OpenAI integration without token limit issues."
+
+  - task: "Direct persona generation functionality"
+    implemented: true
+    working: true
+    file: "src/components/DirectPersonaGenerator.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE DIRECT PERSONA GENERATOR TESTING COMPLETED: Successfully tested the complete Direct Persona Generator functionality. Key findings: (1) Page loads correctly at /direct-generate route with proper title and description. (2) All input fields are properly implemented: Persona Name input with placeholder, SparkToro Excel file upload (.xlsx/.xls), SEMRush CSV file upload (.csv), Buzzabout.ai URL input. (3) Form validation works correctly - requires persona name and at least one data source. (4) Generate button is properly styled and functional. (5) Backend API integration tested successfully - /api/personas/direct-generate endpoint responds correctly. (6) Generated persona data includes proper structure with personality_traits, shopping_behavior, decision_factors, digital_behavior, recommendations, pain_points, and goals. (7) Data quality verification shows real, contextual insights (e.g., 'Tech-savvy', 'Innovative', 'Analytical') rather than dummy data. (8) UI is responsive and user-friendly with clear instructions and file type indicators. (9) Error handling is implemented for network issues and validation errors. The Direct Persona Generator is fully functional and provides an alternative workflow for users who want instant persona generation without the multi-step wizard process."
 
 metadata:
   created_by: "main_agent"
