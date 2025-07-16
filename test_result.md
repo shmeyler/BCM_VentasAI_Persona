@@ -314,13 +314,16 @@ frontend:
     implemented: true
     working: false
     file: "src/components/steps/AIPersonaGenerationStep.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "testing"
         comment: "Based on code analysis of AIPersonaGenerationStep.js, identified potential issues that could cause the persona generation to fail. The startAIGeneration function makes an API call to /api/personas/{id}/generate with the use_multi_source_data parameter set to true. If this API call fails, it would show an error on the final screen. The issue could be related to the OpenAI integration (possibly API key issues) or invalid/incomplete data being passed to the AI generation endpoint."
+      - working: false
+        agent: "main"
+        comment: "CRITICAL BUG IDENTIFIED: OpenAI API failing with 429 error due to token limit exceeded. Request too large for gpt-4: Limit 10000, Requested 39134 tokens. The system falls back to dummy data when OpenAI fails, which explains why users see generic persona insights despite real data being processed correctly. Fixed by: 1) Changing from GPT-4 to GPT-3.5-turbo (higher token limits), 2) Optimizing prompt to reduce token usage while preserving real data insights, 3) Limiting data extraction to top insights only."
 
 metadata:
   created_by: "main_agent"
