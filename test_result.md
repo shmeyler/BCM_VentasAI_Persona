@@ -219,6 +219,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING OF DUMMY DATA FIX COMPLETED: Conducted extensive testing of the comprehensive fix for dummy data issue. Key findings: (1) Multi-source persona generation with use_multi_source_data=true flag WORKS CORRECTLY - generates specific, contextual insights using OpenAI instead of fallback dummy data. Generated traits like 'Ambitious', 'Creative', 'Tech-savvy', 'Socially connected' instead of generic 'Data-driven', 'Research-oriented' fallback traits. (2) Multi-source data with uploaded files generates 100% quality insights with platform-specific recommendations. (3) Regular demographics method still uses fallback generation instead of OpenAI for good demographic data. (4) The fix successfully resolves the token limit issue by using GPT-3.5-turbo and optimized prompts. (5) Image generation works correctly with OpenAI DALL-E. The comprehensive fix is working as intended for multi-source data scenarios, but regular persona generation may need enhancement to use OpenAI for good demographic data."
 
+  - task: "Regular persona generation OpenAI integration"
+    implemented: false
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "ISSUE IDENTIFIED: Regular persona generation (starting_method='demographics') is using fallback generation functions instead of OpenAI even when good demographic data is provided. Testing shows that personas created with demographics method generate generic traits like 'Data-driven', 'Research-oriented', 'Platform-savvy', 'Goal-focused' and generic recommendations like 'Leverage data-driven marketing strategies'. This suggests the OpenAI integration fix is only applied to multi-source data generation (use_multi_source_data=true) but not to regular persona generation. The system should use OpenAI for regular personas when sufficient demographic data is available, falling back to basic generation only when data is truly insufficient."
+
 frontend:
   - task: "React application setup and routing"
     implemented: true
