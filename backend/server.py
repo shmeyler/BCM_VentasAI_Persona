@@ -243,69 +243,66 @@ def assemble_real_uploaded_data(data_sources: dict, persona_data: PersonaData) -
     return assembled
 
 def create_advanced_persona_prompt(assembled_data: dict, persona_data: PersonaData) -> str:
-    """Create comprehensive OpenAI prompt using real assembled data"""
+    """Create optimized OpenAI prompt using real assembled data with token limits"""
     
     prompt = f"""
-Create a comprehensive customer persona based on the following REAL DATA from multiple research sources:
+Create a comprehensive customer persona based on REAL DATA from multiple research sources:
 
-DEMOGRAPHIC PROFILE:
-- Age Range: {assembled_data['demographics']['age_range']}
+DEMOGRAPHICS:
+- Age: {assembled_data['demographics']['age_range']}
 - Gender: {assembled_data['demographics']['gender']}
 - Income: {assembled_data['demographics']['income']}
 - Location: {assembled_data['demographics']['location']}
 - Occupation: {assembled_data['demographics']['occupation']}
-- Education: {assembled_data['demographics']['education']}
-- Social Media Platforms: {', '.join(assembled_data['social_platforms']) if assembled_data['social_platforms'] else 'Not specified'}
+- Social Platforms: {', '.join(assembled_data['social_platforms'][:5]) if assembled_data['social_platforms'] else 'Not specified'}
 
 """
 
-    # Add SparkToro audience research data
+    # Add SparkToro data (limited to top insights)
     if assembled_data['sparktoro_data']:
         prompt += f"""
-SPARKTORO AUDIENCE RESEARCH DATA ({assembled_data['sparktoro_data']['total_categories']} categories analyzed):
+SPARKTORO DATA ({assembled_data['sparktoro_data']['total_categories']} categories):
 """
-        for category_name, category_data in assembled_data['sparktoro_data']['categories'].items():
+        for category_name, category_data in list(assembled_data['sparktoro_data']['categories'].items())[:2]:  # Top 2 categories
             prompt += f"\n{category_name}:\n"
-            for column, top_items in category_data.items():
-                items_str = ', '.join([f"{item} ({score})" for item, score in top_items])
+            for column, top_items in list(category_data.items())[:2]:  # Top 2 columns per category
+                items_str = ', '.join([f"{item}" for item, score in top_items[:3]])  # Top 3 items
                 prompt += f"  - {column}: {items_str}\n"
 
-    # Add SEMRush search behavior data
+    # Add SEMRush data (limited to top keywords)
     if assembled_data['semrush_data']:
         prompt += f"""
-SEMRUSH SEARCH BEHAVIOR DATA ({assembled_data['semrush_data']['total_sheets']} datasets analyzed):
+SEMRUSH KEYWORDS ({assembled_data['semrush_data']['total_sheets']} datasets):
 """
-        for sheet_name, keywords_data in assembled_data['semrush_data']['keywords_by_sheet'].items():
-            prompt += f"\n{sheet_name} Keywords:\n"
-            for column, keywords in keywords_data.items():
-                keywords_str = ', '.join([str(k) for k in keywords])
+        for sheet_name, keywords_data in list(assembled_data['semrush_data']['keywords_by_sheet'].items())[:2]:  # Top 2 sheets
+            prompt += f"\n{sheet_name}:\n"
+            for column, keywords in list(keywords_data.items())[:2]:  # Top 2 columns per sheet
+                keywords_str = ', '.join([str(k) for k in keywords[:5]])  # Top 5 keywords
                 prompt += f"  - {column}: {keywords_str}\n"
 
-    # Add Buzzabout social sentiment data
+    # Add Buzzabout data (limited to top insights)
     if assembled_data['buzzabout_data']:
         prompt += f"""
-BUZZABOUT SOCIAL SENTIMENT DATA:
-- Trending Topics: {', '.join([str(t) for t in assembled_data['buzzabout_data']['trending_topics']])}
-- Sentiment Analysis: {assembled_data['buzzabout_data']['sentiment_analysis']}
-- Social Mentions: {', '.join([str(m) for m in assembled_data['buzzabout_data']['social_mentions']])}
-- Key Hashtags: {', '.join([str(h) for h in assembled_data['buzzabout_data']['hashtags']])}
-- Source URL: {assembled_data['buzzabout_data']['source_url']}
+BUZZABOUT SOCIAL DATA:
+- Topics: {', '.join([str(t) for t in assembled_data['buzzabout_data']['trending_topics'][:10]])}
+- Sentiment: {assembled_data['buzzabout_data']['sentiment_analysis']}
+- Mentions: {', '.join([str(m) for m in assembled_data['buzzabout_data']['social_mentions'][:5]])}
+- Hashtags: {', '.join([str(h) for h in assembled_data['buzzabout_data']['hashtags'][:5]])}
 
 """
 
-    # Add Resonate data if available
+    # Add Resonate data (limited to key insights)
     if assembled_data['resonate_data']:
         prompt += f"""
-RESONATE PSYCHOGRAPHIC DATA:
-- Demographics: {assembled_data['resonate_data']['demographics']}
-- Media Consumption: {assembled_data['resonate_data']['media_consumption']}
-- Brand Affinity: {assembled_data['resonate_data']['brand_affinity']}
+RESONATE DATA:
+- Demographics: {str(assembled_data['resonate_data']['demographics'])[:200]}...
+- Media: {str(assembled_data['resonate_data']['media_consumption'])[:200]}...
+- Brands: {str(assembled_data['resonate_data']['brand_affinity'])[:200]}...
 
 """
 
     prompt += """
-ANALYSIS REQUIREMENTS:
-Based on this REAL data, provide a comprehensive persona analysis in the following JSON format:
+Based on this REAL data, provide comprehensive persona analysis in JSON format:
 
 {
   "ai_insights": {
@@ -322,9 +319,8 @@ Based on this REAL data, provide a comprehensive persona analysis in the followi
 IMPORTANT: 
 - Base ALL insights on the actual data provided above
 - Reference specific websites, keywords, topics, and platforms from the real data
-- Do not use generic assumptions - only insights that can be directly supported by the provided data
-- Make recommendations specific to the actual platforms, interests, and search behaviors shown in the data
-- Ensure pain points and goals reflect the actual search patterns and social sentiment discovered
+- Make recommendations specific to the actual platforms, interests, and search behaviors shown
+- Ensure pain points and goals reflect actual search patterns and social sentiment
 
 Return ONLY the JSON object, no additional text.
 """
