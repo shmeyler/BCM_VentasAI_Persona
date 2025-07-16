@@ -1456,22 +1456,28 @@ Make insights specific to the demographic profile provided.
         # For non-multi-source personas, try OpenAI first if we have good demographic data
         try:
             # Check if we have sufficient demographic data for OpenAI
-            if (persona_data.demographics and 
-                persona_data.demographics.age_range and 
-                persona_data.demographics.gender and 
-                persona_data.demographics.occupation):
+            demographics = persona_data.demographics
+            logging.info(f"Regular persona generation - Demographics check: {demographics}")
+            logging.info(f"Age range: {demographics.age_range if demographics else 'None'}")
+            logging.info(f"Gender: {demographics.gender if demographics else 'None'}")
+            logging.info(f"Occupation: {demographics.occupation if demographics else 'None'}")
+            
+            if (demographics and 
+                demographics.age_range and 
+                demographics.gender and 
+                demographics.occupation):
                 
                 logging.info("Using OpenAI for non-multi-source persona with good demographic data")
                 basic_prompt = f"""
 Create a detailed customer persona based on these demographics:
 
 DEMOGRAPHICS:
-- Age: {persona_data.demographics.age_range}
-- Gender: {persona_data.demographics.gender}  
-- Location: {persona_data.demographics.location or 'Unknown'}
-- Occupation: {persona_data.demographics.occupation}
-- Income: {persona_data.demographics.income_range or 'Unknown'}
-- Education: {persona_data.demographics.education or 'Unknown'}
+- Age: {demographics.age_range}
+- Gender: {demographics.gender}  
+- Location: {demographics.location or 'Unknown'}
+- Occupation: {demographics.occupation}
+- Income: {demographics.income_range or 'Unknown'}
+- Education: {demographics.education or 'Unknown'}
 - Social Platforms: {', '.join(persona_data.media_consumption.social_media_platforms) if persona_data.media_consumption and persona_data.media_consumption.social_media_platforms else 'Unknown'}
 
 Create comprehensive persona analysis. Return JSON only:
@@ -1489,9 +1495,12 @@ Create comprehensive persona analysis. Return JSON only:
 
 Make insights specific to the demographic profile provided.
 """
+                logging.info(f"Generated OpenAI prompt for regular persona: {len(basic_prompt)} characters")
                 ai_insights, recommendations, pain_points, goals = await generate_openai_persona_insights(basic_prompt)
+                logging.info("Successfully generated regular persona using OpenAI")
             else:
                 # Use standard generation for personas with limited data
+                logging.info("Insufficient demographic data for OpenAI generation - falling back to standard generation")
                 raise Exception("Insufficient demographic data for OpenAI generation")
                 
         except Exception as e:
