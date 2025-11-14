@@ -270,6 +270,18 @@ backend:
         agent: "testing"
         comment: "SEMRUSH CSV PROCESSING VERIFIED: Comprehensive testing confirms SEMRush CSV file processing correctly extracts keyword data for persona generation. Test results: (1) Keyword data extraction successful - system properly parses CSV files with keyword, search volume, CPC, competition, and trend data. (2) Data structure verification - extracted keywords organized by columns with proper data types (strings for keywords, integers for search volumes). (3) Multi-column processing - system handles multiple keyword-related columns and preserves data relationships. (4) Sample data extraction confirmed - keywords like 'marketing automation', 'social media strategy', 'content marketing' properly extracted with associated metrics. (5) Integration ready - extracted keyword data structured for use in persona generation algorithms. The SEMRush CSV processing functionality is working correctly and provides usable insights for persona creation."
 
+  - task: "Buzzabout URL crawling functionality"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "BUZZABOUT URL CRAWLING ISSUE IDENTIFIED: Testing revealed API endpoint configuration issue. The /api/personas/buzzabout-upload endpoint expects a file upload (multipart/form-data) but should accept URL parameter for crawling functionality. Current error: 422 'Field required' for 'file' field when sending URL data. The endpoint needs to be updated to handle both file uploads and URL crawling scenarios. This is a minor API interface issue that doesn't affect the core crawling logic but prevents URL-based social sentiment analysis. Recommendation: Update endpoint to accept either file upload or URL parameter, or create separate endpoint for URL crawling."
+
 frontend:
   - task: "React application setup and routing"
     implemented: true
