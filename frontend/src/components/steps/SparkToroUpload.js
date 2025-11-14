@@ -152,10 +152,11 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">📋 What to Upload:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• <strong>Audience Research Reports</strong> - Demographics and psychographics</li>
-            <li>• <strong>Social Media Analysis</strong> - Platform usage and engagement</li>
+            <li>• <strong>Data Exports</strong> - CSV/Excel files from SparkToro dashboard</li>
+            <li>• <strong>Report Screenshots</strong> - PNG/JPG images of SparkToro reports</li>
+            <li>• <strong>Social Media Analysis</strong> - Platform usage and engagement data</li>
+            <li>• <strong>Audience Insights</strong> - Demographics and psychographics</li>
             <li>• <strong>Website/Domain Reports</strong> - Content preferences and online behavior</li>
-            <li>• <strong>Influencer Data</strong> - Followed accounts and thought leaders</li>
           </ul>
         </div>
 
