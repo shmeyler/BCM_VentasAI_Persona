@@ -1742,13 +1742,15 @@ def test_sparktoro_upload_comprehensive():
     print("=" * 80)
     
     # Get backend URL from frontend/.env
-    with open('/app/frontend/.env', 'r') as f:
-        for line in f:
-            if line.startswith('REACT_APP_BACKEND_URL='):
-                backend_url = line.split('=')[1].strip() + '/api'
-                break
-    else:
-        backend_url = "https://ventasai-personas.preview.emergentagent.com/api"
+    backend_url = "https://ventasai-personas.preview.emergentagent.com/api"
+    try:
+        with open('/app/frontend/.env', 'r') as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    backend_url = line.split('=')[1].strip() + '/api'
+                    break
+    except Exception as e:
+        print(f"Using default backend URL due to error reading .env: {e}")
     
     print(f"Using backend URL: {backend_url}")
     
