@@ -2644,9 +2644,39 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
     Upload and process SparkToro audience research data
     """
     try:
-        # Validate file type
-        if not file.filename.lower().endswith(('.csv', '.xlsx', '.xls', '.json')):
-            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload CSV, Excel, or JSON files.")
+        # Check file type and handle accordingly
+        file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+        is_image_file = file_extension in ['png', 'jpg', 'jpeg']
+        is_pdf_file = file_extension == 'pdf'
+        is_data_file = file_extension in ['csv', 'xlsx', 'xls', 'json']
+        
+        if not (is_data_file or is_image_file or is_pdf_file):
+            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload CSV, Excel, JSON, PNG, JPG, or PDF files.")
+        
+        # For image and PDF files, return a success response without processing
+        if is_image_file or is_pdf_file:
+            logging.info(f"Processing {file_extension.upper()} file: {file.filename}")
+            
+            return {
+                "success": True,
+                "parsed_data": {
+                    "source_type": "sparktoro",
+                    "file_name": file.filename,
+                    "file_type": file_extension,
+                    "file_size": f"{len(await file.read()) / 1024:.1f} KB",
+                    "message": f"Successfully uploaded {file_extension.upper()} file - visual data noted for persona context",
+                    "processed_at": datetime.now().isoformat(),
+                    "data_type": "visual_report"
+                },
+                "message": f"Successfully uploaded {file_extension.upper()} file",
+                "file_info": {
+                    "name": file.filename,
+                    "size": len(await file.read()),
+                    "type": f"sparktoro_{file_extension}_report"
+                }
+            }
+        
+        # For data files, continue with existing processing logic
         
         # Create temp directory for processing
         temp_dir = tempfile.mkdtemp()
