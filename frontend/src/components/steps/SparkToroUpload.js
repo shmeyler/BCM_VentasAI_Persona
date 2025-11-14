@@ -263,6 +263,17 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
             </div>
           )}
           
+          {/* Show file type message for image/PDF files */}
+          {dataSources.sparktoro.data && dataSources.sparktoro.data.file_type && 
+           ['png', 'jpg', 'jpeg', 'pdf'].includes(dataSources.sparktoro.data.file_type) && (
+            <div className="mt-3">
+              <span className="font-medium text-green-700">File Type:</span> {dataSources.sparktoro.data.file_type.toUpperCase()} report/screenshot
+              <div className="mt-1 text-xs text-green-600">
+                📸 Visual data uploaded - will be noted for persona context
+              </div>
+            </div>
+          )}
+          
           <div className="mt-3 text-xs text-green-600">
             ✓ This data will be used to generate audience insights and platform recommendations
           </div>
