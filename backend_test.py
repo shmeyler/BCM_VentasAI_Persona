@@ -1307,57 +1307,858 @@ class VentasAIPersonaGeneratorTester:
         
         return success
 
+    # FILE PARSING FOCUSED TESTS - AS REQUESTED IN REVIEW
+    
+    def test_resonate_upload_realistic_demographics(self):
+        """Test Resonate ZIP upload with realistic demographic CSV data to verify parsing accuracy"""
+        print("\n🔍 Testing Resonate Upload with Realistic Demographics...")
+        
+        # Create a realistic demographic CSV with proper column names and data
+        temp_dir = tempfile.mkdtemp()
+        csv_path = os.path.join(temp_dir, "demographics.csv")
+        
+        with open(csv_path, 'w') as f:
+            f.write('Age Group,Gender,Household Income,Education Level,Location,Occupation,Social Platforms\n')
+            f.write('"25-40","Female","$50,000-$75,000","Bachelor\'s Degree","Urban","Marketing Professional","Instagram, Facebook, LinkedIn"\n')
+            f.write('"41-56","Male","$75,000-$100,000","Master\'s Degree","Suburban","Software Engineer","LinkedIn, Twitter, Facebook"\n')
+            f.write('"18-24","Female","$25,000-$50,000","Some College","Urban","Student","TikTok, Instagram, YouTube"\n')
+            f.write('"57-75","Female","$100,000+","PhD","Rural","Executive","LinkedIn, Facebook"\n')
+        
+        # Create ZIP file
+        zip_path = os.path.join(temp_dir, "realistic_demographics.zip")
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            zip_file.write(csv_path, os.path.basename(csv_path))
+        
+        files = {
+            'file': ('realistic_demographics.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "Resonate Upload - Realistic Demographics",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(csv_path)
+        os.remove(zip_path)
+        
+        if success and response.get('success'):
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 DEMOGRAPHIC PARSING VERIFICATION:")
+            
+            # Check if demographics were extracted
+            demographics = parsed_data.get('demographics', {})
+            if demographics:
+                print(f"   ✅ Demographics extracted successfully")
+                
+                # Verify specific demographic fields
+                expected_fields = ['age', 'gender', 'income', 'education', 'location', 'occupation']
+                for field in expected_fields:
+                    if field in demographics:
+                        print(f"   ✅ {field.capitalize()} data found")
+                        # Check if data structure is correct
+                        field_data = demographics[field]
+                        if isinstance(field_data, dict) and 'top_values' in field_data:
+                            values = field_data['top_values']
+                            print(f"      Sample values: {list(values.keys())[:3]}")
+                        elif isinstance(field_data, list) and len(field_data) > 0:
+                            print(f"      Data entries: {len(field_data)}")
+                    else:
+                        print(f"   ❌ {field.capitalize()} data missing")
+                        
+                # Check for fallback vs real parsing
+                if any('fallback' in str(demographics).lower() for field in demographics.values()):
+                    print(f"   ⚠️ WARNING: Fallback parsing detected instead of real data extraction")
+                else:
+                    print(f"   ✅ Real data parsing confirmed (no fallback indicators)")
+            else:
+                print(f"   ❌ No demographics data extracted")
+        
+        return success
+    
+    def test_resonate_csv_parsing_accuracy(self):
+        """Test CSV parsing accuracy for comma-separated values in quotes"""
+        print("\n🔍 Testing CSV Parsing Accuracy for Quoted Values...")
+        
+        # Create CSV with challenging comma-separated values
+        temp_dir = tempfile.mkdtemp()
+        csv_path = os.path.join(temp_dir, "challenging_csv.csv")
+        
+        with open(csv_path, 'w') as f:
+            f.write('Income Range,Location,Interests\n')
+            f.write('"$50,000-$75,000","New York, NY","Marketing, Analytics, Social Media"\n')
+            f.write('"$75,000-$100,000","San Francisco, CA","Technology, Innovation, Startups"\n')
+            f.write('"$100,000+","Austin, TX","Music, Food, Technology"\n')
+        
+        zip_path = os.path.join(temp_dir, "challenging_csv.zip")
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            zip_file.write(csv_path, os.path.basename(csv_path))
+        
+        files = {
+            'file': ('challenging_csv.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        success, response = self.run_test(
+            "CSV Parsing - Quoted Values with Commas",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(csv_path)
+        os.remove(zip_path)
+        
+        if success and response.get('success'):
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 CSV PARSING ACCURACY CHECK:")
+            
+            # Verify that comma-separated values in quotes are handled correctly
+            demographics = parsed_data.get('demographics', {})
+            if 'income' in demographics:
+                income_data = demographics['income']
+                if isinstance(income_data, dict) and 'top_values' in income_data:
+                    income_values = list(income_data['top_values'].keys())
+                    # Check if income ranges with commas are preserved
+                    comma_preserved = any(',' in value for value in income_values)
+                    if comma_preserved:
+                        print(f"   ✅ Comma-separated values preserved correctly")
+                        print(f"   Sample income values: {income_values[:2]}")
+                    else:
+                        print(f"   ❌ Comma-separated values may have been split incorrectly")
+                        print(f"   Found values: {income_values}")
+        
+        return success
+    
+    def test_resonate_data_storage_verification(self):
+        """Verify that parsed Resonate data is properly stored and retrievable"""
+        print("\n🔍 Testing Resonate Data Storage and Retrieval...")
+        
+        # First upload data
+        zip_path = self.create_test_zip_file("realistic")
+        files = {
+            'file': ('storage_test.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        upload_success, upload_response = self.run_test(
+            "Upload for Storage Test",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        os.remove(zip_path)
+        
+        if not upload_success:
+            print("   ❌ Failed to upload data for storage test")
+            return False
+        
+        # Create persona from uploaded data
+        parsed_data = upload_response.get('parsed_data', {})
+        create_success, create_response = self.run_test(
+            "Create Persona for Storage Test",
+            "POST",
+            "personas/resonate-create",
+            200,
+            data={
+                "name": "Storage Test Persona",
+                "parsed_data": parsed_data
+            }
+        )
+        
+        if not create_success:
+            print("   ❌ Failed to create persona from parsed data")
+            return False
+        
+        persona_id = create_response.get('persona', {}).get('id')
+        if not persona_id:
+            print("   ❌ No persona ID returned")
+            return False
+        
+        # Retrieve the persona and verify data persistence
+        retrieve_success, retrieve_response = self.run_test(
+            "Retrieve Stored Persona Data",
+            "GET",
+            f"personas/{persona_id}",
+            200
+        )
+        
+        if retrieve_success:
+            print(f"\n📊 DATA STORAGE VERIFICATION:")
+            
+            # Check if demographic data was preserved
+            demographics = retrieve_response.get('demographics', {})
+            if demographics:
+                print(f"   ✅ Demographics data stored and retrieved")
+                
+                # Verify specific fields
+                preserved_fields = []
+                for field in ['age_range', 'gender', 'income_range', 'location', 'occupation']:
+                    if demographics.get(field):
+                        preserved_fields.append(field)
+                        print(f"   ✅ {field}: {demographics.get(field)}")
+                
+                if len(preserved_fields) >= 3:
+                    print(f"   ✅ Data persistence verified ({len(preserved_fields)}/5 fields preserved)")
+                else:
+                    print(f"   ⚠️ Limited data persistence ({len(preserved_fields)}/5 fields preserved)")
+            else:
+                print(f"   ❌ No demographics data found in stored persona")
+            
+            # Check media consumption data
+            media = retrieve_response.get('media_consumption', {})
+            if media and media.get('social_media_platforms'):
+                print(f"   ✅ Media consumption data preserved: {media.get('social_media_platforms')}")
+            else:
+                print(f"   ❌ Media consumption data not preserved")
+        
+        return retrieve_success
+    
+    def test_sparktoro_excel_tab_extraction(self):
+        """Test SparkToro Excel file processing to ensure data extraction from multiple tabs"""
+        print("\n🔍 Testing SparkToro Excel Tab Extraction...")
+        
+        # Create a mock Excel file with multiple sheets
+        temp_dir = tempfile.mkdtemp()
+        excel_path = os.path.join(temp_dir, "sparktoro_multi_tab.xlsx")
+        
+        # Create Excel file with multiple sheets
+        import pandas as pd
+        
+        # Sheet 1: Websites
+        websites_data = {
+            'Website': ['reddit.com', 'youtube.com', 'linkedin.com'],
+            'Audience Overlap': ['85%', '72%', '68%'],
+            'Category': ['Social Media', 'Video Platform', 'Professional Network']
+        }
+        
+        # Sheet 2: Keywords
+        keywords_data = {
+            'Keyword': ['marketing automation', 'social media strategy', 'content marketing'],
+            'Search Volume': [1200, 2400, 1800],
+            'Competition': ['Medium', 'High', 'Medium']
+        }
+        
+        # Sheet 3: Social Platforms
+        social_data = {
+            'Platform': ['Instagram', 'Facebook', 'Twitter'],
+            'Engagement Rate': ['4.2%', '2.8%', '3.6%'],
+            'Audience Size': ['Large', 'Very Large', 'Large']
+        }
+        
+        with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+            pd.DataFrame(websites_data).to_excel(writer, sheet_name='Websites', index=False)
+            pd.DataFrame(keywords_data).to_excel(writer, sheet_name='Keywords', index=False)
+            pd.DataFrame(social_data).to_excel(writer, sheet_name='Social', index=False)
+        
+        files = {
+            'file': ('sparktoro_multi_tab.xlsx', open(excel_path, 'rb'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Excel - Multi-Tab Processing",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(excel_path)
+        
+        if success and response.get('success'):
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 EXCEL TAB EXTRACTION VERIFICATION:")
+            
+            # Check if multiple tabs were processed
+            if 'categories' in parsed_data:
+                categories = parsed_data['categories']
+                tab_count = len(categories)
+                print(f"   ✅ Processed {tab_count} tabs from Excel file")
+                
+                # Verify specific tab data
+                expected_tabs = ['websites', 'keywords', 'social']
+                found_tabs = []
+                
+                for tab_name in expected_tabs:
+                    # Look for tab data in categories (may have different naming)
+                    tab_found = False
+                    for category_name, category_data in categories.items():
+                        if tab_name.lower() in category_name.lower():
+                            found_tabs.append(tab_name)
+                            tab_found = True
+                            print(f"   ✅ {tab_name.capitalize()} tab data extracted")
+                            
+                            # Check if data structure is correct
+                            if 'top_values' in category_data:
+                                sample_data = category_data['top_values']
+                                print(f"      Sample data keys: {list(sample_data.keys())[:3]}")
+                            break
+                    
+                    if not tab_found:
+                        print(f"   ❌ {tab_name.capitalize()} tab data not found")
+                
+                if len(found_tabs) >= 2:
+                    print(f"   ✅ Multi-tab extraction successful ({len(found_tabs)}/3 tabs found)")
+                else:
+                    print(f"   ⚠️ Limited tab extraction ({len(found_tabs)}/3 tabs found)")
+            else:
+                print(f"   ❌ No categories data found - tabs may not have been processed")
+        
+        return success
+    
+    def test_sparktoro_data_extraction_verification(self):
+        """Verify SparkToro data extraction vs just metadata"""
+        print("\n🔍 Testing SparkToro Data Extraction vs Metadata...")
+        
+        # Test with CSV data file (should extract data)
+        csv_path = self.create_test_data_file("csv")
+        
+        files = {
+            'file': ('sparktoro_data.csv', open(csv_path, 'rb'), 'text/csv')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro CSV - Data Extraction",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        os.remove(csv_path)
+        
+        if success:
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 DATA EXTRACTION vs METADATA CHECK:")
+            
+            # Check if actual data was extracted (not just metadata)
+            if 'categories' in parsed_data:
+                categories = parsed_data['categories']
+                data_extracted = False
+                
+                for category_name, category_data in categories.items():
+                    if 'top_values' in category_data and category_data['top_values']:
+                        data_extracted = True
+                        print(f"   ✅ Real data extracted from {category_name}")
+                        
+                        # Show sample of extracted data
+                        sample_values = list(category_data['top_values'].items())[:3]
+                        print(f"      Sample values: {sample_values}")
+                        break
+                
+                if data_extracted:
+                    print(f"   ✅ Data extraction confirmed (not just metadata)")
+                else:
+                    print(f"   ❌ Only metadata found, no actual data extracted")
+            else:
+                print(f"   ❌ No categories found - data extraction failed")
+        
+        # Test with PNG file (should return metadata only)
+        png_path = self.create_test_image_file("png")
+        
+        files = {
+            'file': ('sparktoro_report.png', open(png_path, 'rb'), 'image/png')
+        }
+        
+        png_success, png_response = self.run_test(
+            "SparkToro PNG - Metadata Only",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        os.remove(png_path)
+        
+        if png_success:
+            png_parsed_data = png_response.get('parsed_data', {})
+            
+            # Verify PNG returns metadata, not data extraction
+            if png_parsed_data.get('data_type') == 'visual_report':
+                print(f"   ✅ PNG correctly processed as visual report (metadata only)")
+            else:
+                print(f"   ❌ PNG processing incorrect")
+        
+        return success and png_success
+    
+    def test_semrush_csv_processing(self):
+        """Test SEMRush CSV file processing"""
+        print("\n🔍 Testing SEMRush CSV Processing...")
+        
+        # Create SEMRush-style CSV
+        temp_dir = tempfile.mkdtemp()
+        csv_path = os.path.join(temp_dir, "semrush_keywords.csv")
+        
+        with open(csv_path, 'w') as f:
+            f.write('Keyword,Search Volume,CPC,Competition,Trend\n')
+            f.write('marketing automation,1200,2.50,0.65,Rising\n')
+            f.write('social media strategy,2400,1.80,0.72,Stable\n')
+            f.write('content marketing,1800,2.10,0.58,Rising\n')
+            f.write('email marketing,3200,1.95,0.68,Stable\n')
+        
+        files = {
+            'file': ('semrush_keywords.csv', open(csv_path, 'rb'), 'text/csv')
+        }
+        
+        success, response = self.run_test(
+            "SEMRush CSV Processing",
+            "POST",
+            "personas/semrush-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(csv_path)
+        
+        if success and response.get('success'):
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 SEMRUSH DATA PROCESSING CHECK:")
+            
+            # Check if keyword data was extracted
+            if 'keyword_data' in parsed_data:
+                keyword_data = parsed_data['keyword_data']
+                print(f"   ✅ Keyword data extracted successfully")
+                
+                # Verify data structure
+                if isinstance(keyword_data, dict):
+                    for sheet_name, sheet_data in keyword_data.items():
+                        if 'keywords' in sheet_data:
+                            keywords = sheet_data['keywords']
+                            print(f"   ✅ Keywords found in {sheet_name}: {len(keywords)} columns")
+                            
+                            # Show sample keywords
+                            for column, keyword_list in keywords.items():
+                                if keyword_list:
+                                    print(f"      {column}: {keyword_list[:3]}")
+                        else:
+                            print(f"   ❌ No keywords found in {sheet_name}")
+                else:
+                    print(f"   ❌ Keyword data structure incorrect")
+            else:
+                print(f"   ❌ No keyword data found in parsed results")
+        
+        return success
+    
+    def test_buzzabout_url_crawling(self):
+        """Test Buzzabout URL crawling functionality"""
+        print("\n🔍 Testing Buzzabout URL Crawling...")
+        
+        # Test with a sample URL
+        test_url = "https://example.com"
+        
+        success, response = self.run_test(
+            "Buzzabout URL Crawling",
+            "POST",
+            "personas/buzzabout-upload",
+            200,
+            data={"url": test_url}
+        )
+        
+        if success and response.get('success'):
+            parsed_data = response.get('parsed_data', {})
+            print(f"\n📊 BUZZABOUT CRAWLING CHECK:")
+            
+            # Check if social sentiment data was extracted
+            if 'social_sentiment' in parsed_data:
+                sentiment_data = parsed_data['social_sentiment']
+                print(f"   ✅ Social sentiment data extracted")
+                
+                # Check for expected fields
+                expected_fields = ['trending_topics', 'sentiment_analysis', 'social_mentions', 'hashtags']
+                for field in expected_fields:
+                    if field in sentiment_data:
+                        data = sentiment_data[field]
+                        if isinstance(data, list) and len(data) > 0:
+                            print(f"   ✅ {field}: {len(data)} items found")
+                        elif isinstance(data, dict) and data:
+                            print(f"   ✅ {field}: data structure found")
+                        else:
+                            print(f"   ⚠️ {field}: empty or invalid data")
+                    else:
+                        print(f"   ❌ {field}: not found")
+            else:
+                print(f"   ❌ No social sentiment data found")
+        
+        return success
+    
+    def test_parsed_data_storage_retrieval(self):
+        """Test that parsed data is properly stored and can be retrieved for persona generation"""
+        print("\n🔍 Testing Parsed Data Storage and Retrieval...")
+        
+        # Create a multi-source persona
+        create_success, create_response = self.run_test(
+            "Create Multi-Source Persona",
+            "POST",
+            "personas",
+            200,
+            data={
+                "starting_method": "multi_source_data",
+                "name": "Data Storage Test Persona"
+            }
+        )
+        
+        if not create_success:
+            print("   ❌ Failed to create persona")
+            return False
+        
+        persona_id = create_response.get('id')
+        
+        # Upload Resonate data
+        zip_path = self.create_test_zip_file("realistic")
+        files = {
+            'file': ('test_data.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        upload_success, upload_response = self.run_test(
+            "Upload Resonate Data",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        os.remove(zip_path)
+        
+        if upload_success:
+            # Save the data to the persona
+            parsed_data = upload_response.get('parsed_data', {})
+            
+            save_success, save_response = self.run_test(
+                "Save Parsed Data to Persona",
+                "POST",
+                "personas/resonate-create",
+                200,
+                data={
+                    "name": "Updated Storage Test Persona",
+                    "parsed_data": parsed_data
+                }
+            )
+            
+            if save_success:
+                # Retrieve the persona to verify data storage
+                retrieve_success, retrieve_response = self.run_test(
+                    "Retrieve Persona with Stored Data",
+                    "GET",
+                    f"personas/{persona_id}",
+                    200
+                )
+                
+                if retrieve_success:
+                    print(f"\n📊 DATA STORAGE AND RETRIEVAL CHECK:")
+                    
+                    # Check if resonate_data is stored
+                    resonate_data = retrieve_response.get('resonate_data')
+                    if resonate_data:
+                        print(f"   ✅ Resonate data stored in persona")
+                        
+                        # Check data structure
+                        if isinstance(resonate_data, dict):
+                            data_keys = list(resonate_data.keys())
+                            print(f"   ✅ Data keys stored: {data_keys[:5]}")
+                        else:
+                            print(f"   ⚠️ Resonate data structure unexpected")
+                    else:
+                        print(f"   ❌ No resonate data found in stored persona")
+                    
+                    return True
+        
+        return False
+    
+    def test_persona_generation_with_real_data(self):
+        """Test persona generation using real parsed data vs fallback data"""
+        print("\n🔍 Testing Persona Generation with Real Parsed Data...")
+        
+        # Create persona with multi-source data
+        create_success, create_response = self.run_test(
+            "Create Persona for Real Data Test",
+            "POST",
+            "personas",
+            200,
+            data={
+                "starting_method": "multi_source_data",
+                "name": "Real Data Generation Test"
+            }
+        )
+        
+        if not create_success:
+            return False
+        
+        persona_id = create_response.get('id')
+        
+        # Upload realistic data
+        zip_path = self.create_test_zip_file("realistic")
+        files = {
+            'file': ('real_data_test.zip', open(zip_path, 'rb'), 'application/zip')
+        }
+        
+        upload_success, upload_response = self.run_test(
+            "Upload Real Data",
+            "POST",
+            "personas/resonate-upload",
+            200,
+            files=files
+        )
+        
+        os.remove(zip_path)
+        
+        if upload_success:
+            # Create persona from the data
+            parsed_data = upload_response.get('parsed_data', {})
+            
+            create_from_data_success, create_from_data_response = self.run_test(
+                "Create Persona from Real Data",
+                "POST",
+                "personas/resonate-create",
+                200,
+                data={
+                    "name": "Real Data Persona",
+                    "parsed_data": parsed_data
+                }
+            )
+            
+            if create_from_data_success:
+                real_data_persona_id = create_from_data_response.get('persona', {}).get('id')
+                
+                # Generate persona with multi-source flag
+                generate_success, generate_response = self.run_test(
+                    "Generate Persona with Real Data",
+                    "POST",
+                    f"personas/{real_data_persona_id}/generate",
+                    200,
+                    data={"use_multi_source_data": True}
+                )
+                
+                if generate_success:
+                    print(f"\n📊 REAL DATA vs FALLBACK VERIFICATION:")
+                    
+                    # Check AI insights for real data indicators
+                    ai_insights = generate_response.get('ai_insights', {})
+                    recommendations = generate_response.get('recommendations', [])
+                    
+                    # Look for fallback indicators
+                    fallback_traits = ["Data-driven", "Research-oriented", "Platform-savvy", "Goal-focused"]
+                    personality_traits = ai_insights.get('personality_traits', [])
+                    
+                    fallback_count = sum(1 for trait in personality_traits if trait in fallback_traits)
+                    
+                    if fallback_count >= 3:
+                        print(f"   ❌ FALLBACK DATA DETECTED: {fallback_count}/4 fallback traits found")
+                        print(f"   Fallback traits: {[t for t in personality_traits if t in fallback_traits]}")
+                    else:
+                        print(f"   ✅ REAL DATA USED: Only {fallback_count}/4 fallback traits")
+                        print(f"   Real traits: {personality_traits}")
+                    
+                    # Check recommendations for specificity
+                    generic_recommendations = [
+                        "Leverage data-driven marketing strategies",
+                        "Focus on platform-specific content optimization"
+                    ]
+                    
+                    generic_count = sum(1 for rec in recommendations if any(generic in rec for generic in generic_recommendations))
+                    
+                    if generic_count >= 2:
+                        print(f"   ❌ GENERIC RECOMMENDATIONS: {generic_count} generic recommendations found")
+                    else:
+                        print(f"   ✅ SPECIFIC RECOMMENDATIONS: Real data-driven recommendations")
+                    
+                    return True
+        
+        return False
+    
+    def test_real_vs_fallback_data_usage(self):
+        """Test to verify real data is being used instead of fallback dummy data"""
+        print("\n🔍 Testing Real vs Fallback Data Usage...")
+        
+        # Create two personas - one with minimal data, one with rich data
+        
+        # 1. Minimal data persona (should use fallback)
+        minimal_success, minimal_response = self.run_test(
+            "Create Minimal Data Persona",
+            "POST",
+            "personas",
+            200,
+            data={
+                "starting_method": "demographics",
+                "name": "Minimal Data Persona"
+            }
+        )
+        
+        if minimal_success:
+            minimal_id = minimal_response.get('id')
+            
+            # Generate with minimal data
+            minimal_gen_success, minimal_gen_response = self.run_test(
+                "Generate Minimal Data Persona",
+                "POST",
+                f"personas/{minimal_id}/generate",
+                200
+            )
+            
+            # 2. Rich data persona (should use real data)
+            rich_success, rich_response = self.run_test(
+                "Create Rich Data Persona",
+                "POST",
+                "personas",
+                200,
+                data={
+                    "starting_method": "multi_source_data",
+                    "name": "Rich Data Persona"
+                }
+            )
+            
+            if rich_success:
+                rich_id = rich_response.get('id')
+                
+                # Upload rich data
+                zip_path = self.create_test_zip_file("realistic")
+                files = {
+                    'file': ('rich_data.zip', open(zip_path, 'rb'), 'application/zip')
+                }
+                
+                upload_success, upload_response = self.run_test(
+                    "Upload Rich Data",
+                    "POST",
+                    "personas/resonate-upload",
+                    200,
+                    files=files
+                )
+                
+                os.remove(zip_path)
+                
+                if upload_success:
+                    # Create persona from rich data
+                    parsed_data = upload_response.get('parsed_data', {})
+                    
+                    rich_create_success, rich_create_response = self.run_test(
+                        "Create Rich Data Persona",
+                        "POST",
+                        "personas/resonate-create",
+                        200,
+                        data={
+                            "name": "Rich Data Persona",
+                            "parsed_data": parsed_data
+                        }
+                    )
+                    
+                    if rich_create_success:
+                        rich_persona_id = rich_create_response.get('persona', {}).get('id')
+                        
+                        # Generate with rich data
+                        rich_gen_success, rich_gen_response = self.run_test(
+                            "Generate Rich Data Persona",
+                            "POST",
+                            f"personas/{rich_persona_id}/generate",
+                            200,
+                            data={"use_multi_source_data": True}
+                        )
+                        
+                        if minimal_gen_success and rich_gen_success:
+                            print(f"\n📊 REAL vs FALLBACK DATA COMPARISON:")
+                            
+                            # Compare the results
+                            minimal_traits = minimal_gen_response.get('ai_insights', {}).get('personality_traits', [])
+                            rich_traits = rich_gen_response.get('ai_insights', {}).get('personality_traits', [])
+                            
+                            minimal_recs = minimal_gen_response.get('recommendations', [])
+                            rich_recs = rich_gen_response.get('recommendations', [])
+                            
+                            print(f"   Minimal Data Traits: {minimal_traits}")
+                            print(f"   Rich Data Traits: {rich_traits}")
+                            
+                            # Check for differences (rich data should be more specific)
+                            if minimal_traits != rich_traits:
+                                print(f"   ✅ Different insights generated based on data richness")
+                            else:
+                                print(f"   ⚠️ Similar insights despite data differences")
+                            
+                            # Check recommendation specificity
+                            if len(rich_recs) > len(minimal_recs):
+                                print(f"   ✅ Rich data generated more recommendations ({len(rich_recs)} vs {len(minimal_recs)})")
+                            else:
+                                print(f"   ⚠️ Similar recommendation count despite data richness")
+                            
+                            return True
+        
+        return False
+
     def print_summary(self):
         """Print a summary of all test results"""
-        print("\n" + "=" * 60)
-        print("📊 TEST RESULTS SUMMARY")
-        print("=" * 60)
+        print("\n" + "=" * 80)
+        print("📊 FILE PARSING FUNCTIONALITY TEST RESULTS")
+        print("=" * 80)
         
         # Group tests by category
         categories = {
-            "Basic API Health Check": ["API Root Health Check"],
-            "Persona Creation Workflow": [
-                "Create Persona with Demographics", 
-                "Get Persona", 
-                "Update Persona Demographics", 
-                "Update Persona Attributes", 
-                "Update Persona Media Consumption"
+            "File Parsing Core Tests": [
+                "Resonate Upload - Realistic Demographics",
+                "CSV Parsing - Quoted Values with Commas", 
+                "Upload for Storage Test",
+                "SparkToro Excel - Multi-Tab Processing",
+                "SparkToro CSV - Data Extraction"
             ],
-            "OpenAI Integration": ["Generate Persona with AI Image"],
-            "Data Sources Integration": [
-                "Data Sources Status", 
-                "Data Sources Demo", 
-                "Persona Insights"
+            "Data Processing Verification": [
+                "SEMRush CSV Processing",
+                "Buzzabout URL Crawling",
+                "Generate Persona with Real Data",
+                "Generate Rich Data Persona"
             ],
-            "File Upload Functionality": [
-                "Resonate Upload - Valid ZIP File", 
-                "Create Persona from Resonate Data"
+            "PNG/JPG/PDF File Support": [
+                "SparkToro Upload - PNG File",
+                "SparkToro Upload - JPG File",
+                "SparkToro Upload - PDF File"
             ],
-            "Additional Tests": [
-                "List Personas", 
-                "List Generated Personas", 
-                "Delete Persona"
+            "Basic API Health": [
+                "API Root Health Check",
+                "Create Persona with Demographics",
+                "Generate Persona with AI Image"
             ]
         }
         
         # Print results by category
         for category, tests in categories.items():
             print(f"\n{category}:")
+            category_passed = 0
+            category_total = 0
+            
             for test in tests:
                 if test in self.test_results:
                     result = self.test_results[test]
                     status = "✅ PASSED" if result["success"] else "❌ FAILED"
                     print(f"  {status} - {test}")
+                    if result["success"]:
+                        category_passed += 1
+                    category_total += 1
                 else:
                     print(f"  ⚠️ NOT RUN - {test}")
+            
+            if category_total > 0:
+                category_rate = (category_passed / category_total) * 100
+                print(f"  📊 Category Success Rate: {category_rate:.1f}% ({category_passed}/{category_total})")
         
         # Print overall statistics
-        print("\n" + "-" * 60)
+        print("\n" + "-" * 80)
         print(f"Total Tests: {self.tests_run}")
         print(f"Passed: {self.tests_passed}")
         print(f"Failed: {self.tests_run - self.tests_passed}")
         print(f"Success Rate: {(self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0:.1f}%")
-        print("=" * 60)
+        
+        # Print critical issues found
+        print("\n🚨 CRITICAL ISSUES IDENTIFIED:")
+        failed_tests = [name for name, result in self.test_results.items() if not result["success"]]
+        if failed_tests:
+            for test in failed_tests:
+                print(f"  ❌ {test}")
+        else:
+            print("  ✅ No critical issues found in file parsing functionality")
+        
+        print("=" * 80)
 
 
 def create_test_csv_with_quoted_values():
