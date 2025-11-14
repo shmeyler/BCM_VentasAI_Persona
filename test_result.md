@@ -429,9 +429,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Multi-source data persona generation"
+    - "Buzzabout URL crawling functionality"
     - "Regular persona generation OpenAI integration"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Buzzabout URL crawling functionality"
   test_all: false
   test_priority: "high_first"
 
