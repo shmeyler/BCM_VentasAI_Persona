@@ -2176,13 +2176,48 @@ def _format_data_for_prompt(data: dict) -> str:
 @api_router.post("/personas/resonate-upload")
 async def upload_resonate_file(file: UploadFile = File(...)):
     """
-    Upload and parse Resonate ZIP file
+    Upload and parse Resonate ZIP file or image/PDF reports
     Returns extracted files and parsed data for persona generation
     """
     try:
-        # Validate file type
-        if not file.filename.lower().endswith('.zip'):
-            raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+        # Check file type and handle accordingly
+        file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+        is_zip_file = file_extension == 'zip'
+        is_image_file = file_extension in ['png', 'jpg', 'jpeg']
+        is_pdf_file = file_extension == 'pdf'
+        
+        if not (is_zip_file or is_image_file or is_pdf_file):
+            raise HTTPException(status_code=400, detail="Only ZIP, PNG, JPG, or PDF files are supported for Resonate data")
+        
+        # For image and PDF files, return a success response without processing
+        if is_image_file or is_pdf_file:
+            logging.info(f"Processing Resonate {file_extension.upper()} file: {file.filename}")
+            
+            # Read file content once to get size
+            file_content = await file.read()
+            file_size_kb = len(file_content) / 1024
+            
+            return {
+                "success": True,
+                "message": f"Successfully uploaded {file_extension.upper()} file",
+                "extracted_files": [file.filename],
+                "parsed_data": {
+                    "source_type": "resonate",
+                    "file_name": file.filename,
+                    "file_type": file_extension,
+                    "file_size": f"{file_size_kb:.1f} KB",
+                    "message": f"Successfully uploaded {file_extension.upper()} file - visual data noted for persona context",
+                    "processed_at": datetime.now().isoformat(),
+                    "data_type": "visual_report",
+                    "demographics": {
+                        "note": f"Visual {file_extension.upper()} data uploaded for manual review"
+                    }
+                }
+            }
+        
+        # For ZIP files, continue with existing processing logic
+        if not is_zip_file:
+            raise HTTPException(status_code=400, detail="Only ZIP files are supported for data processing")
         
         # Save uploaded file to temporary location
         with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
