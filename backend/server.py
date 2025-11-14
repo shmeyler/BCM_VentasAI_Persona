@@ -2657,13 +2657,17 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
         if is_image_file or is_pdf_file:
             logging.info(f"Processing {file_extension.upper()} file: {file.filename}")
             
+            # Read file content once to get size
+            file_content = await file.read()
+            file_size_kb = len(file_content) / 1024
+            
             return {
                 "success": True,
                 "parsed_data": {
                     "source_type": "sparktoro",
                     "file_name": file.filename,
                     "file_type": file_extension,
-                    "file_size": f"{len(await file.read()) / 1024:.1f} KB",
+                    "file_size": f"{file_size_kb:.1f} KB",
                     "message": f"Successfully uploaded {file_extension.upper()} file - visual data noted for persona context",
                     "processed_at": datetime.now().isoformat(),
                     "data_type": "visual_report"
@@ -2671,7 +2675,7 @@ async def upload_sparktoro_data(file: UploadFile = File(...)):
                 "message": f"Successfully uploaded {file_extension.upper()} file",
                 "file_info": {
                     "name": file.filename,
-                    "size": len(await file.read()),
+                    "size": len(file_content),
                     "type": f"sparktoro_{file_extension}_report"
                 }
             }
