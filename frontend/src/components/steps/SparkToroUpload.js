@@ -127,7 +127,8 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-yellow-800 mb-2">📁 Accepted Formats:</h3>
           <div className="text-sm text-yellow-700">
-            CSV, Excel (.xlsx, .xls), JSON - Export from SparkToro dashboard
+            <div><strong>Data Files:</strong> CSV, Excel (.xlsx, .xls), JSON - Export from SparkToro dashboard</div>
+            <div><strong>Reports:</strong> PNG, JPG, PDF - Screenshots or exported reports</div>
           </div>
         </div>
       </div>
