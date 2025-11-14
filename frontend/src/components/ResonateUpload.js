@@ -58,6 +58,21 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
         // Set the parsed data to enable the next step
         setParsedData(result.parsed_data);
         
+        // Update UI to show data preview for PNG/JPG/PDF files
+        setShowDataPreview(true);
+        
+        // Update dataSources state to mark Resonate as uploaded
+        if (setDataSources) {
+          setDataSources(prevSources => ({
+            ...prevSources,
+            resonate: {
+              uploaded: true,
+              data: result.parsed_data || {},
+              required: true
+            }
+          }));
+        }
+        
         // Update UI to show success
         console.log('Image/PDF processing completed successfully');
       } else {
