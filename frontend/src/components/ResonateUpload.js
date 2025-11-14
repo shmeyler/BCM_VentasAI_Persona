@@ -11,7 +11,7 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
 
   const zipRequirements = {
     maxSize: '100MB',
-    accept: '.zip',
+    accept: '.zip, .png, .jpg, .pdf',
     expectedFiles: [
       'Demographics data (PNG, PDF, CSV, XLS)',
       'Audience insights (any format)',
