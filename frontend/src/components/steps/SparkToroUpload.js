@@ -139,7 +139,7 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
             type="file"
             id="sparktoro-file-upload"
             className="hidden"
-            accept=".csv,.xlsx,.xls,.json"
+            accept=".csv,.xlsx,.xls,.json,.png,.jpg,.jpeg,.pdf"
             onChange={(e) => handleFileUpload(e.target.files[0])}
             disabled={isProcessing}
           />
