@@ -73,7 +73,9 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
           }));
         }
         
-        // Update UI to show success
+        // Show success message to user
+        alert(`✅ ${file.name} uploaded successfully!\n\nFile Type: ${result.parsed_data.file_type.toUpperCase()}\nData Type: Visual Report\nSize: ${result.parsed_data.file_size}\n\nThis visual data will be used to inform your persona generation.`);
+        
         console.log('Image/PDF processing completed successfully');
       } else {
         throw new Error(result.message || 'Failed to process file');
