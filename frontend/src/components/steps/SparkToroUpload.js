@@ -301,7 +301,8 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
           <button
             onClick={handleNext}
             disabled={isProcessing}
-            className="bcm-btn-primary"
+            className="bcm-btn-primary whitespace-nowrap"
+            style={{ minWidth: 'max-content' }}
           >
             {parsedData ? "Continue with SparkToro Data →" : "Continue without SparkToro →"}
           </button>
