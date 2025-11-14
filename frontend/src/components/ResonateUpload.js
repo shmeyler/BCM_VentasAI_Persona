@@ -23,6 +23,55 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
     ]
   };
 
+  const processImageOrPdfFile = async (file) => {
+    setIsProcessing(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Get backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Call backend API to process the image/PDF file
+      const response = await fetch(`${backendUrl}/api/personas/resonate-upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to process file';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('Image/PDF file processed successfully:', result);
+        
+        // Set the parsed data to enable the next step
+        setParsedData(result.parsed_data);
+        
+        // Update UI to show success
+        console.log('Image/PDF processing completed successfully');
+      } else {
+        throw new Error(result.message || 'Failed to process file');
+      }
+      
+    } catch (error) {
+      console.error('Error processing image/PDF file:', error);
+      setUploadError(`Error processing file: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const processZipFile = async (zipFile) => {
     setIsProcessing(true);
     setShowFilePreview(false);
