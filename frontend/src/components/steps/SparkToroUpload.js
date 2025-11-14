@@ -74,6 +74,9 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
       const result = await response.json();
       
       if (result.success) {
+        console.log('SparkToro file processed successfully:', result);
+        
+        // Set the parsed data to enable the next step  
         setParsedData(result.parsed_data);
         setUploadedFile(file);
         
@@ -86,6 +89,16 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
             required: false
           }
         }));
+        
+        // Show detailed success message based on data type
+        if (result.parsed_data && result.parsed_data.categories) {
+          const categoryCount = Object.keys(result.parsed_data.categories).length;
+          alert(`✅ SparkToro data processed successfully!\n\nFile: ${file.name}\nCategories Found: ${categoryCount}\nData Type: Multi-tab Excel analysis\n\nYour SparkToro data has been parsed and is ready for persona generation.`);
+        } else if (result.parsed_data && result.parsed_data.file_type) {
+          alert(`✅ ${file.name} uploaded successfully!\n\nFile Type: ${result.parsed_data.file_type.toUpperCase()}\nData Type: Visual Report\nSize: ${result.parsed_data.file_size || 'Unknown'}\n\nThis visual data will be noted for persona context.`);
+        } else {
+          alert(`✅ SparkToro file uploaded successfully!\n\nFile: ${file.name}\nStatus: Processed and ready for persona generation`);
+        }
         
         // Save SparkToro data to the persona
         const saveResponse = await fetch(`${backendUrl}/api/personas/${persona.id}/save-sparktoro`, {
