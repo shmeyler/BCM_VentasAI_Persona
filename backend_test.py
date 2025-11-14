@@ -2991,6 +2991,9 @@ def main():
         elif sys.argv[1] == "multi-source":
             # Run only the multi-source persona workflow test
             return 0 if test_multi_source_persona_workflow() else 1
+        elif sys.argv[1] == "sparktoro":
+            # Run only the SparkToro upload tests
+            return 0 if test_sparktoro_upload_comprehensive() else 1
         elif sys.argv[1] == "resonate":
             # Get backend URL from frontend/.env
             backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
