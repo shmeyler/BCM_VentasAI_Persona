@@ -91,29 +91,40 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
     }
   };
 
-  const handleZipUpload = (files) => {
-    const zipFile = files[0];
+  const handleFileUpload = (files) => {
+    const file = files[0];
     const maxSize = 100 * 1024 * 1024; // 100MB
 
-    if (!zipFile) return;
+    if (!file) return;
+
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    const isZipFile = fileName.endsWith('.zip');
+    const isImageFile = fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+    const isPdfFile = fileName.endsWith('.pdf');
 
     // Validate file type
-    if (!zipFile.name.toLowerCase().endsWith('.zip')) {
-      setUploadError('Please upload a ZIP file containing your Resonate reports.');
+    if (!isZipFile && !isImageFile && !isPdfFile) {
+      setUploadError('Please upload a ZIP, PNG, JPG, or PDF file.');
       return;
     }
 
     // Validate file size
-    if (zipFile.size > maxSize) {
-      setUploadError('ZIP file too large. Maximum size: 100MB');
+    if (file.size > maxSize) {
+      setUploadError('File too large. Maximum size: 100MB');
       return;
     }
 
     setUploadError(null);
-    setUploadedZip(zipFile);
+    setUploadedZip(file);
     
-    // Process the ZIP file immediately with real parsing
-    processZipFile(zipFile);
+    // Process the file - ZIP files get parsed, images/PDFs get uploaded directly
+    if (isZipFile) {
+      processZipFile(file);
+    } else {
+      // For image/PDF files, process them directly
+      processImageOrPdfFile(file);
+    }
   };
 
 
