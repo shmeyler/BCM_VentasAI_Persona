@@ -39,6 +39,8 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
       const result = await response.json();
       
       if (result.success) {
+        console.log('SEMRush file processed successfully:', result);
+        
         setParsedData(result.parsed_data);
         setUploadedFile(file);
         
@@ -51,6 +53,19 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
             required: false
           }
         }));
+        
+        // Show detailed success message based on data type
+        if (result.parsed_data && result.parsed_data.keywords_by_sheet) {
+          const sheetCount = Object.keys(result.parsed_data.keywords_by_sheet).length;
+          const totalKeywords = Object.values(result.parsed_data.keywords_by_sheet).reduce((total, sheet) => {
+            return total + Object.values(sheet).reduce((sheetTotal, keywords) => sheetTotal + keywords.length, 0);
+          }, 0);
+          alert(`✅ SEMRush data processed successfully!\n\nFile: ${file.name}\nData Sheets: ${sheetCount}\nKeywords Extracted: ${totalKeywords}\nData Type: Keyword Analysis\n\nYour SEMRush data has been parsed and is ready for persona generation.`);
+        } else if (result.parsed_data && result.parsed_data.file_type) {
+          alert(`✅ ${file.name} uploaded successfully!\n\nFile Type: ${result.parsed_data.file_type.toUpperCase()}\nData Type: Visual Report\nSize: ${result.parsed_data.file_size || 'Unknown'}\n\nThis visual data will be noted for persona context.`);
+        } else {
+          alert(`✅ SEMRush file uploaded successfully!\n\nFile: ${file.name}\nStatus: Processed and ready for persona generation`);
+        }
         
         // Save SEMRush data to the persona
         await updatePersona({
