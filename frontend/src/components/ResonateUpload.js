@@ -240,11 +240,11 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-semibold text-lg font-montserrat">
-                  Resonate Data ZIP Package
+                  Resonate Data Package
                   <span className="text-red-500 ml-1">*</span>
                 </h3>
                 <p className="text-sm text-gray-600 font-montserrat">
-                  Upload a ZIP file containing your Resonate reports and data files
+                  Upload a ZIP file containing your data files, or individual PNG/JPG/PDF reports
                 </p>
                 <p className="text-xs text-gray-500 font-montserrat mt-1">
                   Accepted: {zipRequirements.accept} | Max size: {zipRequirements.maxSize}
