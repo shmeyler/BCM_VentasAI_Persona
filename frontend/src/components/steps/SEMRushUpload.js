@@ -127,7 +127,7 @@ const SEMRushUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSou
             type="file"
             id="semrush-file-upload"
             className="hidden"
-            accept=".csv,.xlsx,.xls"
+            accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf"
             onChange={(e) => handleFileUpload(e.target.files[0])}
             disabled={isProcessing}
           />
