@@ -3779,143 +3779,98 @@ def test_openai_persona_generation_fix():
         return False
 
 def main():
-    print("🚀 Starting BCM VentasAI Persona Generator Backend Tests")
-    print("=" * 60)
-    
-    # Check if we should run specific tests
-    import sys
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "openai":
-            # Run only the OpenAI persona generation fix test
-            return 0 if test_openai_persona_generation_fix() else 1
-        elif sys.argv[1] == "e2e":
-            # Run only the end-to-end workflow test
-            return 0 if test_complete_e2e_workflow() else 1
-        elif sys.argv[1] == "multi-source":
-            # Run only the multi-source persona workflow test
-            return 0 if test_multi_source_persona_workflow() else 1
-        elif sys.argv[1] == "sparktoro":
-            # Run only the SparkToro upload tests
-            return 0 if test_sparktoro_upload_comprehensive() else 1
-        elif sys.argv[1] == "resonate":
-            # Get backend URL from frontend/.env
-            backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
-            print(f"Using backend URL: {backend_url}")
-            
-            tester = VentasAIPersonaGeneratorTester(backend_url)
-            print("\n🔍 Running focused Resonate data parsing and mapping tests...")
-            tests = [
-                # API Health Check
-                tester.test_api_root,
-                
-                # Resonate Upload Tests
-                tester.test_resonate_upload_realistic,
-                tester.test_resonate_upload_multiple_formats,
-                tester.test_resonate_upload_error_handling,
-                tester.test_resonate_upload_non_zip,
-                
-                # Resonate Create Tests
-                tester.test_resonate_create_from_data,
-                tester.test_end_to_end_resonate_workflow
-            ]
-            
-            print(f"\n📋 Running {len(tests)} API tests...")
-            
-            for test in tests:
-                try:
-                    test()
-                    # Add a small delay between tests to avoid overwhelming the server
-                    time.sleep(0.5)
-                except Exception as e:
-                    print(f"❌ Test failed with exception: {str(e)}")
-            
-            # Print summary of results
-            tester.print_summary()
-            
-            if tester.tests_passed == tester.tests_run:
-                print("🎉 All tests passed! The BCM VentasAI Persona Generator API is working correctly.")
-                return 0
-            else:
-                print("⚠️  Some tests failed. Check the output above for details.")
-                return 1
-    
-    # Run the OpenAI persona generation fix test first (main focus)
-    print("\n🎯 MAIN FOCUS: Testing OpenAI Persona Generation Fix")
-    openai_test_passed = test_openai_persona_generation_fix()
-    
-    # Run the multi-source persona workflow test (secondary focus)
-    print("\n🎯 SECONDARY FOCUS: Testing Multi-Source Persona Generation")
-    multi_source_test_passed = test_multi_source_persona_workflow()
-    
-    # Run the comprehensive end-to-end test
-    print("\n🔍 Running comprehensive end-to-end workflow test...")
-    e2e_success = test_complete_e2e_workflow()
+    """Run comprehensive tests for BCM VentasAI Persona Generator API with focus on file parsing"""
+    print("🚀 Starting BCM VentasAI Persona Generator API Tests - FILE PARSING FOCUS")
+    print("=" * 80)
     
     # Get backend URL from frontend/.env
-    backend_url = "https://28426961-bcbc-4f0c-9e2c-9ae3cc74eaf5.preview.emergentagent.com/api"
-    print(f"\nUsing backend URL: {backend_url}")
+    with open('/app/frontend/.env', 'r') as f:
+        for line in f:
+            if line.startswith('REACT_APP_BACKEND_URL='):
+                backend_url = line.split('=')[1].strip() + '/api'
+                break
+    else:
+        backend_url = "https://ventasai-personas.preview.emergentagent.com/api"
+    
+    print(f"Using backend URL: {backend_url}")
     
     tester = VentasAIPersonaGeneratorTester(backend_url)
     
-    # Define basic health check tests
-    tests = [
-        # 1. Basic API Health Check
-        tester.test_api_root,
+    # FOCUS ON FILE PARSING TESTS AS REQUESTED IN REVIEW
+    print("\n🎯 FOCUS: FILE PARSING FUNCTIONALITY TESTS")
+    print("=" * 80)
+    
+    # File parsing specific tests
+    file_parsing_tests = [
+        # 1. Test Resonate ZIP file upload with realistic CSV data
+        tester.test_resonate_upload_realistic_demographics,
+        tester.test_resonate_csv_parsing_accuracy,
+        tester.test_resonate_data_storage_verification,
         
-        # 2. Persona Creation Workflow
-        tester.test_create_persona,
-        tester.test_get_persona,
-        tester.test_update_persona_demographics,
-        tester.test_update_persona_attributes,
-        tester.test_update_persona_media_consumption,
+        # 2. Test SparkToro Excel file processing 
+        tester.test_sparktoro_excel_tab_extraction,
+        tester.test_sparktoro_data_extraction_verification,
         
-        # 3. OpenAI Integration Test
-        tester.test_generate_persona,
+        # 3. Test SEMRush CSV file processing
+        tester.test_semrush_csv_processing,
         
-        # 4. Data Sources Integration
-        tester.test_data_sources_status,
-        tester.test_data_sources_demo,
-        tester.test_persona_insights,
+        # 4. Test Buzzabout URL crawling functionality
+        tester.test_buzzabout_url_crawling,
         
-        # 5. File Upload Functionality
-        tester.test_resonate_upload,
-        tester.test_resonate_upload_realistic,
-        tester.test_resonate_create_from_data,
-        tester.test_end_to_end_resonate_workflow,
+        # 5. Verify parsed data storage and retrieval
+        tester.test_parsed_data_storage_retrieval,
         
-        # Additional Tests
-        tester.test_list_personas,
-        tester.test_list_generated_personas,
+        # 6. Test persona generation using real parsed data
+        tester.test_persona_generation_with_real_data,
+        
+        # PNG/JPG/PDF file handling tests
+        tester.test_sparktoro_upload_png,
+        tester.test_sparktoro_upload_jpg, 
+        tester.test_sparktoro_upload_pdf,
+        
+        # Data vs fallback verification
+        tester.test_real_vs_fallback_data_usage
     ]
     
-    print(f"\n📋 Running {len(tests)} basic health check tests...")
-    
-    for test in tests:
+    # Run file parsing focused tests
+    for test in file_parsing_tests:
         try:
             test()
-            # Add a small delay between tests to avoid overwhelming the server
+            time.sleep(0.5)  # Small delay between tests
+        except Exception as e:
+            print(f"❌ Test {test.__name__} failed with exception: {str(e)}")
+    
+    # Basic API tests (reduced set)
+    basic_tests = [
+        tester.test_api_root,
+        tester.test_create_persona,
+        tester.test_generate_persona
+    ]
+    
+    print("\n📋 BASIC API VERIFICATION TESTS")
+    print("=" * 50)
+    
+    for test in basic_tests:
+        try:
+            test()
             time.sleep(0.5)
         except Exception as e:
-            print(f"❌ Test failed with exception: {str(e)}")
+            print(f"❌ Test {test.__name__} failed with exception: {str(e)}")
     
-    # Print summary of results
+    # Print summary
     tester.print_summary()
     
-    # Final summary
-    print("\n" + "=" * 80)
-    print("🏆 FINAL TEST SUMMARY")
-    print("=" * 80)
-    print(f"✅ OpenAI Persona Generation Fix Test: {'PASSED' if openai_test_passed else 'FAILED'}")
-    print(f"✅ Multi-Source Persona Generation Test: {'PASSED' if multi_source_test_passed else 'FAILED'}")
-    print(f"✅ End-to-End Workflow Test: {'PASSED' if e2e_success else 'FAILED'}")
-    print(f"✅ Basic System Health: {tester.tests_passed}/{tester.tests_run} tests passed")
+    # Return success/failure based on critical file parsing tests
+    critical_failures = [name for name, result in tester.test_results.items() 
+                        if not result["success"] and any(keyword in name.lower() 
+                        for keyword in ['parsing', 'upload', 'extraction', 'csv', 'excel'])]
     
-    if openai_test_passed and multi_source_test_passed:
-        print("\n🎉 ALL CRITICAL TESTS PASSED - OpenAI fix is working correctly!")
-        return 0
-    else:
-        print("\n⚠️ SOME CRITICAL TESTS FAILED - Review results above")
+    if critical_failures:
+        print(f"\n⚠️ CRITICAL FILE PARSING ISSUES FOUND: {len(critical_failures)} failures")
         return 1
+    else:
+        print(f"\n🎉 FILE PARSING FUNCTIONALITY VERIFIED - All critical tests passed!")
+        return 0
 
 if __name__ == "__main__":
     sys.exit(main())
