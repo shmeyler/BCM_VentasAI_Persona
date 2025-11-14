@@ -956,6 +956,357 @@ class VentasAIPersonaGeneratorTester:
         )
         return success
 
+    # SparkToro Upload Tests
+    def create_test_image_file(self, file_type="png"):
+        """Create a mock image file for testing"""
+        temp_dir = tempfile.mkdtemp()
+        
+        if file_type == "png":
+            file_path = os.path.join(temp_dir, "test_sparktoro_report.png")
+            # Create a simple PNG-like file (mock binary data)
+            with open(file_path, 'wb') as f:
+                # PNG file signature
+                f.write(b'\x89PNG\r\n\x1a\n')
+                f.write(b'Mock PNG data for SparkToro report testing')
+        elif file_type == "jpg":
+            file_path = os.path.join(temp_dir, "test_sparktoro_report.jpg")
+            # Create a simple JPG-like file (mock binary data)
+            with open(file_path, 'wb') as f:
+                # JPEG file signature
+                f.write(b'\xff\xd8\xff\xe0')
+                f.write(b'Mock JPEG data for SparkToro report testing')
+        elif file_type == "pdf":
+            file_path = os.path.join(temp_dir, "test_sparktoro_report.pdf")
+            # Create a simple PDF-like file (mock binary data)
+            with open(file_path, 'wb') as f:
+                # PDF file signature
+                f.write(b'%PDF-1.4\n')
+                f.write(b'Mock PDF data for SparkToro report testing')
+        
+        return file_path
+
+    def create_test_data_file(self, file_type="csv"):
+        """Create a mock data file for testing"""
+        temp_dir = tempfile.mkdtemp()
+        
+        if file_type == "csv":
+            file_path = os.path.join(temp_dir, "test_sparktoro_data.csv")
+            with open(file_path, 'w') as f:
+                f.write("Website,Audience Overlap,Category\n")
+                f.write("reddit.com,85%,Social Media\n")
+                f.write("youtube.com,72%,Video Platform\n")
+                f.write("linkedin.com,68%,Professional Network\n")
+        elif file_type == "xlsx":
+            file_path = os.path.join(temp_dir, "test_sparktoro_data.xlsx")
+            # Create a simple Excel-like file (mock binary data)
+            with open(file_path, 'wb') as f:
+                f.write(b'PK\x03\x04')  # ZIP file signature (Excel files are ZIP archives)
+                f.write(b'Mock Excel data for SparkToro testing')
+        elif file_type == "json":
+            file_path = os.path.join(temp_dir, "test_sparktoro_data.json")
+            with open(file_path, 'w') as f:
+                f.write('{"websites": ["reddit.com", "youtube.com"], "audience_overlap": [85, 72]}')
+        
+        return file_path
+
+    def test_sparktoro_upload_png(self):
+        """Test uploading a PNG file to SparkToro upload endpoint"""
+        png_path = self.create_test_image_file("png")
+        
+        files = {
+            'file': ('sparktoro_report.png', open(png_path, 'rb'), 'image/png')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - PNG File",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(png_path)
+        
+        if success:
+            print(f"   ✅ PNG file uploaded successfully")
+            
+            # Verify response structure
+            if response.get('success') and 'parsed_data' in response:
+                parsed_data = response['parsed_data']
+                print(f"   ✅ Response contains parsed_data")
+                
+                # Check metadata fields
+                expected_fields = ['source_type', 'file_name', 'file_type', 'file_size', 'message', 'processed_at', 'data_type']
+                for field in expected_fields:
+                    if field in parsed_data:
+                        print(f"   ✅ {field}: {parsed_data[field]}")
+                    else:
+                        print(f"   ❌ Missing field: {field}")
+                
+                # Verify file type detection
+                if parsed_data.get('file_type') == 'png':
+                    print(f"   ✅ File type correctly detected as PNG")
+                else:
+                    print(f"   ❌ File type incorrectly detected: {parsed_data.get('file_type')}")
+                
+                # Verify data type
+                if parsed_data.get('data_type') == 'visual_report':
+                    print(f"   ✅ Data type correctly set as visual_report")
+                else:
+                    print(f"   ❌ Data type incorrectly set: {parsed_data.get('data_type')}")
+            
+            # Check file_info
+            if 'file_info' in response:
+                file_info = response['file_info']
+                if file_info.get('type') == 'sparktoro_png_report':
+                    print(f"   ✅ File info type correctly set")
+                else:
+                    print(f"   ❌ File info type incorrect: {file_info.get('type')}")
+        
+        return success
+
+    def test_sparktoro_upload_jpg(self):
+        """Test uploading a JPG file to SparkToro upload endpoint"""
+        jpg_path = self.create_test_image_file("jpg")
+        
+        files = {
+            'file': ('sparktoro_report.jpg', open(jpg_path, 'rb'), 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - JPG File",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(jpg_path)
+        
+        if success:
+            print(f"   ✅ JPG file uploaded successfully")
+            
+            # Verify response structure
+            if response.get('success') and 'parsed_data' in response:
+                parsed_data = response['parsed_data']
+                
+                # Verify file type detection
+                if parsed_data.get('file_type') == 'jpg':
+                    print(f"   ✅ File type correctly detected as JPG")
+                else:
+                    print(f"   ❌ File type incorrectly detected: {parsed_data.get('file_type')}")
+                
+                # Verify message contains JPG reference
+                message = parsed_data.get('message', '')
+                if 'JPG' in message:
+                    print(f"   ✅ Message correctly references JPG file")
+                else:
+                    print(f"   ❌ Message doesn't reference JPG: {message}")
+        
+        return success
+
+    def test_sparktoro_upload_pdf(self):
+        """Test uploading a PDF file to SparkToro upload endpoint"""
+        pdf_path = self.create_test_image_file("pdf")
+        
+        files = {
+            'file': ('sparktoro_report.pdf', open(pdf_path, 'rb'), 'application/pdf')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - PDF File",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(pdf_path)
+        
+        if success:
+            print(f"   ✅ PDF file uploaded successfully")
+            
+            # Verify response structure
+            if response.get('success') and 'parsed_data' in response:
+                parsed_data = response['parsed_data']
+                
+                # Verify file type detection
+                if parsed_data.get('file_type') == 'pdf':
+                    print(f"   ✅ File type correctly detected as PDF")
+                else:
+                    print(f"   ❌ File type incorrectly detected: {parsed_data.get('file_type')}")
+                
+                # Verify message contains PDF reference
+                message = parsed_data.get('message', '')
+                if 'PDF' in message:
+                    print(f"   ✅ Message correctly references PDF file")
+                else:
+                    print(f"   ❌ Message doesn't reference PDF: {message}")
+        
+        return success
+
+    def test_sparktoro_upload_csv_data_processing(self):
+        """Test uploading a CSV file to verify data processing still works"""
+        csv_path = self.create_test_data_file("csv")
+        
+        files = {
+            'file': ('sparktoro_data.csv', open(csv_path, 'rb'), 'text/csv')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - CSV Data Processing",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(csv_path)
+        
+        if success:
+            print(f"   ✅ CSV file processed successfully")
+            
+            # Verify data processing occurred (not just metadata)
+            if response.get('success') and 'parsed_data' in response:
+                parsed_data = response['parsed_data']
+                
+                # Check for data processing indicators
+                if 'categories' in parsed_data:
+                    print(f"   ✅ Data processing occurred - categories found")
+                    
+                    # Check for CSV-specific processing
+                    if 'main_data' in parsed_data['categories']:
+                        main_data = parsed_data['categories']['main_data']
+                        if 'columns' in main_data and 'top_values' in main_data:
+                            print(f"   ✅ CSV data properly parsed with columns and values")
+                            print(f"   Columns found: {main_data.get('columns', [])}")
+                        else:
+                            print(f"   ❌ CSV data not properly parsed")
+                    else:
+                        print(f"   ❌ CSV main_data not found in categories")
+                else:
+                    print(f"   ❌ No data processing occurred - missing categories")
+        
+        return success
+
+    def test_sparktoro_upload_excel_data_processing(self):
+        """Test uploading an Excel file to verify data processing still works"""
+        xlsx_path = self.create_test_data_file("xlsx")
+        
+        files = {
+            'file': ('sparktoro_data.xlsx', open(xlsx_path, 'rb'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - Excel Data Processing",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        
+        # Clean up
+        os.remove(xlsx_path)
+        
+        if success:
+            print(f"   ✅ Excel file processed successfully")
+            
+            # Note: Since we're creating a mock Excel file, it may not parse correctly
+            # but the endpoint should handle it gracefully
+            if response.get('success') and 'parsed_data' in response:
+                parsed_data = response['parsed_data']
+                
+                # Check if it attempted Excel processing
+                if 'categories' in parsed_data or 'error' in parsed_data:
+                    print(f"   ✅ Excel processing attempted")
+                    if 'error' in parsed_data:
+                        print(f"   ⚠️ Excel parsing error (expected for mock file): {parsed_data.get('error')}")
+                else:
+                    print(f"   ❌ Excel processing not attempted")
+        
+        return success
+
+    def test_sparktoro_upload_unsupported_file(self):
+        """Test uploading an unsupported file type"""
+        temp_dir = tempfile.mkdtemp()
+        txt_path = os.path.join(temp_dir, "unsupported.txt")
+        
+        with open(txt_path, 'w') as f:
+            f.write("This is an unsupported file type")
+        
+        files = {
+            'file': ('unsupported.txt', open(txt_path, 'rb'), 'text/plain')
+        }
+        
+        success, response = self.run_test(
+            "SparkToro Upload - Unsupported File Type",
+            "POST",
+            "personas/sparktoro-upload",
+            400,  # Expecting bad request
+            files=files
+        )
+        
+        # Clean up
+        os.remove(txt_path)
+        
+        # For this test, success means we got the expected 400 error
+        if not success and response.get('detail'):
+            print(f"   ✅ Unsupported file correctly rejected")
+            print(f"   Error message: {response.get('detail')}")
+            
+            # Verify error message mentions supported file types
+            error_msg = response.get('detail', '').lower()
+            if 'png' in error_msg and 'jpg' in error_msg and 'pdf' in error_msg:
+                print(f"   ✅ Error message correctly lists supported file types")
+            else:
+                print(f"   ❌ Error message doesn't list all supported file types")
+            
+            return True  # We expect this to "fail" with 400
+        else:
+            print(f"   ❌ Unsupported file was not rejected properly")
+            return False
+
+    def test_sparktoro_upload_response_structure(self):
+        """Test that all file types return proper response structure"""
+        print("\n🔍 Testing SparkToro Upload Response Structure Consistency...")
+        
+        # Test PNG response structure
+        png_path = self.create_test_image_file("png")
+        files = {'file': ('test.png', open(png_path, 'rb'), 'image/png')}
+        
+        success, png_response = self.run_test(
+            "SparkToro PNG Response Structure",
+            "POST",
+            "personas/sparktoro-upload",
+            200,
+            files=files
+        )
+        os.remove(png_path)
+        
+        if success:
+            # Check required fields in response
+            required_fields = ['success', 'parsed_data', 'message', 'file_info']
+            for field in required_fields:
+                if field in png_response:
+                    print(f"   ✅ PNG response has {field}")
+                else:
+                    print(f"   ❌ PNG response missing {field}")
+            
+            # Check parsed_data structure for image files
+            parsed_data = png_response.get('parsed_data', {})
+            required_parsed_fields = ['source_type', 'file_name', 'file_type', 'file_size', 'message', 'processed_at', 'data_type']
+            for field in required_parsed_fields:
+                if field in parsed_data:
+                    print(f"   ✅ PNG parsed_data has {field}")
+                else:
+                    print(f"   ❌ PNG parsed_data missing {field}")
+        
+        return success
+
     def print_summary(self):
         """Print a summary of all test results"""
         print("\n" + "=" * 60)
