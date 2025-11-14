@@ -319,7 +319,7 @@ const ResonateUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataSo
                 id="upload-zip"
                 className="hidden"
                 accept=".zip,.png,.jpg,.jpeg,.pdf"
-                onChange={(e) => handleZipUpload(e.target.files)}
+                onChange={(e) => handleFileUpload(e.target.files)}
               />
               <label
                 htmlFor="upload-zip"
