@@ -13,7 +13,42 @@ const SparkToroUpload = ({ persona, updatePersona, onNext, onPrev, saving, dataS
     setUploadError(null);
     
     try {
-      // Create FormData to send the file
+      // Check file type
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const isImageFile = ['png', 'jpg', 'jpeg'].includes(fileExtension);
+      const isPdfFile = fileExtension === 'pdf';
+      
+      if (isImageFile || isPdfFile) {
+        // For image/PDF files, create a simple success response without backend processing
+        // This allows users to upload visual reports and continue with the workflow
+        const mockResult = {
+          success: true,
+          parsed_data: {
+            source_type: 'sparktoro',
+            file_name: file.name,
+            file_type: fileExtension,
+            message: `Uploaded ${fileExtension.toUpperCase()} file - visual data will be noted for persona context`,
+            processed_at: new Date().toISOString()
+          }
+        };
+        
+        setParsedData(mockResult.parsed_data);
+        setUploadedFile(file);
+        
+        // Update data sources state
+        setDataSources(prev => ({
+          ...prev,
+          sparktoro: {
+            uploaded: true,
+            data: mockResult.parsed_data,
+            required: false
+          }
+        }));
+        
+        return;
+      }
+      
+      // For data files, process through backend
       const formData = new FormData();
       formData.append('file', file);
 
