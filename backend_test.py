@@ -1732,6 +1732,105 @@ def test_regular_persona_generation_openai_fix():
             print(f"   Issue: Low quality insights ({success_rate:.1f}% success rate)")
         return False
 
+def test_sparktoro_upload_comprehensive():
+    """
+    Comprehensive test of the SparkToro upload endpoint functionality
+    focusing on PNG, JPG, PDF file upload as requested in the review
+    """
+    print("\n" + "=" * 80)
+    print("🔍 COMPREHENSIVE SPARKTORO UPLOAD ENDPOINT TESTING")
+    print("=" * 80)
+    
+    # Get backend URL from frontend/.env
+    with open('/app/frontend/.env', 'r') as f:
+        for line in f:
+            if line.startswith('REACT_APP_BACKEND_URL='):
+                backend_url = line.split('=')[1].strip() + '/api'
+                break
+    else:
+        backend_url = "https://ventasai-personas.preview.emergentagent.com/api"
+    
+    print(f"Using backend URL: {backend_url}")
+    
+    tester = VentasAIPersonaGeneratorTester(backend_url)
+    
+    # Test results tracking
+    test_results = []
+    
+    print("\n1️⃣ Testing PNG file upload...")
+    png_result = tester.test_sparktoro_upload_png()
+    test_results.append(("PNG Upload", png_result))
+    
+    print("\n2️⃣ Testing JPG file upload...")
+    jpg_result = tester.test_sparktoro_upload_jpg()
+    test_results.append(("JPG Upload", jpg_result))
+    
+    print("\n3️⃣ Testing PDF file upload...")
+    pdf_result = tester.test_sparktoro_upload_pdf()
+    test_results.append(("PDF Upload", pdf_result))
+    
+    print("\n4️⃣ Testing CSV data processing (backward compatibility)...")
+    csv_result = tester.test_sparktoro_upload_csv_data_processing()
+    test_results.append(("CSV Data Processing", csv_result))
+    
+    print("\n5️⃣ Testing Excel data processing (backward compatibility)...")
+    excel_result = tester.test_sparktoro_upload_excel_data_processing()
+    test_results.append(("Excel Data Processing", excel_result))
+    
+    print("\n6️⃣ Testing unsupported file type rejection...")
+    unsupported_result = tester.test_sparktoro_upload_unsupported_file()
+    test_results.append(("Unsupported File Rejection", unsupported_result))
+    
+    print("\n7️⃣ Testing response structure consistency...")
+    structure_result = tester.test_sparktoro_upload_response_structure()
+    test_results.append(("Response Structure", structure_result))
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🏁 SPARKTORO UPLOAD ENDPOINT TEST RESULTS")
+    print("=" * 80)
+    
+    passed_tests = sum(1 for _, result in test_results if result)
+    total_tests = len(test_results)
+    
+    for test_name, result in test_results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{status} - {test_name}")
+    
+    print(f"\nOverall Results:")
+    print(f"Tests Passed: {passed_tests}/{total_tests}")
+    print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+    
+    # Specific focus areas from the review request
+    print(f"\n🎯 REVIEW REQUEST FOCUS AREAS:")
+    
+    # Image/PDF file handling
+    image_pdf_tests = [("PNG Upload", png_result), ("JPG Upload", jpg_result), ("PDF Upload", pdf_result)]
+    image_pdf_passed = sum(1 for _, result in image_pdf_tests if result)
+    print(f"Image/PDF File Upload: {image_pdf_passed}/3 tests passed")
+    
+    # Data file backward compatibility
+    data_tests = [("CSV Data Processing", csv_result), ("Excel Data Processing", excel_result)]
+    data_passed = sum(1 for _, result in data_tests if result)
+    print(f"Data File Processing (Backward Compatibility): {data_passed}/2 tests passed")
+    
+    # Error handling
+    error_tests = [("Unsupported File Rejection", unsupported_result)]
+    error_passed = sum(1 for _, result in error_tests if result)
+    print(f"Error Handling: {error_passed}/1 tests passed")
+    
+    # Response structure
+    structure_tests = [("Response Structure", structure_result)]
+    structure_passed = sum(1 for _, result in structure_tests if result)
+    print(f"Response Structure: {structure_passed}/1 tests passed")
+    
+    if passed_tests == total_tests:
+        print(f"\n✅ ALL SPARKTORO UPLOAD TESTS PASSED - PNG/JPG/PDF FUNCTIONALITY WORKING")
+        return True
+    else:
+        print(f"\n❌ SOME SPARKTORO UPLOAD TESTS FAILED - NEEDS ATTENTION")
+        return False
+
 def test_regular_vs_multi_source_comparison():
     """
     Compare regular persona generation vs multi-source persona generation
